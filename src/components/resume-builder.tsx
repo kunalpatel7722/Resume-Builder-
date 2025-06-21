@@ -89,6 +89,7 @@ const steps = [
   { id: 'select-method', name: 'Start' },
   { id: 'personal', name: 'Personal Info' },
   { id: 'experience', name: 'Experience' },
+  { id: 'experience-description', name: 'Job Description' },
   { id: 'education', name: 'Education' },
   { id: 'skills', name: 'Skills' },
   { id: 'summary', name: 'Summary' },
@@ -607,9 +608,14 @@ export default function ResumeBuilder() {
                       <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
                       
                       <div className="space-y-4">
-                          <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                            <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                   <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
@@ -643,58 +649,64 @@ export default function ResumeBuilder() {
                                   I currently work here
                               </Label>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          </div>
                       </div>
-
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <Label htmlFor={`description-${exp.id}`}>Description</Label>
-                           <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                              {generatingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                              Enhance with AI
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'underline')}><Underline size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bullet')}><List size={16}/></Button>
-                        </div>
-                        <Textarea 
-                            id={`description-${exp.id}`}
-                            name="description" 
-                            value={exp.description} 
-                            onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} 
-                            className="h-24 rounded-t-none border-t-0" 
-                            placeholder="Use the toolbar to add formatting."
-                          />
-                      </div>
-
-                      {aiSuggestions && suggestionsForIndex === index && (
-                        <Card className="bg-muted/50">
-                          <CardHeader className='p-3'>
-                            <CardTitle className='text-sm'>Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
-                          </CardHeader>
-                          <CardContent className='p-3 pt-0'>
-                            <p className="text-xs text-muted-foreground mb-2">Click to add a bullet point to the description above.</p>
-                            <div className="space-y-1 max-h-40 overflow-y-auto">
-                              {aiSuggestions.responsibilities.map((resp, i) => (
-                                <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
-                                  <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
-                                  <span className="text-xs">{resp}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
                   </div>
                 ))}
                 <Button variant="outline" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
               </div>
+          )}
+          {currentStep === 'experience-description' && (
+            <div className="space-y-6">
+              {resumeData.experience.map((exp, index) => (
+                <div key={exp.id} className="space-y-4 p-4 border rounded-lg">
+                  <h3 className="text-xl font-semibold">Next, write about what you did as a {exp.role || '...'}</h3>
+                  <p className="text-muted-foreground">Pick from our ready-to-use phrases or write your own and get AI writing help.</p>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                        <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                          {generatingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                          Enhance with AI
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'underline')}><Underline size={16}/></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bullet')}><List size={16}/></Button>
+                    </div>
+                    <Textarea 
+                        id={`description-${exp.id}`}
+                        name="description" 
+                        value={exp.description} 
+                        onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} 
+                        className="h-24 rounded-t-none border-t-0" 
+                        placeholder="Use the toolbar to add formatting."
+                      />
+                  </div>
+
+                  {aiSuggestions && suggestionsForIndex === index && (
+                    <Card className="bg-muted/50">
+                      <CardHeader className='p-3'>
+                        <CardTitle className='text-sm'>Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
+                      </CardHeader>
+                      <CardContent className='p-3 pt-0'>
+                        <p className="text-xs text-muted-foreground mb-2">Click to add a bullet point to the description above.</p>
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {aiSuggestions.responsibilities.map((resp, i) => (
+                            <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
+                              <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
+                              <span className="text-xs">{resp}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
            {currentStep === 'education' && (
               <div className="space-y-6">
@@ -785,5 +797,3 @@ export default function ResumeBuilder() {
     </div>
   );
 }
-
-    
