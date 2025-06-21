@@ -91,8 +91,8 @@ export default function ResumeChecker() {
 
   if (result) {
     return (
-       <div className="min-h-screen bg-muted/40 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
+       <div className="min-h-screen bg-muted/40">
+        <div className="max-w-6xl mx-auto p-4 md:p-8">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">ATS Resume Scan Results</h1>
@@ -104,17 +104,23 @@ export default function ResumeChecker() {
               </Button>
             </header>
             
-            <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
+              {/* Left Column */}
+              <div className="lg:col-span-2 space-y-8">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
-                <ImprovementTips suggestions={result.aiSuggestions} />
-                {result.keywordAnalysis && (
-                <KeywordAnalysis data={result.keywordAnalysis} />
-                )}
                 <div className="space-y-4">
-                {result.reportSections.map((section, index) => (
+                  {result.keywordAnalysis && (
+                    <KeywordAnalysis data={result.keywordAnalysis} />
+                  )}
+                  {result.reportSections.map((section, index) => (
                     <ReportSection key={index} section={section} />
-                ))}
+                  ))}
                 </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
+                <ImprovementTips suggestions={result.aiSuggestions} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Extracted Resume Text</CardTitle>
@@ -126,6 +132,7 @@ export default function ResumeChecker() {
                         </pre>
                     </CardContent>
                 </Card>
+              </div>
             </div>
         </div>
       </div>

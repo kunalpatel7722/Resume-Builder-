@@ -87,9 +87,9 @@ export default function ProfileAnalyzer() {
 
   if (result) {
     return (
-       <div className="min-h-screen bg-muted/40 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+       <div className="min-h-screen bg-muted/40">
+        <div className="max-w-6xl mx-auto p-4 md:p-8">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">LinkedIn Review Results</h1>
                 <p className="text-muted-foreground">Here's a detailed breakdown of your LinkedIn profile analysis.</p>
@@ -100,25 +100,32 @@ export default function ProfileAnalyzer() {
               </Button>
             </header>
 
-            <div className="space-y-8">
-              <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
-              <ImprovementTips suggestions={result.aiSuggestions} />
-              <div className="space-y-4">
-                {result.reportSections.map((section, index) => (
-                  <ReportSection key={index} section={section} />
-                ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
+              {/* Left Column */}
+              <div className="lg:col-span-2 space-y-8">
+                <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
+                <div className="space-y-4">
+                  {result.reportSections.map((section, index) => (
+                    <ReportSection key={index} section={section} />
+                  ))}
+                </div>
               </div>
-              <Card>
-                <CardHeader>
-                    <CardTitle>Extracted Profile Text</CardTitle>
-                    <CardDescription>This is the text our AI used for the analysis.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
-                        {result.extractedText}
-                    </pre>
-                </CardContent>
-              </Card>
+
+              {/* Right Column */}
+              <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
+                <ImprovementTips suggestions={result.aiSuggestions} />
+                <Card>
+                  <CardHeader>
+                      <CardTitle>Extracted Profile Text</CardTitle>
+                      <CardDescription>This is the text our AI used for the analysis.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
+                          {result.extractedText}
+                      </pre>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
         </div>
       </div>
