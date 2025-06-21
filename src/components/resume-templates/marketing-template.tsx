@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -5,13 +6,15 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { Mail, Phone, MapPin, Link as LinkIcon, Star, PenTool, MessageSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, websites, customSections, projects } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const tools = customSections.filter(s => s.title.toLowerCase().includes('tool'));
@@ -20,7 +23,7 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   const palette = { accent: '#FF4F81', accentSoft: '#FFE6EF', text: '#1A1A1A', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -59,7 +62,7 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   };
   
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-montserrat", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <main className="w-[62%] p-8 overflow-y-auto">
         <header className="mb-6">
             <h1 className="text-[var(--fs-name)] font-extrabold" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
@@ -74,61 +77,75 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
 
         <div className="space-y-6">
             <RightColumnSection title="Summary">
-                <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+                {summary ? (
+                  <p className="leading-relaxed">{summary}</p>
+                ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
             </RightColumnSection>
-            <RightColumnSection title="Experience" show={hasExperience}>
-                {experience.map(job => (
-                <div key={job.id}>
-                    <div className="flex justify-between items-baseline">
-                    <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
-                    <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
-                    </div>
-                    <p className="font-semibold italic">{job.company || 'Company Name'}</p>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                    {job.description || '* Your job description will appear here.'}
-                    </ReactMarkdown>
-                </div>
-                ))}
+            <RightColumnSection title="Experience">
+                {hasExperience ? (
+                  experience.map(job => (
+                  <div key={job.id}>
+                      <div className="flex justify-between items-baseline">
+                      <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                      <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                      </div>
+                      <p className="font-semibold italic">{job.company || 'Company Name'}</p>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                      {job.description || '* Your job description will appear here.'}
+                      </ReactMarkdown>
+                  </div>
+                  ))
+                ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
             </RightColumnSection>
-             <RightColumnSection title="Projects" show={hasProjects}>
-              {projects.map(p => (
-                <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {p.content || '* Details about your key projects.'}
-                </ReactMarkdown>
-              ))}
+             <RightColumnSection title="Projects">
+              {hasProjects ? (
+                projects.map(p => (
+                  <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {p.content || '* Details about your key projects.'}
+                  </ReactMarkdown>
+                ))
+              ) : <p className="text-gray-400 italic">Your projects will appear here.</p>}
             </RightColumnSection>
-            <RightColumnSection title="Education" show={hasEducation}>
-                 {education.map(edu => (
-                    <div key={edu.id}>
-                        <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'School Name'}</h3>
-                        <p className="font-semibold">{edu.degree || 'Degree'}</p>
-                        <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
-                    </div>
-                ))}
+            <RightColumnSection title="Education">
+                 {hasEducation ? (
+                  education.map(edu => (
+                      <div key={edu.id}>
+                          <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'School Name'}</h3>
+                          <p className="font-semibold">{edu.degree || 'Degree'}</p>
+                          <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                      </div>
+                  ))
+                 ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
             </RightColumnSection>
         </div>
       </main>
 
       <aside className="w-[38%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft}}>
-        <LeftColumnSection title="Skills" icon={Star} show={hasSkills}>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white border px-2 py-0.5 rounded-full">{skill}</span>)}
-          </div>
+        <LeftColumnSection title="Skills" icon={Star}>
+          {hasSkills ? (
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white border px-2 py-0.5 rounded-full">{skill}</span>)}
+            </div>
+          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </LeftColumnSection>
         
-        <LeftColumnSection title="Tools" icon={PenTool} show={hasTools}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-              {tools.map(t => t.content).join('\n') || 'Your marketing tools will appear here.'}
-            </ReactMarkdown>
+        <LeftColumnSection title="Tools" icon={PenTool}>
+            {hasTools ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                {tools.map(t => t.content).join('\n')}
+              </ReactMarkdown>
+            ) : <p className="text-gray-400 italic text-sm">Your marketing tools will appear here.</p>}
         </LeftColumnSection>
 
-        <LeftColumnSection title="Testimonials" icon={MessageSquare} show={hasTestimonials}>
+        <LeftColumnSection title="Testimonials" icon={MessageSquare}>
           <div className="space-y-3">
-             {testimonials.map(section => (
-                <blockquote key={section.id} className="border-l-4 p-2 text-[var(--fs-small)] italic" style={{borderColor: accentColor, backgroundColor: 'white'}}>
-                    {section.content || '"Your testimonial content will appear here."'}
-                </blockquote>
-            ))}
+             {hasTestimonials ? (
+              testimonials.map(section => (
+                  <blockquote key={section.id} className="border-l-4 p-2 text-[var(--fs-small)] italic" style={{borderColor: accentColor, backgroundColor: 'white'}}>
+                      {section.content || '"Your testimonial content will appear here."'}
+                  </blockquote>
+              ))
+             ) : <p className="text-gray-400 italic text-sm">Your testimonials will appear here.</p>}
           </div>
         </LeftColumnSection>
       </aside>

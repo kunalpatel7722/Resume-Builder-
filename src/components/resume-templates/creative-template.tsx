@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -5,20 +6,22 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, awards, websites, projects } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#FF6B35', accentSoft: '#FFE9E2', text: '#1A1A1A', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -56,7 +59,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
   };
 
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-poppins", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <aside className="w-[40%] text-black p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <div className="text-center mt-4">
           <div className="w-24 h-24 rounded-full mx-auto bg-white mb-4 shadow-md flex items-center justify-center">
@@ -72,22 +75,28 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
           </div>
         </LeftColumnSection>
 
-        <LeftColumnSection title="Skills" show={hasSkills}>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white px-3 py-1 rounded-full">{skill}</span>)}
-          </div>
+        <LeftColumnSection title="Skills">
+          {hasSkills ? (
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white px-3 py-1 rounded-full">{skill}</span>)}
+            </div>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your skills will appear here.</p>}
         </LeftColumnSection>
 
-        <LeftColumnSection title="Links" show={hasWebsites}>
-          <div className="space-y-1 text-[var(--fs-small)]">
-            {websites.map(site => <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} style={{color: accentColor}} /><a href={site.url} className="hover:underline truncate" style={{color: palette.text}}>{site.label || site.url}</a></div>)}
-          </div>
+        <LeftColumnSection title="Links">
+          {hasWebsites ? (
+            <div className="space-y-1 text-[var(--fs-small)]">
+              {websites.map(site => <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} style={{color: accentColor}} /><a href={site.url} className="hover:underline truncate" style={{color: palette.text}}>{site.label || site.url}</a></div>)}
+            </div>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your links will appear here.</p>}
         </LeftColumnSection>
 
-        <LeftColumnSection title="Awards" show={hasAwards}>
-          <ul className="text-[var(--fs-small)] list-disc list-inside">
-            {awards.map(award => <li key={award.id}>{award.name}</li>)}
-          </ul>
+        <LeftColumnSection title="Awards">
+          {hasAwards ? (
+            <ul className="text-[var(--fs-small)] list-disc list-inside">
+              {awards.map(award => <li key={award.id}>{award.name}</li>)}
+            </ul>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your awards will appear here.</p>}
         </LeftColumnSection>
       </aside>
 
@@ -96,21 +105,25 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
         <h2 className="text-[var(--fs-h2)] font-light text-gray-700 mb-4">{experience[0]?.role || 'Professional Title'}</h2>
         
         <RightColumnSection title="Summary">
-          <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+          {summary ? (
+             <p className="leading-relaxed">{summary}</p>
+          ) : (
+            <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>
+          )}
         </RightColumnSection>
 
-        <RightColumnSection title="Projects" show={hasProjects}>
-          {projects.map(p => (
+        <RightColumnSection title="Projects">
+          {hasProjects ? projects.map(p => (
             <div key={p.id}>
               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
                 {p.content || '* Details about your key projects.'}
               </ReactMarkdown>
             </div>
-          ))}
+          )) : <p className="text-gray-400 italic">Your projects will appear here.</p>}
         </RightColumnSection>
         
-        <RightColumnSection title="Experience" show={hasExperience}>
-          {experience.map(job => (
+        <RightColumnSection title="Experience">
+          {hasExperience ? experience.map(job => (
             <div key={job.id}>
               <div className="flex justify-between items-baseline">
                 <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -121,17 +134,17 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
                 {job.description || '* Your job description will appear here.'}
               </ReactMarkdown>
             </div>
-          ))}
+          )) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
         </RightColumnSection>
         
-        <RightColumnSection title="Education" show={hasEducation}>
-            {education.map(edu => (
+        <RightColumnSection title="Education">
+            {hasEducation ? education.map(edu => (
                 <div key={edu.id}>
                     <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                     <p className="font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                     <p className="text-[var(--fs-small)]" style={{ color: palette.muted }}>{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                 </div>
-            ))}
+            )) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
         </RightColumnSection>
       </main>
     </div>

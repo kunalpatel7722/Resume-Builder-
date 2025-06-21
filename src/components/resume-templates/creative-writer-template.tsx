@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -9,9 +10,10 @@ import { cn } from '@/lib/utils';
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, awards, websites, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const publications = customSections.filter(s => s.title.toLowerCase().includes('publication'));
@@ -19,7 +21,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const palette = { accent: '#D84315', accentSoft: '#FFEDEA', text: '#1A1A1A', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
   
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -46,9 +48,9 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
   };
   
   return (
-    <div className="bg-white text-[var(--fs-body)] p-10 w-full h-full" style={{ fontFamily: "'Lora', serif", color: palette.text }}>
+    <div className={cn("bg-white text-[var(--fs-body)] p-10 w-full h-full font-serif-lora text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <header className="text-center mb-6">
-        <h1 className="text-[var(--fs-name)] font-bold" style={{fontFamily: "'Playfair Display', serif"}}>{fullName || 'Your Name'}</h1>
+        <h1 className="text-[var(--fs-name)] font-bold font-serif-playfair">{fullName || 'Your Name'}</h1>
         <p className="text-[var(--fs-h3)] text-gray-600 mt-1">{experience[0]?.role || 'Creative Writer'}</p>
         <p className="text-[var(--fs-small)] text-gray-600 mt-1">{personalInfo.email} &bull; {personalInfo.phone}</p>
       </header>
@@ -66,9 +68,9 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
         
         <div className="w-24 h-px bg-gray-200 mx-auto" />
 
-        <Section title="Experience" show={hasExperience}>
+        <Section title="Experience">
           <div className="space-y-4">
-            {experience.map((job) => (
+            {hasExperience ? experience.map((job) => (
               <div key={job.id} className="text-center">
                   <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
                   <p className="text-base italic text-gray-700">{job.company || 'Publisher / Company'} &mdash; {formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
@@ -76,44 +78,44 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
                     {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
               </div>
-            ))}
+            )) : <p className="text-gray-400 italic text-center">Your work experience will appear here.</p>}
           </div>
         </Section>
         
-        <Section title="Publications" show={hasPublications}>
+        <Section title="Publications">
           <div className="space-y-2">
-            {publications.map(section => (
+            {hasPublications ? publications.map(section => (
               <ReactMarkdown key={section.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {section.content || 'Your publications will appear here.'}
+                  {section.content}
               </ReactMarkdown>
-            ))}
+            )) : <p className="text-gray-400 italic text-center">Your publications will appear here.</p>}
           </div>
         </Section>
 
-        <Section title="Education" show={hasEducation}>
-          {education.map((edu) => (
+        <Section title="Education">
+          {hasEducation ? education.map((edu) => (
             <div key={edu.id} className="text-center">
               <h3 className="text-[var(--fs-h3)] font-bold">{edu.degree || 'Degree'}</h3>
               <p className="text-base italic text-gray-700">{edu.school || 'University'}</p>
               <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
             </div>
-          ))}
+          )) : <p className="text-gray-400 italic text-center">Your education details will appear here.</p>}
         </Section>
 
-        <Section title="Awards" show={hasAwards}>
-          {awards.map((award) => (
+        <Section title="Awards">
+          {hasAwards ? awards.map((award) => (
             <div key={award.id} className="text-center mb-2">
                <h3 className="text-[var(--fs-h3)] font-bold">{award.name || 'Award Name'}</h3>
                <p className="text-base italic text-gray-700">{award.description} - {award.date || 'Date'}</p>
             </div>
-          ))}
+          )) : <p className="text-gray-400 italic text-center">Your awards will appear here.</p>}
         </Section>
         
-        <Section title="Links" show={hasWebsites}>
+        <Section title="Links">
           <div className="text-center space-x-4">
-            {websites.map((site) => (
+            {hasWebsites ? websites.map((site) => (
               <a key={site.id} href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a>
-            ))}
+            )) : <p className="text-gray-400 italic">Your website links will appear here.</p>}
           </div>
         </Section>
       </main>

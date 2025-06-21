@@ -1,23 +1,26 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, awards } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#8B4513', accentSoft: '#F2EAE3', text: '#1B1B1B', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -55,10 +58,10 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   };
 
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'Lato', sans-serif" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-lato", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <main className="w-[72%] p-8 overflow-y-auto">
         <header className="mb-6 text-left">
-            <h1 className="text-[1.8rem] leading-tight font-bold" style={{fontFamily: "'Libre Baskerville', serif", color: accentColor}}>{fullName || 'Your Name'}</h1>
+            <h1 className="text-[1.8rem] leading-tight font-bold font-serif-baskerville" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
             <h2 className="text-[var(--fs-h2)] text-gray-600 mt-1">{experience[0]?.role || 'Executive Title'}</h2>
              <div className="text-[var(--fs-small)] text-gray-600 mt-2 flex gap-4">
                 <span>{personalInfo.phone}</span>
@@ -69,68 +72,78 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
 
         <div className="space-y-5">
             <MainSection title="Executive Summary">
-              <p className="leading-relaxed">{summary || 'Your executive summary will appear here.'}</p>
+              {summary ? (
+                <p className="leading-relaxed">{summary}</p>
+              ) : <p className="leading-relaxed text-gray-400 italic">Your executive summary will appear here.</p>}
             </MainSection>
 
-            <MainSection title="Professional Experience" show={hasExperience}>
-              {experience.map(job => (
+            <MainSection title="Professional Experience">
+              {hasExperience ? experience.map(job => (
                 <div key={job.id}>
                   <div className="flex justify-between items-baseline">
                     <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
                     <p className="text-[var(--fs-small)]" style={{ color: palette.muted }}>{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                   </div>
-                  <p className="font-bold italic" style={{ fontFamily: "'Libre Baskerville', serif", color: accentColor }}>{job.company || 'Company Name'}</p>
+                  <p className="font-bold italic font-serif-baskerville" style={{ color: accentColor }}>{job.company || 'Company Name'}</p>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
                     {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
                 </div>
-              ))}
+              )) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
             </MainSection>
 
-            <MainSection title="Education" show={hasEducation}>
-                {education.map(edu => (
+            <MainSection title="Education">
+                {hasEducation ? education.map(edu => (
                     <div key={edu.id}>
                         <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                         <p className="font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                         <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                     </div>
-                ))}
+                )) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
             </MainSection>
 
-             <MainSection title="Awards & Recognition" show={hasAwards}>
-                <ul className="list-disc list-inside space-y-1">
-                    {awards.map(award => (
-                        <li key={award.id}><span className="font-bold">{award.name}</span>, {award.date}</li>
-                    ))}
-                </ul>
+             <MainSection title="Awards & Recognition">
+                {hasAwards ? (
+                    <ul className="list-disc list-inside space-y-1">
+                        {awards.map(award => (
+                            <li key={award.id}><span className="font-bold">{award.name}</span>, {award.date}</li>
+                        ))}
+                    </ul>
+                ) : <p className="text-gray-400 italic">Your awards and recognitions will appear here.</p>}
              </MainSection>
         </div>
       </main>
 
       <aside className="w-[28%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
-        <SidebarSection title="Core Competencies" show={hasSkills}>
-          <ul className="text-[var(--fs-small)] space-y-1">
-            {skills.map((skill, i) => <li key={i}>{skill}</li>)}
-          </ul>
+        <SidebarSection title="Core Competencies">
+          {hasSkills ? (
+            <ul className="text-[var(--fs-small)] space-y-1">
+              {skills.map((skill, i) => <li key={i}>{skill}</li>)}
+            </ul>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your skills will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Certifications" show={hasCertifications}>
-          <div className="space-y-3 text-[var(--fs-small)]">
-            {certifications.map(cert => (
-              <div key={cert.id}>
-                <p className="font-bold">{cert.name}</p>
-                <p className="text-xs">{cert.issuer}, {cert.date}</p>
-              </div>
-            ))}
-          </div>
+        <SidebarSection title="Certifications">
+          {hasCertifications ? (
+            <div className="space-y-3 text-[var(--fs-small)]">
+              {certifications.map(cert => (
+                <div key={cert.id}>
+                  <p className="font-bold">{cert.name}</p>
+                  <p className="text-xs">{cert.issuer}, {cert.date}</p>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your certifications will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Languages" show={hasLanguages}>
-          <ul className="text-[var(--fs-small)] space-y-1">
-            {languages.map(lang => (
-              <li key={lang.id}>{lang.name} ({lang.level})</li>
-            ))}
-          </ul>
+        <SidebarSection title="Languages">
+          {hasLanguages ? (
+            <ul className="text-[var(--fs-small)] space-y-1">
+              {languages.map(lang => (
+                <li key={lang.id}>{lang.name} ({lang.level})</li>
+              ))}
+            </ul>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your languages will appear here.</p>}
         </SidebarSection>
       </aside>
     </div>

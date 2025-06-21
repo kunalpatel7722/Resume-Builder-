@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -5,13 +6,15 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { Mail, Phone, MapPin, Star, Code, Award, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, projects, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const PMP = certifications.find(c => c.name.toLowerCase().includes('pmp'));
@@ -21,7 +24,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   const palette = { accent: '#3358FF', accentSoft: '#ECF1FF', text: '#121212', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -40,7 +43,6 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   };
   
   const SidebarSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean, icon: React.ElementType }> = ({ title, children, show = true, icon: Icon }) => {
-    if (!show) return null;
     return (
       <section>
         <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{color: accentColor}}>
@@ -53,7 +55,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   };
   
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex font-sans" style={{color: palette.text}}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-sans", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')} style={{color: palette.text}}>
       <aside className="w-[18rem] bg-gray-50 p-6 flex flex-col gap-6" style={{backgroundColor: palette.accentSoft}}>
         <SidebarSection title="Contact" icon={MapPin}>
           <div className="space-y-1 text-[var(--fs-small)]" style={{ color: palette.muted }}>
@@ -62,38 +64,46 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
           </div>
         </SidebarSection>
 
-        <SidebarSection title="Skills" icon={Star} show={hasSkills}>
-          <ul className="text-[var(--fs-small)] font-semibold space-y-2">
-            {skills.map((skill, i) => (
-                <li key={i}>
-                    <p>{skill}</p>
-                    <div className="w-full bg-gray-300 h-1.5 rounded-full mt-1"><div className="h-1.5 rounded-full" style={{width: `${Math.floor(Math.random() * 40) + 60}%`, backgroundColor: accentColor}}></div></div>
-                </li>
-            ))}
-          </ul>
+        <SidebarSection title="Skills" icon={Star}>
+          {hasSkills ? (
+            <ul className="text-[var(--fs-small)] font-semibold space-y-2">
+              {skills.map((skill, i) => (
+                  <li key={i}>
+                      <p>{skill}</p>
+                      <div className="w-full bg-gray-300 h-1.5 rounded-full mt-1"><div className="h-1.5 rounded-full" style={{width: `${Math.floor(Math.random() * 40) + 60}%`, backgroundColor: accentColor}}></div></div>
+                  </li>
+              ))}
+            </ul>
+          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </SidebarSection>
 
-        <SidebarSection title="Tools" icon={Code} show={hasTools}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                {tools[0]?.content || 'Your tools will appear here.'}
-            </ReactMarkdown>
+        <SidebarSection title="Tools" icon={Code}>
+            {hasTools ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                  {tools[0]?.content}
+              </ReactMarkdown>
+            ) : <p className="text-gray-400 italic text-sm">Your tools will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Certifications" icon={Award} show={hasCerts}>
-          <div className="space-y-2 text-[var(--fs-small)]">
-            {certifications.map(cert => (
-              <div key={cert.id}>
-                <p className="font-semibold">{cert.name}</p>
-                <p className="text-gray-600">{cert.issuer}, {cert.date}</p>
-              </div>
-            ))}
-          </div>
+        <SidebarSection title="Certifications" icon={Award}>
+          {hasCerts ? (
+            <div className="space-y-2 text-[var(--fs-small)]">
+              {certifications.map(cert => (
+                <div key={cert.id}>
+                  <p className="font-semibold">{cert.name}</p>
+                  <p className="text-gray-600">{cert.issuer}, {cert.date}</p>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-gray-400 italic text-sm">Your certifications will appear here.</p>}
         </SidebarSection>
 
-        <SidebarSection title="Milestones" icon={CheckCircle} show={hasMilestones}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                {milestones[0]?.content || 'Your milestones will appear here.'}
-            </ReactMarkdown>
+        <SidebarSection title="Milestones" icon={CheckCircle}>
+            {hasMilestones ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                  {milestones[0]?.content}
+              </ReactMarkdown>
+            ) : <p className="text-gray-400 italic text-sm">Your milestones will appear here.</p>}
         </SidebarSection>
       </aside>
       
@@ -110,7 +120,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
 
         <section>
             <h2 className="text-[var(--fs-h2)] font-bold mb-2">Summary</h2>
-            <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+            {summary ? (
+              <p className="leading-relaxed">{summary}</p>
+            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
         </section>
         
         <section>

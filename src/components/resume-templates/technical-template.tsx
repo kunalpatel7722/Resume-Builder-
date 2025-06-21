@@ -1,23 +1,26 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, projects } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#009688', accentSoft: '#E0F5F4', text: '#1D1D1D', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
   
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -44,7 +47,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   };
   
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-code", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <main className="flex-1 p-8 grid grid-cols-5 gap-8">
         <div className="col-span-3 space-y-6">
             <header className="mb-6">
@@ -53,7 +56,9 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
                 <p className="text-[var(--fs-small)] text-gray-500 mt-2">{personalInfo.email} &bull; {personalInfo.phone}</p>
             </header>
             
-            <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+            {summary ? (
+              <p className="leading-relaxed">{summary}</p>
+            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
             
             <div className="space-y-4">
               <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2" style={{ color: accentColor }}>Experience</h2>
@@ -73,39 +78,47 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
         </div>
         
         <div className="col-span-2 space-y-6">
-          <Section title="Skills" show={hasSkills}>
-            <ul className="text-[var(--fs-small)] space-y-2">
-              {skills.map((skill, i) => (
-                <li key={i}>
-                  <p>{skill}</p>
-                  <div className="w-full bg-gray-200 h-1.5 rounded-full mt-1"><div className="h-1.5 rounded-full" style={{width: `${Math.floor(Math.random() * 50) + 50}%`, backgroundColor: accentColor}}></div></div>
-                </li>
-              ))}
-            </ul>
+          <Section title="Skills">
+            {hasSkills ? (
+              <ul className="text-[var(--fs-small)] space-y-2">
+                {skills.map((skill, i) => (
+                  <li key={i}>
+                    <p>{skill}</p>
+                    <div className="w-full bg-gray-200 h-1.5 rounded-full mt-1"><div className="h-1.5 rounded-full" style={{width: `${Math.floor(Math.random() * 50) + 50}%`, backgroundColor: accentColor}}></div></div>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
           </Section>
 
-          <Section title="Projects" show={hasProjects}>
-            {projects.map(p => (
-                <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {p.content || '* Your projects will appear here.'}
-                </ReactMarkdown>
-            ))}
+          <Section title="Projects">
+            {hasProjects ? (
+              projects.map(p => (
+                  <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {p.content}
+                  </ReactMarkdown>
+              ))
+            ) : <p className="text-gray-400 italic text-sm">Your projects will appear here.</p>}
           </Section>
 
-          <Section title="Education" show={hasEducation}>
-              {education.map(edu => (
-                  <div key={edu.id} className="mb-2">
-                      <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
-                      <p className="text-[var(--fs-body)]">{edu.degree || 'Degree'}</p>
-                      <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
-                  </div>
-              ))}
+          <Section title="Education">
+              {hasEducation ? (
+                education.map(edu => (
+                    <div key={edu.id} className="mb-2">
+                        <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
+                        <p className="text-[var(--fs-body)]">{edu.degree || 'Degree'}</p>
+                        <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                    </div>
+                ))
+              ) : <p className="text-gray-400 italic text-sm">Your education details will appear here.</p>}
           </Section>
 
-          <Section title="Certifications" show={hasCertifications}>
-             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
-              {certifications.map((cert) => <li key={cert.id}>{cert.name}</li>)}
-            </ul>
+          <Section title="Certifications">
+             {hasCertifications ? (
+              <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
+                {certifications.map((cert) => <li key={cert.id}>{cert.name}</li>)}
+              </ul>
+             ) : <p className="text-gray-400 italic text-sm">Your certifications will appear here.</p>}
           </Section>
         </div>
       </main>

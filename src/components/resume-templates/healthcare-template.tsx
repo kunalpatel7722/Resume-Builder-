@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -5,13 +6,15 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { HeartPulse, Stethoscope, Award, GraduationCap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const HealthcareTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const HealthcareTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, languages } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -19,7 +22,7 @@ export const HealthcareTemplate: React.FC<TemplateProps> = ({ data, accentColor:
   const palette = { accent: '#4CAF50', accentSoft: '#E8F5E9', text: '#1F1F1F', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -49,7 +52,7 @@ export const HealthcareTemplate: React.FC<TemplateProps> = ({ data, accentColor:
   };
 
   return (
-    <div className="bg-white text-[var(--fs-body)] p-8 w-full h-full" style={{ fontFamily: "'Nunito', sans-serif", color: palette.text }}>
+    <div className={cn("bg-white text-[var(--fs-body)] p-8 w-full h-full font-body-nunito text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <header className="text-center mb-6">
         <h1 className="text-[var(--fs-name)] font-bold">{fullName || 'Your Name'}</h1>
         <h2 className="text-[var(--fs-h3)] font-semibold" style={{ color: accentColor }}>{experience[0]?.role || 'Healthcare Professional'}</h2>
@@ -60,51 +63,59 @@ export const HealthcareTemplate: React.FC<TemplateProps> = ({ data, accentColor:
 
       <main className="space-y-5">
         <Section title="Professional Profile" icon={HeartPulse}>
-          <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+          {summary ? (
+            <p className="leading-relaxed">{summary}</p>
+          ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
         </Section>
         
-        <Section title="Clinical Experience" icon={Stethoscope} show={hasExperience}>
-            {experience.map(job => (
-              <div key={job.id}>
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
-                  <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+        <Section title="Clinical Experience" icon={Stethoscope}>
+            {hasExperience ? (
+              experience.map(job => (
+                <div key={job.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                    <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                  </div>
+                  <p className="font-semibold italic text-gray-600">{job.company || 'Hospital / Clinic Name'}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {job.description || '* Your job description will appear here.'}
+                  </ReactMarkdown>
                 </div>
-                <p className="font-semibold italic text-gray-600">{job.company || 'Hospital / Clinic Name'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {job.description || '* Your job description will appear here.'}
-                </ReactMarkdown>
-              </div>
-            ))}
+              ))
+            ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
         </Section>
         
         <div className="grid grid-cols-2 gap-x-8 gap-y-5 pt-2">
-          <Section title="Education" icon={GraduationCap} show={hasEducation}>
-            {education.map(edu => (
-                <div key={edu.id}>
-                    <h3 className="text-[var(--fs-h3)] font-bold">{edu.degree || 'Degree'}</h3>
-                    <p className="text-[var(--fs-body)] text-gray-600">{edu.school || 'University'}</p>
-                    <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
-                </div>
-            ))}
+          <Section title="Education" icon={GraduationCap}>
+            {hasEducation ? (
+              education.map(edu => (
+                  <div key={edu.id}>
+                      <h3 className="text-[var(--fs-h3)] font-bold">{edu.degree || 'Degree'}</h3>
+                      <p className="text-[var(--fs-body)] text-gray-600">{edu.school || 'University'}</p>
+                      <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                  </div>
+              ))
+            ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
           </Section>
           
-          <Section title="Licenses & Certifications" icon={Award} show={hasCertifications}>
-             {certifications.map(cert => (
-                <div key={cert.id}>
-                    <h3 className="text-[var(--fs-h3)] font-bold">{cert.name || 'Certification Name'}</h3>
-                    <p className="text-[var(--fs-small)] text-gray-600">{cert.issuer}, {cert.date}</p>
-                </div>
-            ))}
+          <Section title="Licenses & Certifications" icon={Award}>
+             {hasCertifications ? (
+                certifications.map(cert => (
+                  <div key={cert.id}>
+                      <h3 className="text-[var(--fs-h3)] font-bold">{cert.name || 'Certification Name'}</h3>
+                      <p className="text-[var(--fs-small)] text-gray-600">{cert.issuer}, {cert.date}</p>
+                  </div>
+                ))
+             ) : <p className="text-gray-400 italic">Your licenses and certifications will appear here.</p>}
           </Section>
         </div>
 
-        <Section title="Skills">
-            <p className="text-[var(--fs-body)]">{hasSkills ? skills.join(' • ') : 'Your skills will appear here.'}</p>
+        <Section title="Skills" icon={HeartPulse}>
+            <p className="text-[var(--fs-body)]">{hasSkills ? skills.join(' • ') : <span className="text-gray-400 italic">Your skills will appear here.</span>}</p>
         </Section>
         
-        <Section title="Languages" show={hasLanguages}>
-            <p className="text-[var(--fs-body)]">{languages.map(l => `${l.name} (${l.level})`).join(', ')}</p>
+        <Section title="Languages" icon={HeartPulse}>
+            <p className="text-[var(--fs-body)]">{hasLanguages ? languages.map(l => `${l.name} (${l.level})`).join(', ') : <span className="text-gray-400 italic">Your languages will appear here.</span>}</p>
         </Section>
       </main>
     </div>

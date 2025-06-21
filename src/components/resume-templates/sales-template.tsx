@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -5,13 +6,15 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { Mail, Phone, MapPin, Target, Briefcase, Award, GraduationCap, Trophy } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, awards } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const KPIs = awards.filter(a => a.name.toLowerCase().includes('kpi') || a.description.match(/(\d+%?)/));
@@ -19,7 +22,7 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
   const palette = { accent: '#C62828', accentSoft: '#FFE9E9', text: '#222222', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -46,7 +49,7 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
   };
   
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'Mulish', sans-serif" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-mulish", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <main className="w-[73%] p-8 overflow-y-auto space-y-6">
         <header>
             <h1 className="text-[var(--fs-name)] font-extrabold pb-1 border-b-2" style={{borderColor: accentColor}}>{fullName || 'Your Name'}</h1>
@@ -54,22 +57,26 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
         </header>
 
         <Section title="Summary" icon={Target}>
-          <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+          {summary ? (
+            <p className="leading-relaxed">{summary}</p>
+          ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
         </Section>
         
-        <Section title="Experience" icon={Briefcase} show={hasExperience}>
-            {experience.map(job => (
-              <div key={job.id}>
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
-                  <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+        <Section title="Experience" icon={Briefcase}>
+            {hasExperience ? (
+              experience.map(job => (
+                <div key={job.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                    <p className="text-[var(--fs-small)] text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                  </div>
+                  <p className="font-semibold italic">{job.company || 'Company Name'}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {job.description || '* Your job description will appear here.'}
+                  </ReactMarkdown>
                 </div>
-                <p className="font-semibold italic">{job.company || 'Company Name'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {job.description || '* Your job description will appear here.'}
-                </ReactMarkdown>
-              </div>
-            ))}
+              ))
+            ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
         </Section>
       </main>
 
@@ -82,38 +89,46 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
           </div>
         </section>
 
-        <Section title="KPIs" icon={Trophy} show={hasKPIs}>
+        <Section title="KPIs" icon={Trophy}>
             <div className="space-y-2">
-              {KPIs.map(kpi => (
-                <div key={kpi.id} className="text-center bg-white p-2 rounded shadow">
-                  <p className="text-xl font-bold" style={{color: accentColor}}>{kpi.description.match(/(\d+%?)/)?.[0]}</p>
-                  <p className="text-[10px] uppercase font-semibold">{kpi.name.replace('KPI:','')}</p>
-                </div>
-              ))}
+              {hasKPIs ? (
+                KPIs.map(kpi => (
+                  <div key={kpi.id} className="text-center bg-white p-2 rounded shadow">
+                    <p className="text-xl font-bold" style={{color: accentColor}}>{kpi.description.match(/(\d+%?)/)?.[0]}</p>
+                    <p className="text-[10px] uppercase font-semibold">{kpi.name.replace('KPI:','')}</p>
+                  </div>
+                ))
+              ) : <p className="text-gray-400 italic text-center text-sm">Your KPIs will appear here.</p>}
             </div>
         </Section>
         
-        <Section title="Skills" icon={Award} show={hasSkills}>
-          <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
-            {skills.map((skill, i) => <li key={i}>{skill}</li>)}
-          </ul>
+        <Section title="Skills" icon={Award}>
+          {hasSkills ? (
+            <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
+              {skills.map((skill, i) => <li key={i}>{skill}</li>)}
+            </ul>
+          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </Section>
         
-        <Section title="Education" icon={GraduationCap} show={hasEducation}>
-            {education.map(edu => (
-                <div key={edu.id}>
-                    <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
-                    <p className="text-[var(--fs-small)]">{edu.degree || 'Degree'}</p>
-                </div>
-            ))}
+        <Section title="Education" icon={GraduationCap}>
+            {hasEducation ? (
+              education.map(edu => (
+                  <div key={edu.id}>
+                      <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
+                      <p className="text-[var(--fs-small)]">{edu.degree || 'Degree'}</p>
+                  </div>
+              ))
+            ) : <p className="text-gray-400 italic text-sm">Your education details will appear here.</p>}
         </Section>
 
-        <Section title="Certifications" icon={Award} show={hasCertifications}>
-           <div className="space-y-2 text-[var(--fs-small)]">
-            {certifications.map(cert => (
-              <p key={cert.id} className="font-bold">{cert.name}</p>
-            ))}
-          </div>
+        <Section title="Certifications" icon={Award}>
+           {hasCertifications ? (
+              <div className="space-y-2 text-[var(--fs-small)]">
+                {certifications.map(cert => (
+                  <p key={cert.id} className="font-bold">{cert.name}</p>
+                ))}
+              </div>
+           ) : <p className="text-gray-400 italic text-sm">Your certifications will appear here.</p>}
         </Section>
       </aside>
     </div>

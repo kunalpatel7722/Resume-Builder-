@@ -1,17 +1,20 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const testimonials = customSections.filter(s => s.title.toLowerCase().includes('testimonial'));
@@ -19,12 +22,12 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
   const palette = { accent: '#00838F', accentSoft: '#E0F7FA', text: '#1E1E1E', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
   
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
   const hasSkills = skills.length > 0;
-  const hasTestimonials = testimonials.length > 0;
+  const hasTestimonials = hasContent(testimonials, 'content');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -45,7 +48,7 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
   };
 
   return (
-    <div className="bg-white text-[var(--fs-body)] w-full h-full flex" style={{ fontFamily: "'Karla', sans-serif" }}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-karla", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <aside className="w-[33%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <header>
           <h1 className="text-[var(--fs-name)] font-bold text-gray-900">{fullName || 'Your Name'}</h1>
@@ -60,57 +63,67 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
           </div>
         </Section>
         
-        <Section title="Skills" show={hasSkills}>
-          <div className="flex flex-wrap gap-1.5">
-            {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white text-gray-800 px-2 py-0.5 rounded-full border">{skill}</span>)}
-          </div>
+        <Section title="Skills">
+          {hasSkills ? (
+            <div className="flex flex-wrap gap-1.5">
+              {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white text-gray-800 px-2 py-0.5 rounded-full border">{skill}</span>)}
+            </div>
+          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your skills will appear here.</p>}
         </Section>
         
-        <Section title="Education" show={hasEducation}>
-            {education.map((edu) => {
-              const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-              return (
-                <div key={edu.id} className="mb-2">
-                  <h3 className="font-bold text-[var(--fs-h3)]">{edu.school || 'School Name'}</h3>
-                  <p className="text-[var(--fs-body)] text-gray-600">{edu.degree || 'Degree'}</p>
-                  <p className="text-[var(--fs-small)] text-gray-500">{gradDate || 'Date'}</p>
-                </div>
-              );
-            })}
+        <Section title="Education">
+            {hasEducation ? (
+              education.map((edu) => {
+                const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                return (
+                  <div key={edu.id} className="mb-2">
+                    <h3 className="font-bold text-[var(--fs-h3)]">{edu.school || 'School Name'}</h3>
+                    <p className="text-[var(--fs-body)] text-gray-600">{edu.degree || 'Degree'}</p>
+                    <p className="text-[var(--fs-small)] text-gray-500">{gradDate || 'Date'}</p>
+                  </div>
+                );
+              })
+            ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your education details will appear here.</p>}
         </Section>
       </aside>
 
       <main className="w-[67%] p-8 space-y-6">
         <Section title="Summary">
-            <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
+            {summary ? (
+              <p className="leading-relaxed">{summary}</p>
+            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
         </Section>
 
-        <Section title="Experience" show={hasExperience}>
+        <Section title="Experience">
           <div className="space-y-4">
-            {experience.map(job => (
-              <div key={job.id}>
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
-                  <p className="text-[var(--fs-small)] text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+            {hasExperience ? (
+              experience.map(job => (
+                <div key={job.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                    <p className="text-[var(--fs-small)] text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                  </div>
+                  <p className="font-semibold" style={{ color: accentColor }}>{job.company || 'Company Name'}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                      {job.description || '* Your job description will appear here.'}
+                  </ReactMarkdown>
                 </div>
-                <p className="font-semibold" style={{ color: accentColor }}>{job.company || 'Company Name'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                    {job.description || '* Your job description will appear here.'}
-                </ReactMarkdown>
-              </div>
-            ))}
+              ))
+            ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
           </div>
         </Section>
         
-        <Section title="Testimonials" show={hasTestimonials}>
+        <Section title="Testimonials">
           <div className="space-y-3">
-            {testimonials.map(section => (
-                <div key={section.id} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: accentColor}}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none italic">
-                        {section.content || '"Your testimonial content will appear here."'}
-                    </ReactMarkdown>
-                </div>
-            ))}
+            {hasTestimonials ? (
+              testimonials.map(section => (
+                  <div key={section.id} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: accentColor}}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none italic">
+                          {section.content || '"Your testimonial content will appear here."'}
+                      </ReactMarkdown>
+                  </div>
+              ))
+            ) : <p className="text-gray-400 italic">Your testimonials will appear here.</p>}
           </div>
         </Section>
       </main>

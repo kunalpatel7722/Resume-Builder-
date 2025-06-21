@@ -1,23 +1,27 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
   accentColor?: string;
+  fontSize?: 'sm' | 'md' | 'lg';
 }
 
-export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
+export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const palette = { accent: '#000000', text: '#000000', muted: '#555555', line: '#B5B5B5', bg: '#FFFFFF' };
+  const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -45,9 +49,9 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
   };
 
   return (
-    <div className="bg-white p-8 w-full h-full text-[var(--fs-body)]" style={{ fontFamily: "'Source Serif 4', serif", color: palette.text }}>
+    <div className={cn("bg-white p-8 w-full h-full text-[var(--fs-body)] font-serif-source text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <header className="text-center mb-4">
-        <h1 className="text-[var(--fs-name)] font-bold" style={{ color: palette.accent }}>{fullName || 'Your Name'}</h1>
+        <h1 className="text-[var(--fs-name)] font-bold" style={{ color: accentColor }}>{fullName || 'Your Name'}</h1>
         <div className="text-[var(--fs-small)] mt-2" style={{ color: palette.muted }}>
           <span>{fullAddress || 'Address'}</span>
           {(fullAddress && (personalInfo.phone || personalInfo.email)) && <span className="mx-2">|</span>}
@@ -61,14 +65,16 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
 
       <main className="space-y-5">
         <Section title="Summary">
-          <p className="text-center leading-relaxed">
-            {summary || 'A brief summary about your professional background and career goals.'}
-          </p>
+          {summary ? (
+            <p className="text-center leading-relaxed">{summary}</p>
+          ) : (
+             <p className="text-center leading-relaxed text-gray-400 italic">A brief summary about your professional background and career goals.</p>
+          )}
         </Section>
         
-        <Section title="Experience" show={hasExperience}>
+        <Section title="Experience">
           <div className="space-y-4">
-            {experience.map((job) => {
+            {hasExperience ? experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id}>
@@ -84,13 +90,13 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
                   </ReactMarkdown>
                 </div>
               );
-            })}
+            }) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
           </div>
         </Section>
 
-        <Section title="Education" show={hasEducation}>
+        <Section title="Education">
           <div className="space-y-2">
-            {education.map((edu) => {
+            {hasEducation ? education.map((edu) => {
               const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
               return (
                 <div key={edu.id}>
@@ -101,28 +107,32 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
                   <p className="italic">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                 </div>
               );
-            })}
+            }) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
           </div>
         </Section>
         
         <div className="grid grid-cols-2 gap-4">
-            <Section title="Skills" show={hasSkills}>
-                <div className="flex flex-wrap justify-center gap-2">
-                    {skills.map((skill, i) => (
-                        <span key={i} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
-                        {skill}
-                        </span>
-                    ))}
-                </div>
+            <Section title="Skills">
+                {hasSkills ? (
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {skills.map((skill, i) => (
+                            <span key={i} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                            {skill}
+                            </span>
+                        ))}
+                    </div>
+                ) : <p className="text-gray-400 italic text-center">Your skills will appear here.</p>}
             </Section>
-            <Section title="Certifications" show={hasCerts}>
-                <div className="flex flex-wrap justify-center gap-2">
-                    {certifications.map((cert) => (
-                        <span key={cert.id} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
-                        {cert.name}
-                        </span>
-                    ))}
-                </div>
+            <Section title="Certifications">
+                 {hasCerts ? (
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {certifications.map((cert) => (
+                            <span key={cert.id} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                            {cert.name}
+                            </span>
+                        ))}
+                    </div>
+                 ) : <p className="text-gray-400 italic text-center">Your certifications will appear here.</p>}
             </Section>
         </div>
       </main>
