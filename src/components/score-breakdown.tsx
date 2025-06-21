@@ -16,6 +16,13 @@ interface ScoreBreakdownProps {
   breakdown: ScoreBreakdownData;
 }
 
+const getScoreColorStyle = (score: number) => {
+    if (score >= 85) return "var(--chart-2)"; // Green
+    if (score >= 70) return "var(--chart-4)"; // Yellow
+    if (score >= 50) return "var(--chart-1)"; // Orange
+    return "var(--destructive)"; // Red
+  };
+
 const ScoreBreakdown = ({ breakdown }: ScoreBreakdownProps) => {
   if (!breakdown || breakdown.length === 0) {
     return null;
@@ -25,7 +32,7 @@ const ScoreBreakdown = ({ breakdown }: ScoreBreakdownProps) => {
     <div className="w-full">
       <Accordion type="single" collapsible defaultValue={breakdown.length > 0 ? breakdown[0].title : undefined} className="w-full space-y-3">
         {breakdown.map((category) => (
-          <AccordionItem value={category.title} key={category.title} className="border rounded-lg shadow-sm data-[state=open]:shadow-md">
+          <AccordionItem value={category.title} key={category.title} className="border rounded-lg bg-card shadow-sm data-[state=open]:shadow-md">
             <AccordionTrigger className="px-4 py-3 hover:no-underline text-left">
               <div className="flex items-center gap-4 w-full">
                 <div className="flex-1">
@@ -33,7 +40,7 @@ const ScoreBreakdown = ({ breakdown }: ScoreBreakdownProps) => {
                 </div>
                 <div className="flex items-center gap-3">
                    <span className="font-bold text-lg text-foreground">{category.score}</span>
-                   <Progress value={category.score} className="w-20 h-2" />
+                   <Progress value={category.score} className="w-20 h-1.5" style={{ "--primary": `hsl(${getScoreColorStyle(category.score)})` } as React.CSSProperties} />
                 </div>
               </div>
             </AccordionTrigger>

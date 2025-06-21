@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'LinkBoost - AI LinkedIn Profile Analyzer',
+  title: 'AI LinkedIn Profile Review',
   description: 'Get an instant score and AI-powered tips to improve your LinkedIn profile.',
 };
 

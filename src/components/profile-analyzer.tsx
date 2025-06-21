@@ -22,13 +22,6 @@ type AnalysisResult = {
   extractedText: string;
 };
 
-const getScoreMessage = (score: number) => {
-  if (score >= 85) return "Excellent Profile!";
-  if (score >= 70) return "Great Job!";
-  if (score >= 50) return "Good Start!";
-  return "Needs Improvement";
-};
-
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
@@ -133,7 +126,7 @@ export default function ProfileAnalyzer() {
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
             <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-2xl tracking-tight text-foreground">LinkBoost Report</CardTitle>
+                  <CardTitle className="text-2xl tracking-tight text-foreground">LinkedIn Review</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Button variant="outline" onClick={() => setResult(null)} className="w-full mb-4">
@@ -144,15 +137,7 @@ export default function ProfileAnalyzer() {
                 </CardContent>
             </Card>
             
-            <Card className="shadow-sm">
-              <CardHeader className="items-center pb-4">
-                <CardTitle className="text-xl">Overall Score</CardTitle>
-                <CardDescription>{getScoreMessage(result.score)}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScoreDisplay score={result.score} />
-              </CardContent>
-            </Card>
+            <ScoreDisplay score={result.score} />
 
             <Card className="shadow-sm">
               <CardHeader>
@@ -186,74 +171,59 @@ export default function ProfileAnalyzer() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <header className="text-center mb-12">
-        <div className="inline-flex items-center justify-center gap-3 bg-primary/10 text-primary p-2 rounded-lg mb-4">
-          <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 fill-current"><title>LinkedIn</title><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-          LinkBoost
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Analyze your LinkedIn profile, get an instant score, and receive AI-powered tips to boost your professional presence.
-        </p>
-      </header>
+    <div className="bg-muted/40 min-h-screen">
+      <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+            Get your LinkedIn Profile Reviewed by AI
+          </h1>
+          <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+            Get an instant, detailed review of your LinkedIn profile. Our AI, trained on thousands of profiles, will give you a score and actionable feedback to help you land your dream job.
+          </p>
+        </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <Card className="shadow-lg sticky top-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><FileText /> Start Your Analysis</CardTitle>
-            <CardDescription>Upload your profile as a PDF or paste the text directly.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit}>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
-                  <TabsTrigger value="text"><Keyboard className="w-4 h-4 mr-2" /> Paste Text</TabsTrigger>
-                </TabsList>
-                <TabsContent value="pdf" className="mt-4">
-                  <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                          <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
-                          <p className="text-xs text-muted-foreground">or drag and drop (PDF only)</p>
-                      </div>
-                      <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
-                  </label>
-                  {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
-                </TabsContent>
-                <TabsContent value="text" className="mt-4">
-                   <div className="space-y-2">
-                    <label htmlFor="text-input" className="text-sm font-medium">Paste Profile Text</label>
-                    <Textarea
-                      id="text-input"
-                      placeholder="Paste the text from your 'About' and 'Experience' sections here..."
-                      value={pastedText}
-                      onChange={(e) => { setPastedText(e.target.value); setFile(null); }}
-                      className="h-48"
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-              <Button type="submit" className="w-full mt-6 text-lg py-6">
-                <BarChart className="mr-2" />Analyze Profile
-              </Button>
-            </form>
-          </CardContent>
+        <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileText /> Start Your Analysis</CardTitle>
+              <CardDescription>Upload your profile as a PDF or paste the text directly for an instant review.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit}>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
+                    <TabsTrigger value="text"><Keyboard className="w-4 h-4 mr-2" /> Paste Text</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="pdf" className="mt-4">
+                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
+                            <p className="text-xs text-muted-foreground">or drag and drop (PDF only)</p>
+                        </div>
+                        <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
+                    </label>
+                    {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
+                  </TabsContent>
+                  <TabsContent value="text" className="mt-4">
+                     <div className="space-y-2">
+                      <label htmlFor="text-input" className="text-sm font-medium">Paste Profile Text</label>
+                      <Textarea
+                        id="text-input"
+                        placeholder="Paste the text from your 'About' and 'Experience' sections here..."
+                        value={pastedText}
+                        onChange={(e) => { setPastedText(e.target.value); setFile(null); }}
+                        className="h-48"
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                <Button type="submit" className="w-full mt-6 text-lg py-6">
+                  <BarChart className="mr-2" />Analyze Profile
+                </Button>
+              </form>
+            </CardContent>
         </Card>
-
-        <div className="relative min-h-[400px]">
-          <Card className="shadow-lg h-full flex flex-col justify-center items-center text-center p-8 border-dashed">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <Wand2 className="w-12 h-12 text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold text-foreground">Your Analysis Awaits</h3>
-            <p className="text-muted-foreground mt-2 max-w-sm">
-              Submit your profile to see your score and get personalized, AI-driven feedback to elevate your career.
-            </p>
-          </Card>
-        </div>
       </div>
     </div>
   );

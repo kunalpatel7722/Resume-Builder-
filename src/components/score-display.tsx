@@ -1,59 +1,82 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { Progress } from "./ui/progress";
+import { RadialBar, RadialBarChart, PolarAngleAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartContainer
+} from "@/components/ui/chart"
 
 interface ScoreDisplayProps {
   score: number;
 }
 
+const getScoreColor = (score: number) => {
+  if (score >= 85) return "var(--chart-2)";
+  if (score >= 70) return "var(--chart-4)";
+  if (score >= 50) return "var(--chart-1)";
+  return "var(--destructive)";
+};
+
+const getScoreMessage = (score: number) => {
+  if (score >= 85) return "Excellent Profile!";
+  if (score >= 70) return "Great Job!";
+  if (score >= 50) return "Good Start!";
+  return "Needs Improvement";
+};
+
 const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
-  const [displayScore, setDisplayScore] = useState(0);
+  const chartData = [{ name: "score", value: score, fill: `hsl(${getScoreColor(score)})` }];
 
-  const getScoreColorStyle = () => {
-    if (score >= 85) return { variable: "var(--chart-2)", className: "text-chart-2" }; // Green
-    if (score >= 70) return { variable: "var(--chart-4)", className: "text-chart-4" }; // Yellow
-    if (score >= 50) return { variable: "var(--chart-1)", className: "text-chart-1" }; // Orange
-    return { variable: "var(--destructive)", className: "text-destructive" }; // Red
+  const chartConfig = {
+    score: {
+      label: "Score",
+      color: `hsl(${getScoreColor(score)})`,
+    },
   };
-  
-  const { variable: colorVar, className: colorClass } = getScoreColorStyle();
-
-  useEffect(() => {
-    const animationDuration = 1000;
-    let start = 0;
-    const end = Math.round(score);
-    if (start === end) {
-      setDisplayScore(end);
-      return;
-    }
-    
-    const incrementTime = (animationDuration / end) || 1;
-    const timer = setInterval(() => {
-      start += 1;
-      setDisplayScore(start);
-      if (start >= end) {
-        clearInterval(timer);
-        setDisplayScore(end);
-      }
-    }, incrementTime);
-
-    return () => clearInterval(timer);
-  }, [score]);
 
   return (
-    <div className="flex flex-col items-center w-full">
-        <div className="flex items-baseline gap-2">
-            <span className={cn("text-6xl font-bold tracking-tight", colorClass)}>{displayScore}</span>
-            <span className="text-2xl font-medium text-muted-foreground">/ 100</span>
-        </div>
-        <Progress 
-          value={score} 
-          className="w-full mt-4 h-3" 
-          style={{ "--primary": colorVar } as React.CSSProperties}
-        />
-    </div>
+    <Card className="shadow-sm flex flex-col">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>Overall Score</CardTitle>
+        <CardDescription>{getScoreMessage(score)}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-1 items-center justify-center pb-0">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square w-full max-w-[250px]"
+        >
+          <RadialBarChart
+            data={chartData}
+            startAngle={90}
+            endAngle={-270}
+            innerRadius="80%"
+            outerRadius="100%"
+          >
+            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+            <RadialBar
+              dataKey="value"
+              background
+              cornerRadius={10}
+              className="fill-[var(--color-score)]"
+            />
+            <g>
+              <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="fill-foreground text-5xl font-bold">
+                {Math.round(score)}
+              </text>
+              <text x="50%" y="60%" textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-lg">
+                / 100
+              </text>
+            </g>
+          </RadialBarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 };
 
