@@ -41,8 +41,8 @@ const OverallScoreDisplay = ({ score, summary }: OverallScoreDisplayProps) => {
 
   return (
     <Card className="shadow-sm">
-      <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
-        <div className="relative h-32 w-32 flex-shrink-0">
+      <CardContent className="p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-6">
+        <div className="relative h-28 w-28 md:h-32 md:w-32 flex-shrink-0">
           <svg className="h-full w-full" viewBox="0 0 100 100">
             <circle
               className="text-muted/50"
@@ -66,13 +66,13 @@ const OverallScoreDisplay = ({ score, summary }: OverallScoreDisplayProps) => {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-foreground">{score}</span>
+            <span className="text-3xl md:text-4xl font-bold text-foreground">{score}</span>
           </div>
         </div>
         <div className="text-center md:text-left">
             <Badge className={cn("mb-2", getScoreColor(score))}>{getScoreLabel(score)}</Badge>
-            <h2 className="text-xl font-semibold text-foreground">Overall Score</h2>
-            <p className="text-muted-foreground mt-1">{summary}</p>
+            <h2 className="text-lg md:text-xl font-semibold text-foreground">Overall Score</h2>
+            <p className="text-sm text-muted-foreground mt-1">{summary}</p>
         </div>
       </CardContent>
     </Card>
