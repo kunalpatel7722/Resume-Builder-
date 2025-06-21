@@ -128,10 +128,6 @@ export default function ResumeChecker() {
               <div className="lg:col-span-1 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 
-                {result.keywordAnalysis && (
-                  <KeywordAnalysis data={result.keywordAnalysis} />
-                )}
-
                 <div className="space-y-4">
                   {result.reportSections.map((section, index) => (
                     <ReportSection 
@@ -165,6 +161,9 @@ export default function ResumeChecker() {
 
               {/* Right Column */}
               <div ref={detailContentRef} className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
+                {result.keywordAnalysis && (
+                  <KeywordAnalysis data={result.keywordAnalysis} />
+                )}
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>
