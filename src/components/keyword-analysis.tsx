@@ -37,7 +37,7 @@ const KeywordAnalysis = ({ data }: KeywordAnalysisProps) => {
           <div className="flex flex-wrap gap-2">
             {data.foundKeywords.length > 0 ? (
                 data.foundKeywords.map((keyword, index) => (
-                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">{keyword}</Badge>
+                    <Badge key={index} variant="secondary">{keyword}</Badge>
                 ))
             ) : (
                 <p className="text-sm text-muted-foreground">No matching keywords were found.</p>
@@ -54,7 +54,7 @@ const KeywordAnalysis = ({ data }: KeywordAnalysisProps) => {
           <div className="flex flex-wrap gap-2">
              {data.missingKeywords.length > 0 ? (
                 data.missingKeywords.map((keyword, index) => (
-                    <Badge key={index} variant="destructive" className="bg-red-100 text-red-800">{keyword}</Badge>
+                    <Badge key={index} variant="destructive">{keyword}</Badge>
                 ))
             ) : (
                 <p className="text-sm text-muted-foreground">Great job! No critical keywords are missing.</p>

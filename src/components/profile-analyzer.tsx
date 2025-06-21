@@ -3,17 +3,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle, Link, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
 import ImprovementTips from "@/components/improvement-tips";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 type AnalysisResult = {
@@ -122,17 +124,18 @@ export default function ProfileAnalyzer() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!file) {
-      toast({
-        title: "No PDF Provided",
+    let scoreInput: LinkedinProfileScoreInput = {};
+
+    if (file) {
+      scoreInput.pdfProfileData = await fileToDataURL(file);
+    } else {
+       toast({
+        title: "No Profile Provided",
         description: "Please upload a PDF of your LinkedIn profile to analyze.",
         variant: "destructive",
       });
       return;
     }
-    
-    const pdfProfileData = await fileToDataURL(file);
-    const scoreInput: LinkedinProfileScoreInput = { pdfProfileData };
     
     setIsLoading(true);
     setResult(null);
@@ -187,7 +190,7 @@ export default function ProfileAnalyzer() {
        <div className="min-h-screen bg-background">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
-            <div className="sticky top-6 flex flex-col gap-6">
+            <div className="sticky top-20 flex flex-col gap-6">
                 <ScoreDisplay score={result.score} />
 
                 <Card className="shadow-sm">
@@ -221,7 +224,7 @@ export default function ProfileAnalyzer() {
 
                 <Card className="shadow-sm">
                     <CardContent className="p-4">
-                      <Button variant="outline" onClick={() => setResult(null)} className="w-full">
+                      <Button variant="outline" onClick={() => { setResult(null); setFile(null); }} className="w-full">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Analyze Another Profile
                       </Button>
@@ -315,6 +318,7 @@ export default function ProfileAnalyzer() {
         </header>
 
         <Card className="shadow-lg">
+          <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><UploadCloud /> Upload Your Profile PDF</CardTitle>
               <CardDescription>
@@ -322,23 +326,24 @@ export default function ProfileAnalyzer() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit}>
-                  <div>
-                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
-                            <p className="text-xs text-muted-foreground">or drag and drop your LinkedIn PDF</p>
-                        </div>
-                        <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
-                    </label>
-                    {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
-                  </div>
-                <Button type="submit" className="w-full mt-6 text-lg py-6">
-                  <BarChart className="mr-2" />Analyze Profile
-                </Button>
-              </form>
+              <div>
+                <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                        <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
+                        <p className="text-xs text-muted-foreground">or drag and drop your LinkedIn PDF</p>
+                    </div>
+                    <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
+                </label>
+                {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
+              </div>
             </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full text-lg py-6" disabled={!file}>
+                <BarChart className="mr-2" />Analyze Profile
+              </Button>
+            </CardFooter>
+          </form>
         </Card>
       </div>
     </div>
