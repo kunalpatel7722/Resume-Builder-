@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
-import { Briefcase, GraduationCap, Tool } from 'lucide-react';
+import { Briefcase, GraduationCap, PenTool } from 'lucide-react';
 
 export interface TemplateProps {
   data: ResumeData;
@@ -97,7 +97,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
                 ))}
             </Section>
 
-            <Section title="Skills & Tools" icon={Tool}>
+            <Section title="Skills & Tools" icon={PenTool}>
                 {hasSkills && (
                     <>
                         <h3 className="font-bold">Core Skills</h3>

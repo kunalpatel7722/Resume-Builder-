@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
-import { Mail, Phone, MapPin, Link as LinkIcon, Star, Tool, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Link as LinkIcon, Star, PenTool, MessageSquare } from 'lucide-react';
 
 export interface TemplateProps {
   data: ResumeData;
@@ -101,7 +101,7 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
                  {hasEducation ? (
                     education.map(edu => (
                         <div key={edu.id}>
-                            <h3 className="text-base font-bold">{edu.school || 'University Name'}</h3>
+                            <h3 className="text-base font-bold">{edu.school || 'School Name'}</h3>
                             <p className="text-sm font-semibold">{edu.degree || 'Degree'}</p>
                             <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                         </div>
@@ -120,7 +120,7 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
           </div>
         </LeftColumnSection>
         
-        <LeftColumnSection title="Tools" icon={Tool} show={hasTools}>
+        <LeftColumnSection title="Tools" icon={PenTool} show={hasTools}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
               {tools.map(t => t.content).join('\n')}
             </ReactMarkdown>
