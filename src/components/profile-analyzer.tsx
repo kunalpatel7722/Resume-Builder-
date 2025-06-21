@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -317,7 +317,7 @@ export default function ProfileAnalyzer() {
     <div className="bg-background min-h-screen">
       <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <header className="text-center mb-12">
-           <Wand2 className="w-12 h-12 mx-auto text-primary mb-4" />
+           <Briefcase className="w-12 h-12 mx-auto text-primary mb-4" />
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
             Get your LinkedIn Profile Reviewed by AI
           </h1>
