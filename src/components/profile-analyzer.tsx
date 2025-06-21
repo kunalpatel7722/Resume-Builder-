@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Link as LinkIcon, Loader2, BarChart, FileText, Wand2 } from "lucide-react";
+import { UploadCloud, Link as LinkIcon, Loader2, BarChart, FileText, Wand2, ArrowLeft } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { linkedinProfileScore, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import { getLinkedInProfileImprovementTips, type LinkedInProfileImprovementTipsOutput } from "@/ai/flows/linkedin-profile-improvement-tips";
@@ -21,6 +22,7 @@ type AnalysisResult = {
   score: number;
   tips: ImprovementTip[];
   scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
+  extractedText: string;
 };
 
 export default function ProfileAnalyzer() {
@@ -92,7 +94,7 @@ export default function ProfileAnalyzer() {
     try {
       const scoreOutput = await linkedinProfileScore({ profileData });
       const tipsOutput = await getLinkedInProfileImprovementTips({
-        profileText: profileData,
+        profileText: scoreOutput.extractedText,
         profileScore: scoreOutput.score,
       });
 
@@ -100,6 +102,7 @@ export default function ProfileAnalyzer() {
         score: scoreOutput.score,
         tips: tipsOutput.improvementTips,
         scoreBreakdown: scoreOutput.scoreBreakdown,
+        extractedText: scoreOutput.extractedText,
       });
 
     } catch (error) {
@@ -113,6 +116,70 @@ export default function ProfileAnalyzer() {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center p-8 bg-background">
+        <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md">
+          <Loader2 className="w-16 h-16 text-primary animate-spin" />
+          <h3 className="text-2xl font-bold text-foreground">Analyzing Profile...</h3>
+          <p className="text-muted-foreground">The AI is working its magic. This may take a moment.</p>
+          <div className="mt-8 space-y-4 w-full">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-5/6" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (result) {
+    return (
+       <div className="min-h-screen bg-muted/40">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-[100rem] mx-auto">
+          <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
+            <Card className="shadow-sm p-4 space-y-4">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">LinkBoost Report</h1>
+                 <Button variant="outline" onClick={() => setResult(null)} className="w-full">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Analyze Another Profile
+                </Button>
+            </Card>
+            
+            <Card className="shadow-sm p-6">
+              <ScoreDisplay score={result.score} />
+            </Card>
+
+            <Card className="shadow-sm p-6">
+              <ScoreBreakdown breakdown={result.scoreBreakdown} />
+            </Card>
+
+            <Card className="shadow-sm p-6">
+              <ImprovementTips tips={result.tips} />
+            </Card>
+          </aside>
+
+          <main className="lg:col-span-8 xl:col-span-9">
+            <Card className="shadow-sm h-full">
+              <CardHeader>
+                <CardTitle>Extracted Profile Text</CardTitle>
+                <CardDescription>This is the text our AI used for the analysis.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4 bg-muted/50">
+                  <pre className="text-sm text-foreground whitespace-pre-wrap break-words font-sans">
+                    {result.extractedText}
+                  </pre>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -159,47 +226,23 @@ export default function ProfileAnalyzer() {
                   </div>
                 </TabsContent>
               </Tabs>
-              <Button type="submit" disabled={isLoading} className="w-full mt-6 text-lg py-6">
-                {isLoading ? <><Loader2 className="animate-spin mr-2" />Analyzing...</> : <><BarChart className="mr-2" />Analyze Profile</>}
+              <Button type="submit" className="w-full mt-6 text-lg py-6">
+                <BarChart className="mr-2" />Analyze Profile
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <div className="relative min-h-[400px]">
-          {isLoading && (
-            <Card className="shadow-lg h-full p-8">
-              <div className="flex flex-col items-center justify-center gap-4 text-center">
-                <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                <h3 className="text-2xl font-bold text-foreground">Analyzing Profile...</h3>
-                <p className="text-muted-foreground">The AI is working its magic. This may take a moment.</p>
-              </div>
-              <div className="mt-8 space-y-4">
-                <Skeleton className="h-40 w-full" />
-                <Skeleton className="h-12 w-3/4" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-5/6" />
-              </div>
-            </Card>
-          )}
-          {!isLoading && result && (
-            <Card className="shadow-lg h-full p-6 space-y-6">
-              <ScoreDisplay score={result.score} />
-              <ScoreBreakdown breakdown={result.scoreBreakdown} />
-              <ImprovementTips tips={result.tips} />
-            </Card>
-          )}
-          {!isLoading && !result && (
-            <Card className="shadow-lg h-full flex flex-col justify-center items-center text-center p-8 border-dashed">
-              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                <Wand2 className="w-12 h-12 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Your Analysis Awaits</h3>
-              <p className="text-muted-foreground mt-2 max-w-sm">
-                Submit your profile to see your score and get personalized, AI-driven feedback to elevate your career.
-              </p>
-            </Card>
-          )}
+          <Card className="shadow-lg h-full flex flex-col justify-center items-center text-center p-8 border-dashed">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <Wand2 className="w-12 h-12 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground">Your Analysis Awaits</h3>
+            <p className="text-muted-foreground mt-2 max-w-sm">
+              Submit your profile to see your score and get personalized, AI-driven feedback to elevate your career.
+            </p>
+          </Card>
         </div>
       </div>
     </div>

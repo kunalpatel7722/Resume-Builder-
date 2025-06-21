@@ -25,6 +25,7 @@ const LinkedinProfileScoreOutputSchema = z.object({
     feedback: z.string().describe("Specific feedback for this category."),
   })).describe("A detailed breakdown of the profile score across different categories."),
   improvementTips: z.array(z.string()).describe("A list of improvement tips for the LinkedIn profile."),
+  extractedText: z.string().describe("The full text extracted from the provided LinkedIn profile data that was used for the analysis."),
 });
 
 export type LinkedinProfileScoreOutput = z.infer<typeof LinkedinProfileScoreOutputSchema>;
@@ -37,20 +38,24 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are an expert LinkedIn profile optimizer. Given the following LinkedIn profile data, assess its completeness and effectiveness.
+  prompt: `You are an expert LinkedIn profile optimizer. Given the following LinkedIn profile data, your task is to first extract the text content from it, then analyze the extracted text to provide a comprehensive evaluation.
 
 Profile Data: {{{profileData}}}
 
-Provide an overall score out of 100. Also, provide a detailed breakdown of the score across the following categories:
-* Keyword Usage
-* Profile Completeness (summary, skills, experience, education)
-* Headline and Summary Quality
-* Overall Presentation
-
-For each category in the breakdown, provide a score (out of 100) and specific feedback.
-Finally, provide a list of general improvement tips.
-
-Output a JSON object with a 'score' (0-100), 'scoreBreakdown' (an array of objects with 'category', 'score', and 'feedback'), and 'improvementTips' (array of strings).
+1.  **Extract Text**: Thoroughly extract all textual content from the provided profile data.
+2.  **Analyze and Score**: Based on the extracted text, assess the profile's completeness and effectiveness. Provide an overall score out of 100.
+3.  **Provide Breakdown**: Give a detailed breakdown of the score across the following categories:
+    *   Keyword Usage
+    *   Profile Completeness (summary, skills, experience, education)
+    *   Headline and Summary Quality
+    *   Overall Presentation
+    For each category, provide a score (out of 100) and specific feedback.
+4.  **Suggest Improvements**: Provide a list of general improvement tips.
+5.  **Format Output**: Return a single JSON object containing:
+    *   'score': The overall score (0-100).
+    *   'scoreBreakdown': An array of objects with 'category', 'score', and 'feedback'.
+    *   'improvementTips': An array of strings with improvement suggestions.
+    *   'extractedText': The full, unmodified text you extracted in step 1.
 `,
 });
 
