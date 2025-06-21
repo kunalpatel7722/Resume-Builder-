@@ -155,6 +155,7 @@ const months = [
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 70 }, (_, i) => (currentYear + 5 - i).toString());
 
+const fullWidthSteps = ['career-level', 'target-country', 'template', 'select-method'];
 
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
@@ -178,6 +179,8 @@ export default function ResumeBuilder() {
   const [activeSuggestionBox, setActiveSuggestionBox] = useState<number | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const showPreview = !fullWidthSteps.includes(currentStep);
+
   useEffect(() => {
     // This is the cleanup function for the component unmount
     return () => {
@@ -199,27 +202,26 @@ export default function ResumeBuilder() {
   }, [editorFocus, resumeData.experience]);
 
   useEffect(() => {
-    // This effect runs when the user navigates to the 'skills' step.
     const fetchSkillSuggestions = async () => {
-      if (currentStep !== 'skills') {
-        return;
-      }
+      if (currentStep !== 'skills' || generatingSkills) return;
   
       const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
       const latestRole = lastExperienceWithRole?.role;
   
       if (!latestRole) {
-        setAiSuggestions(null);
-        setSuggestionsForRole(null);
+        if (suggestionsForRole !== null) {
+            setAiSuggestions(null);
+            setSuggestionsForRole(null);
+        }
         return;
       }
       
-      if (latestRole === suggestionsForRole) {
+      if (latestRole === suggestionsForRole && aiSuggestions !== null) {
         return;
       }
   
       setGeneratingSkills(true);
-      setAiSuggestions(null); 
+      setAiSuggestions(null);
       
       try {
         const result = await generateResumeContent({ jobTitle: latestRole });
@@ -234,14 +236,14 @@ export default function ResumeBuilder() {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
         setAiSuggestions(null);
-        setSuggestionsForRole(null); 
+        setSuggestionsForRole(null);
       } finally {
         setGeneratingSkills(false);
       }
     };
   
     fetchSkillSuggestions();
-  }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
+  }, [currentStep, resumeData.experience, suggestionsForRole, aiSuggestions, generatingSkills, toast]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -335,8 +337,11 @@ export default function ResumeBuilder() {
       return;
     }
     setGeneratingIndex(index);
-    setAiSuggestions(null);
+    if (jobTitle !== suggestionsForRole) {
+        setAiSuggestions(null);
+    }
     setSuggestionsForIndex(index);
+
     try {
       const result = await generateResumeContent({ jobTitle });
       setAiSuggestions(result);
@@ -551,43 +556,52 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <div className="lg:grid lg:grid-cols-12 h-[calc(100vh-4rem)] bg-background">
+    <div className={cn(
+        "bg-background",
+        showPreview
+            ? "lg:grid lg:grid-cols-12 h-[calc(100vh-4rem)]"
+            : "min-h-[calc(100vh-4rem)]"
+    )}>
       
-      {/* Left Vertical Stepper (Desktop only) */}
-      <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold text-foreground">Resume Builder</h2>
-        <div className="space-y-1">
-          {steps.map((step, index) => {
-            const stepIndex = steps.findIndex(s => s.id === currentStep);
-            const isActive = step.id === currentStep || (currentStep === 'experience-description' && step.id === 'experience');
-            const isCompleted = stepIndex > index;
-            return (
-              <button
-                key={step.id}
-                onClick={() => setCurrentStep(step.id)}
-                className={cn(
-                  "w-full flex items-center text-left p-3 rounded-lg transition-colors",
-                  isActive ? "bg-primary/10 text-primary font-semibold" : isCompleted ? "text-muted-foreground" : "hover:bg-muted"
-                )}
-                disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
-              >
-                <div className={cn(
-                  "w-7 h-7 rounded-full flex items-center justify-center mr-4 border-2 flex-shrink-0",
-                  isActive ? "bg-primary text-primary-foreground border-primary" : 
-                  isCompleted ? "bg-green-500 text-white border-green-500" : "bg-card"
-                )}>
-                  {isCompleted ? <FileCheck2 size={16}/> : index + 1}
-                </div>
-                <span className="text-sm">{step.name}</span>
-              </button>
-            )
-          })}
-        </div>
-      </aside>
+      {showPreview && (
+        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 overflow-y-auto">
+          <h2 className="text-xl font-bold text-foreground">Resume Builder</h2>
+          <div className="space-y-1">
+            {steps.map((step, index) => {
+              const stepIndex = steps.findIndex(s => s.id === currentStep);
+              const isActive = step.id === currentStep || (currentStep === 'experience-description' && step.id === 'experience');
+              const isCompleted = stepIndex > index;
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => setCurrentStep(step.id)}
+                  className={cn(
+                    "w-full flex items-center text-left p-3 rounded-lg transition-colors",
+                    isActive ? "bg-primary/10 text-primary font-semibold" : isCompleted ? "text-muted-foreground" : "hover:bg-muted"
+                  )}
+                  disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
+                >
+                  <div className={cn(
+                    "w-7 h-7 rounded-full flex items-center justify-center mr-4 border-2 flex-shrink-0",
+                    isActive ? "bg-primary text-primary-foreground border-primary" : 
+                    isCompleted ? "bg-green-500 text-white border-green-500" : "bg-card"
+                  )}>
+                    {isCompleted ? <FileCheck2 size={16}/> : index + 1}
+                  </div>
+                  <span className="text-sm">{step.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </aside>
+      )}
 
-      {/* Middle Form Panel */}
-      <main className="lg:col-span-5 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        {/* Mobile Header and Stepper */}
+      <main className={cn(
+          "overflow-y-auto",
+          showPreview
+              ? "lg:col-span-5 p-4 sm:p-6 lg:p-8"
+              : "w-full py-16 px-4 sm:px-6 lg:px-8"
+      )}>
         <div className="lg:hidden">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Resume Builder</h2>
@@ -617,8 +631,10 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Form Content */}
-        <div className="max-w-xl mx-auto lg:mx-0 min-h-[50vh]">
+        <div className={cn(
+            "min-h-[50vh]",
+            showPreview ? "max-w-xl mx-auto lg:mx-0" : "max-w-4xl mx-auto"
+        )}>
           {currentStep === 'career-level' && (
             <div className="space-y-4">
                 <h3 className="text-2xl font-semibold">What's your career level?</h3>
@@ -853,7 +869,7 @@ export default function ResumeBuilder() {
                     <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-base flex items-center gap-2">
                             <Wand2 className="h-5 w-5 text-primary" />
-                             AI Content Helper
+                             AI Content Helper for '{exp.role}'
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -971,7 +987,7 @@ export default function ResumeBuilder() {
                           <CardHeader className='p-3'>
                             <CardTitle className='text-sm flex items-center gap-2'>
                               <Wand2 className="h-4 w-4 text-primary" />
-                              <span>Top skills for a {suggestionsForIndex !== null && resumeData.experience[suggestionsForIndex] ? resumeData.experience[suggestionsForIndex].role : 'role'}</span>
+                              <span>Top skills for a {suggestionsForRole || 'role'}</span>
                             </CardTitle>
                           </CardHeader>
                           <CardContent className='p-3 pt-0'>
@@ -1004,8 +1020,9 @@ export default function ResumeBuilder() {
           )}
         </div>
         
-        {/* Footer with Next/Prev buttons */}
-        <div className="mt-8 pt-6 border-t flex justify-between max-w-xl mx-auto lg:mx-0">
+        <div className={cn("mt-8 pt-6 border-t flex", 
+          showPreview ? "justify-between max-w-xl mx-auto lg:mx-0" : "justify-between max-w-4xl mx-auto"
+        )}>
           <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Previous</Button>
           {currentStep === 'finalize' ? (
               <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
@@ -1021,15 +1038,16 @@ export default function ResumeBuilder() {
 
       </main>
 
-      {/* Right Preview Panel */}
-      <aside className="hidden lg:flex lg:col-span-4 bg-muted p-8 items-start justify-center overflow-y-auto">
-        <div 
-          ref={previewRef} 
-          className="w-full max-w-2xl aspect-[1/1.414] bg-white transform scale-95 origin-top shadow-xl ring-1 ring-black/5"
-        >
-          {templateComponents[selectedTemplate as keyof typeof templateComponents]}
-        </div>
-      </aside>
+      {showPreview && (
+        <aside className="hidden lg:flex lg:col-span-4 bg-muted p-8 items-start justify-center overflow-y-auto">
+          <div 
+            ref={previewRef} 
+            className="w-full max-w-2xl aspect-[1/1.414] bg-white transform scale-95 origin-top shadow-xl ring-1 ring-black/5"
+          >
+            {templateComponents[selectedTemplate as keyof typeof templateComponents]}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
