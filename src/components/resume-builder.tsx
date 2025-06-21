@@ -184,48 +184,52 @@ export default function ResumeBuilder() {
   }, [editorFocus, resumeData.experience]);
 
   useEffect(() => {
+    // This effect runs when the user navigates to the 'skills' step.
     const fetchSkillSuggestions = async () => {
-      // We only care about this effect when on the 'skills' step.
       if (currentStep !== 'skills') {
         return;
       }
-
+  
+      // Find the most recent job experience that has a role title.
       const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
       const latestRole = lastExperienceWithRole?.role;
-
-      // If there is no role with a title, we can't get suggestions.
+  
+      // If there's no role, we can't get suggestions.
       if (!latestRole) {
         setAiSuggestions(null);
         setSuggestionsForRole(null);
         return;
       }
       
-      // If we already have the correct suggestions, don't re-fetch.
+      // If we already have suggestions for the current role, don't re-fetch.
       if (latestRole === suggestionsForRole) {
         return;
       }
-
-      // We need to fetch new suggestions.
+  
+      // If we are here, we need to fetch new suggestions.
       setGeneratingSkills(true);
-      setAiSuggestions(null); // Clear old ones to show loader.
+      setAiSuggestions(null); // Clear old suggestions to show a loader.
       
       try {
         const result = await generateResumeContent({ jobTitle: latestRole });
         setAiSuggestions(result);
-        setSuggestionsForRole(latestRole);
+        setSuggestionsForRole(latestRole); // Mark that we have suggestions for this role.
         
-        const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
-        setSuggestionsForIndex(experienceIndex);
+        // Associate suggestions with the experience entry they were generated from.
+        if (lastExperienceWithRole) {
+          const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
+          setSuggestionsForIndex(experienceIndex);
+        }
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setAiSuggestions(null); // Ensure no stale suggestions on error.
-        setSuggestionsForRole(null); // Allow a re-fetch attempt on next visit.
+        setAiSuggestions(null); // Clear suggestions on error.
+        setSuggestionsForRole(null); // Allow a re-fetch on the next visit.
       } finally {
         setGeneratingSkills(false);
       }
     };
-
+  
     fetchSkillSuggestions();
   }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
 
