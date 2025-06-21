@@ -17,16 +17,16 @@ interface ScoreDisplayProps {
 }
 
 const getScoreColor = (score: number) => {
-  if (score >= 85) return "var(--chart-2)";
-  if (score >= 70) return "var(--chart-4)";
-  if (score >= 50) return "var(--chart-1)";
-  return "var(--destructive)";
+  if (score >= 80) return "var(--chart-2)"; // Green
+  if (score >= 70) return "var(--chart-4)"; // Yellow
+  if (score >= 50) return "var(--chart-1)"; // Orange
+  return "var(--destructive)"; // Red
 };
 
 const getScoreMessage = (score: number) => {
-  if (score >= 85) return "Excellent Profile!";
-  if (score >= 70) return "Great Job!";
-  if (score >= 50) return "Good Start!";
+  if (score >= 80) return "Excellent Profile";
+  if (score >= 70) return "Good Score";
+  if (score >= 50) return "Good Start";
   return "Needs Improvement";
 };
 
@@ -44,9 +44,8 @@ const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
     <Card className="shadow-sm flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Overall Score</CardTitle>
-        <CardDescription>{getScoreMessage(score)}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-1 items-center justify-center pb-0">
+      <CardContent className="flex-1 flex items-center justify-center pb-4">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square w-full max-w-[250px]"
@@ -57,20 +56,21 @@ const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
             endAngle={-270}
             innerRadius="80%"
             outerRadius="100%"
+            barSize={20}
           >
             <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
             <RadialBar
               dataKey="value"
-              background
+              background={{ fill: 'hsl(var(--muted))' }}
               cornerRadius={10}
               className="fill-[var(--color-score)]"
             />
             <g>
-              <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" className="fill-foreground text-5xl font-bold">
+              <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" className="fill-foreground text-5xl font-bold">
                 {Math.round(score)}
               </text>
-              <text x="50%" y="60%" textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-lg">
-                / 100
+              <text x="50%" y="65%" textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-base">
+                {getScoreMessage(score)}
               </text>
             </g>
           </RadialBarChart>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft } from "lucide-react";
+import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft, Briefcase, FileSignature, CheckSquare, Star } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -121,49 +121,67 @@ export default function ProfileAnalyzer() {
 
   if (result) {
     return (
-       <div className="min-h-screen bg-muted/40">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-[100rem] mx-auto">
+       <div className="min-h-screen bg-background">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
-            <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-2xl tracking-tight text-foreground">LinkedIn Review</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" onClick={() => setResult(null)} className="w-full mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Analyze Another Profile
-                  </Button>
-                  <p className="text-sm text-muted-foreground p-3 bg-muted rounded-md border">{result.summaryFeedback}</p>
-                </CardContent>
-            </Card>
-            
-            <ScoreDisplay score={result.score} />
+            <div className="sticky top-6 flex flex-col gap-6">
+                <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <Button variant="outline" onClick={() => setResult(null)} className="w-full">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Analyze Another Profile
+                      </Button>
+                    </CardContent>
+                </Card>
+              
+                <ScoreDisplay score={result.score} />
 
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-xl">Detailed Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScoreBreakdown breakdown={result.scoreBreakdown} />
-              </CardContent>
-            </Card>
-
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{result.summaryFeedback}</p>
+                  </CardContent>
+                </Card>
+            </div>
           </aside>
 
           <main className="lg:col-span-8 xl:col-span-9">
-            <Card className="shadow-sm h-full">
-              <CardHeader>
-                <CardTitle>Extracted Profile Text</CardTitle>
-                <CardDescription>This is the text our AI used for the analysis.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4 bg-muted/50">
-                  <pre className="text-sm text-foreground whitespace-pre-wrap break-words font-sans">
-                    {result.extractedText}
-                  </pre>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+             <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="overview"><BarChart className="mr-2"/>Overview</TabsTrigger>
+                  <TabsTrigger value="extracted-text"><FileText className="mr-2"/>Extracted Text</TabsTrigger>
+                </TabsList>
+                <TabsContent value="overview">
+                    <Card className="shadow-sm">
+                      <CardHeader>
+                        <CardTitle>Detailed Analysis</CardTitle>
+                        <CardDescription>
+                          Each section of your profile has been scored. Click on a section to see detailed checks and feedback.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ScoreBreakdown breakdown={result.scoreBreakdown} />
+                      </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="extracted-text">
+                  <Card className="shadow-sm h-full">
+                    <CardHeader>
+                      <CardTitle>Extracted Profile Text</CardTitle>
+                      <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[calc(100vh-12rem)] rounded-md border p-4 bg-muted/50">
+                        <pre className="text-sm text-foreground whitespace-pre-wrap break-words font-sans">
+                          {result.extractedText}
+                        </pre>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
           </main>
         </div>
       </div>
@@ -171,9 +189,10 @@ export default function ProfileAnalyzer() {
   }
 
   return (
-    <div className="bg-muted/40 min-h-screen">
+    <div className="bg-background min-h-screen">
       <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <header className="text-center mb-12">
+           <Wand2 className="w-12 h-12 mx-auto text-primary mb-4" />
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
             Get your LinkedIn Profile Reviewed by AI
           </h1>
@@ -189,7 +208,7 @@ export default function ProfileAnalyzer() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValuechange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
                     <TabsTrigger value="text"><Keyboard className="w-4 h-4 mr-2" /> Paste Text</TabsTrigger>
