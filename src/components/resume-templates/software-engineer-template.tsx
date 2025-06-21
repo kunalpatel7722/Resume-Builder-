@@ -4,11 +4,20 @@ import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Linkedin, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { format } from 'date-fns';
 
 export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
+
+  const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
+    if (!startDate) return 'Dates';
+    const start = format(startDate, 'MMM yyyy');
+    if (isCurrent) return `${start} - Present`;
+    if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
+    return start;
+  };
 
   return (
     <div className="bg-white text-gray-800 p-8 w-full h-full font-sans text-sm">
@@ -46,7 +55,7 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
                   <div key={job.id} className="grid grid-cols-4 gap-4">
                     <div className="col-span-1 text-xs text-gray-600">
                       <p className="font-semibold">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                      <p>{job.dates || 'Dates'}</p>
+                      <p>{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                     </div>
                     <div className="col-span-3">
                       <h4 className="font-bold text-md text-gray-800">{job.role || 'Job Title'}</h4>

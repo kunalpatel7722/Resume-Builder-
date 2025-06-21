@@ -36,6 +36,8 @@ import { CustomerServiceTemplate } from './resume-templates/customer-service-tem
 import { ItProfessionalTemplate } from './resume-templates/it-professional-template';
 import { ProjectManagerTemplate } from './resume-templates/project-manager-template';
 import { CreativeWriterTemplate } from './resume-templates/creative-writer-template';
+import { DatePicker } from './ui/date-picker';
+import { Checkbox } from './ui/checkbox';
 
 export interface ResumeData {
   personalInfo: {
@@ -53,7 +55,9 @@ export interface ResumeData {
     id: number;
     company: string;
     role: string;
-    dates: string;
+    startDate: Date | null;
+    endDate: Date | null;
+    isCurrentJob: boolean;
     description: string;
     city: string;
     state: string;
@@ -71,7 +75,7 @@ export interface ResumeData {
 const initialResumeData: ResumeData = {
   personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
   summary: '',
-  experience: [{ id: Date.now(), company: '', role: '', dates: '', description: '', city: '', state: '' }],
+  experience: [{ id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }],
   education: [{ id: Date.now(), school: '', degree: '', dates: '' }],
   skills: [],
   targetCountry: '',
@@ -170,15 +174,14 @@ export default function ResumeBuilder() {
     setResumeData(prev => ({...prev, summary: e.target.value}));
   };
   
-  const handleExperienceChange = (index: number, e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleExperienceChange = (index: number, name: string, value: any) => {
     const newExperience = [...resumeData.experience];
-    newExperience[index] = { ...newExperience[index], [name]: value };
+    (newExperience[index] as any)[name] = value;
     setResumeData(prev => ({ ...prev, experience: newExperience }));
   };
 
   const addExperience = () => {
-    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', dates: '', description: '', city: '', state: '' }]}));
+    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }]}));
     setJobTitlesForAi(prev => [...prev, '']);
   };
   
@@ -240,8 +243,7 @@ export default function ResumeBuilder() {
     const currentDescription = newExperience[experienceIndex].description;
     const newDescription = (currentDescription ? currentDescription + '\n' : '') + `* ${responsibility}`;
     
-    const event = { target: { name: 'description', value: newDescription } } as any;
-    handleExperienceChange(experienceIndex, event);
+    handleExperienceChange(experienceIndex, 'description', newDescription);
   };
 
   const applyFormat = (index: number, format: 'bold' | 'italic' | 'bullet') => {
@@ -280,8 +282,7 @@ export default function ResumeBuilder() {
         return;
     }
     
-    const event = { target: { name: 'description', value: newValue } } as any;
-    handleExperienceChange(index, event);
+    handleExperienceChange(index, 'description', newValue);
 
     setEditorFocus({ id: textareaId, start: newStart, end: newEnd });
   };
@@ -612,13 +613,46 @@ export default function ResumeBuilder() {
                       <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
                       
                       <div className="space-y-4">
-                          <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e)} /></div>
-                          <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                          <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                          <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e)} /></div>
-                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
-                          <div><Label htmlFor={`dates-${exp.id}`}>Dates (e.g., 2020 - Present)</Label><Input id={`dates-${exp.id}`} name="dates" value={exp.dates} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                  <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
+                                  <DatePicker
+                                      date={exp.startDate ?? undefined}
+                                      setDate={(date) => handleExperienceChange(index, 'startDate', date)}
+                                  />
+                              </div>
+                              <div>
+                                  <Label htmlFor={`endDate-${exp.id}`}>End Date</Label>
+                                  <DatePicker
+                                      date={exp.endDate ?? undefined}
+                                      setDate={(date) => handleExperienceChange(index, 'endDate', date)}
+                                      disabled={exp.isCurrentJob}
+                                  />
+                              </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                              <Checkbox
+                                  id={`currentJob-${exp.id}`}
+                                  checked={exp.isCurrentJob}
+                                  onCheckedChange={(checked) => {
+                                      const isChecked = checked === true;
+                                      handleExperienceChange(index, 'isCurrentJob', isChecked);
+                                      if (isChecked) {
+                                          handleExperienceChange(index, 'endDate', null);
+                                      }
+                                  }}
+                              />
+                              <Label htmlFor={`currentJob-${exp.id}`} className="font-normal">
+                                  I currently work here
+                              </Label>
+                          </div>
                       </div>
 
                       <div>
@@ -632,7 +666,7 @@ export default function ResumeBuilder() {
                             id={`description-${exp.id}`}
                             name="description" 
                             value={exp.description} 
-                            onChange={(e) => handleExperienceChange(index, e)} 
+                            onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} 
                             className="h-24 rounded-t-none border-t-0" 
                             placeholder="Use the toolbar to add formatting."
                           />

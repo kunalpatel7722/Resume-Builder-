@@ -4,11 +4,20 @@ import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { format } from 'date-fns';
 
 export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
+
+  const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
+    if (!startDate) return 'Dates';
+    const start = format(startDate, 'MMM yyyy');
+    if (isCurrent) return `${start} - Present`;
+    if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
+    return start;
+  };
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-sm">
@@ -58,7 +67,7 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                       <div key={job.id} className="relative">
                          <div className="absolute -left-[30px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-gray-100"></div>
                         <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
-                        <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'} / {location && `${location} / `}<span className="text-xs font-normal text-gray-500">{job.dates || 'Dates'}</span></p>
+                        <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'} / {location && `${location} / `}<span className="text-xs font-normal text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</span></p>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
                             {job.description}
                         </ReactMarkdown>

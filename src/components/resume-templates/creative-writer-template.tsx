@@ -4,11 +4,20 @@ import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Feather, BookOpen, PenTool } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { format } from 'date-fns';
 
 export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
+
+  const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
+    if (!startDate) return 'Dates';
+    const start = format(startDate, 'MMM yyyy');
+    if (isCurrent) return `${start} - Present`;
+    if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
+    return start;
+  };
 
   return (
     <div className="bg-white text-gray-900 p-10 w-full h-full font-['Lora',_serif] text-base">
@@ -38,7 +47,7 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
                 <div key={job.id} className="mb-5">
                     <div className="text-center mb-1">
                         <h3 className="text-xl font-semibold">{job.role || 'Job Title'}</h3>
-                        <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'}{location && `, ${location}`} &mdash; <span className="text-sm text-gray-500">{job.dates || 'Dates'}</span></p>
+                        <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'}{location && `, ${location}`} &mdash; <span className="text-sm text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</span></p>
                     </div>
                     <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
                         {job.description}

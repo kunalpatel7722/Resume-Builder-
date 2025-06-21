@@ -4,11 +4,20 @@ import type { ResumeData } from '@/components/resume-builder';
 import { Scale } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { format } from 'date-fns';
 
 export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
+
+  const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
+    if (!startDate) return 'Dates';
+    const start = format(startDate, 'MMM yyyy');
+    if (isCurrent) return `${start} - Present`;
+    if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
+    return start;
+  };
 
   return (
     <div className="bg-white text-black p-10 w-full h-full font-serif text-[11pt]">
@@ -42,7 +51,7 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 <div key={job.id} className="mb-4">
                   <div className="flex justify-between items-baseline">
                     <h3 className="text-md font-bold">{job.company || 'Law Firm / Company'}{location && `, ${location}`}</h3>
-                    <p className="text-sm font-medium">{job.dates || 'Dates'}</p>
+                    <p className="text-sm font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                   </div>
                   <p className="text-md italic">{job.role || 'Job Title'}</p>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
