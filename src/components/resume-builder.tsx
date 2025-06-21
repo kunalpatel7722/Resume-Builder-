@@ -13,8 +13,11 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { ClassicTemplate } from './resume-templates/classic-template';
+import { CreativeTemplate } from './resume-templates/creative-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -53,12 +56,19 @@ const initialResumeData: ResumeData = {
 const steps = [
   { id: 'career-level', name: 'Career Level' },
   { id: 'target-country', name: 'Target Country' },
+  { id: 'template', name: 'Choose Template' },
   { id: 'personal', name: 'Personal Info' },
   { id: 'experience', name: 'Experience' },
   { id: 'education', name: 'Education' },
   { id: 'skills', name: 'Skills' },
   { id: 'summary', name: 'Summary' },
   { id: 'finalize', name: 'Finalize' },
+];
+
+const templates = [
+  { id: 'modern', name: 'Modern', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume template' },
+  { id: 'classic', name: 'Classic', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume classic' },
+  { id: 'creative', name: 'Creative', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume creative' },
 ];
 
 const careerLevels = [
@@ -85,6 +95,7 @@ export default function ResumeBuilder() {
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [currentStep, setCurrentStep] = useState('career-level');
   const [careerLevel, setCareerLevel] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
@@ -322,7 +333,7 @@ export default function ResumeBuilder() {
                   const isCompleted = stepIndex > index;
                   return (
                       <React.Fragment key={step.id}>
-                          <div className="flex flex-col items-center text-center w-16">
+                          <div className="flex flex-col items-center text-center w-12">
                              <button onClick={() => setCurrentStep(step.id)} className={cn("w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors text-xs", 
                                   isActive ? 'bg-primary text-primary-foreground' : isCompleted ? 'bg-green-500 text-white' : 'bg-card border'
                              )}
@@ -330,7 +341,7 @@ export default function ResumeBuilder() {
                              >
                                   {isCompleted ? <FileCheck2 size={14}/> : index + 1}
                              </button>
-                             <p className={cn("mt-2 text-center text-xs", isActive && "font-bold text-primary")}>{step.name}</p>
+                             <p className={cn("mt-2 text-center text-[10px] leading-tight", isActive && "font-bold text-primary")}>{step.name}</p>
                           </div>
                           {index < steps.length - 1 && <div className="flex-1 h-0.5 bg-border -mt-4"></div>}
                       </React.Fragment>
@@ -377,6 +388,36 @@ export default function ResumeBuilder() {
                                 <span className="text-lg font-medium">{country.name}</span>
                             </CardContent>
                         </Card>
+                    ))}
+                </div>
+            </div>
+          )}
+          {currentStep === 'template' && (
+            <div className="space-y-4">
+                <h3 className="text-2xl font-semibold">Choose Your Template</h3>
+                <p className="text-muted-foreground">Select a template to get started. Your content will be automatically transferred.</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
+                    {templates.map((template) => (
+                        <div 
+                            key={template.id}
+                            onClick={() => setSelectedTemplate(template.id)}
+                            className={cn(
+                                "cursor-pointer rounded-lg border-2 p-1 transition-all",
+                                selectedTemplate === template.id ? "border-primary shadow-lg" : "border-transparent hover:border-primary/50"
+                            )}
+                        >
+                            <div className="aspect-[1/1.414] overflow-hidden rounded-md bg-muted">
+                                <Image 
+                                    src={template.thumbnail} 
+                                    alt={`${template.name} template thumbnail`} 
+                                    width={400} 
+                                    height={566} 
+                                    data-ai-hint={template.hint}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <p className="text-center text-sm font-medium mt-2">{template.name}</p>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -528,12 +569,15 @@ export default function ResumeBuilder() {
           ref={previewRef} 
           className="w-full max-w-2xl aspect-[1/1.414] bg-white transform scale-95 origin-top shadow-xl ring-1 ring-black/5"
         >
-          <ModernTemplate data={resumeData} />
+          {
+            {
+              modern: <ModernTemplate data={resumeData} />,
+              classic: <ClassicTemplate data={resumeData} />,
+              creative: <CreativeTemplate data={resumeData} />,
+            }[selectedTemplate]
+          }
         </div>
       </aside>
     </div>
   );
 }
-
-
-    

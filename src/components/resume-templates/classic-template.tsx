@@ -1,0 +1,75 @@
+
+import React from 'react';
+import type { ResumeData } from '@/components/resume-builder';
+
+export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+  const { personalInfo, summary, experience, education, skills } = data;
+
+  return (
+    <div className="bg-white text-gray-900 p-10 shadow-lg w-full h-full font-serif text-sm">
+      <header className="text-center mb-6">
+        <h1 className="text-4xl font-bold tracking-widest uppercase">{personalInfo.name || 'Your Name'}</h1>
+        <div className="text-xs text-gray-600 mt-2">
+          <span>{personalInfo.address}</span>
+          {personalInfo.address && (personalInfo.phone || personalInfo.email) ? <span className="mx-2">|</span> : ''}
+          <span>{personalInfo.phone}</span>
+          {personalInfo.phone && personalInfo.email ? <span className="mx-2">|</span> : ''}
+          <span>{personalInfo.email}</span>
+        </div>
+      </header>
+
+      <hr className="border-gray-400 mb-6" />
+
+      <main>
+        {summary && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Summary</h2>
+            <p className="text-gray-700 leading-relaxed text-justify">{summary}</p>
+          </section>
+        )}
+
+        {experience.length > 0 && experience[0]?.role && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Experience</h2>
+            {experience.map((job) => (
+              <div key={job.id} className="mb-4">
+                <div className="flex justify-between items-baseline">
+                  <h3 className="text-md font-semibold">{job.role || 'Job Title'}</h3>
+                  <p className="text-xs text-gray-600 font-medium">{job.dates || 'Dates'}</p>
+                </div>
+                <p className="text-sm font-medium italic text-gray-800">{job.company || 'Company Name'}</p>
+                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1 text-sm">
+                  {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
+                    <li key={i} className="pl-2">{desc.replace(/^•\s*/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {education.length > 0 && education[0]?.school && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Education</h2>
+            {education.map((edu) => (
+              <div key={edu.id} className="mb-2">
+                 <div className="flex justify-between items-baseline">
+                    <h3 className="text-md font-semibold">{edu.degree || 'Degree'}</h3>
+                    <p className="text-xs text-gray-600 font-medium">{edu.dates || 'Dates'}</p>
+                </div>
+                <p className="text-sm font-medium italic text-gray-800">{edu.school || 'School Name'}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {skills.length > 0 && (
+           <section>
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Skills</h2>
+            <p className="text-gray-700 text-sm text-center">{skills.filter(skill => skill).join(' • ')}</p>
+           </section>
+        )}
+      </main>
+    </div>
+  );
+};
