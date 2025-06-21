@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
 import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
+import { ProfessionalTemplate } from './resume-templates/professional-template';
+import { MinimalistTemplate } from './resume-templates/minimalist-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -69,6 +71,8 @@ const templates = [
   { id: 'modern', name: 'Modern' },
   { id: 'classic', name: 'Classic' },
   { id: 'creative', name: 'Creative' },
+  { id: 'professional', name: 'Professional' },
+  { id: 'minimalist', name: 'Minimalist' },
 ];
 
 const careerLevels = [
@@ -406,7 +410,7 @@ export default function ResumeBuilder() {
                                 selectedTemplate === template.id ? "border-primary shadow-lg" : "border-transparent hover:border-primary/50"
                             )}
                         >
-                            <ResumeThumbnail templateId={template.id as 'modern' | 'classic' | 'creative'} />
+                            <ResumeThumbnail templateId={template.id as 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist'} />
                             <p className="text-center text-sm font-medium mt-2">{template.name}</p>
                         </div>
                     ))}
@@ -565,7 +569,9 @@ export default function ResumeBuilder() {
               modern: <ModernTemplate data={resumeData} />,
               classic: <ClassicTemplate data={resumeData} />,
               creative: <CreativeTemplate data={resumeData} />,
-            }[selectedTemplate]
+              professional: <ProfessionalTemplate data={resumeData} />,
+              minimalist: <MinimalistTemplate data={resumeData} />,
+            }[selectedTemplate as 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist']
           }
         </div>
       </aside>
