@@ -4,16 +4,18 @@ import type { ResumeData } from '@/components/resume-builder';
 
 export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-10 w-full h-full font-sans text-sm">
       <header className="text-left mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
         <p className="text-md text-gray-600 mt-1">{experience[0]?.role || 'Professional Title'}</p>
         <div className="text-xs text-gray-500 mt-3 space-x-4 border-t pt-2 mt-2">
           <span>{personalInfo.phone}</span>
           <span>{personalInfo.email}</span>
-          <span>{personalInfo.address}</span>
+          <span>{fullAddress}</span>
         </div>
       </header>
       

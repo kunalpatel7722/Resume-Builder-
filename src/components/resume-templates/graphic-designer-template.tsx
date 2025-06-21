@@ -5,6 +5,8 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble,
 
 export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-sm">
@@ -12,7 +14,7 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
             <div className="w-24 h-24 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center ring-4 ring-primary/20">
                 <Brush className="h-12 w-12 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">{personalInfo.name || 'Your Name'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
             <h2 className="text-md text-primary font-light tracking-widest">{experience[0]?.role || 'Graphic Designer'}</h2>
             
             <div className="space-y-6 mt-8 text-left w-full">
@@ -21,7 +23,7 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                     <div className="space-y-2 text-xs text-gray-600">
                         {personalInfo.email && <p className="truncate">{personalInfo.email}</p>}
                         {personalInfo.phone && <p>{personalInfo.phone}</p>}
-                        {personalInfo.address && <p>{personalInfo.address}</p>}
+                        {fullAddress && <p>{fullAddress}</p>}
                     </div>
                 </section>
                  {skills.length > 0 && (

@@ -5,12 +5,14 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, User } from 'lucid
 
 export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
         <aside className="w-1/3 bg-slate-800 text-white p-6 flex flex-col space-y-8">
             <section>
-                <h1 className="text-3xl font-bold tracking-tight">{personalInfo.name || 'Your Name'}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{fullName || 'Your Name'}</h1>
                 <h2 className="text-md text-slate-300 mt-1">{experience[0]?.role || 'Your Title'}</h2>
             </section>
 
@@ -19,7 +21,7 @@ export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) =
                  <div className="space-y-2 text-slate-200">
                     {personalInfo.email && <div className="flex items-center gap-2"><Mail size={14} /><span>{personalInfo.email}</span></div>}
                     {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} /><span>{personalInfo.phone}</span></div>}
-                    {personalInfo.address && <div className="flex items-center gap-2"><MapPin size={14} /><span>{personalInfo.address}</span></div>}
+                    {fullAddress && <div className="flex items-center gap-2"><MapPin size={14} /><span>{fullAddress}</span></div>}
                 </div>
             </section>
 

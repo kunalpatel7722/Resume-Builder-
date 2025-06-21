@@ -5,12 +5,14 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, User } from
 
 export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-sm">
         <aside className="w-1/3 bg-slate-100 p-8 flex flex-col space-y-8">
             <div>
-                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight leading-none">{personalInfo.name || 'Your Name'}</h1>
+                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight leading-none">{fullName || 'Your Name'}</h1>
                 <h2 className="text-md text-primary font-semibold mt-2">{experience[0]?.role || 'Professional Title'}</h2>
             </div>
             
@@ -19,7 +21,7 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                  <div className="space-y-3 text-slate-600 text-xs">
                     {personalInfo.email && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 text-primary"/><span>{personalInfo.email}</span></div>}
                     {personalInfo.phone && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5 text-primary"/><span>{personalInfo.phone}</span></div>}
-                    {personalInfo.address && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5 text-primary"/><span>{personalInfo.address}</span></div>}
+                    {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5 text-primary"/><span>{fullAddress}</span></div>}
                 </div>
             </section>
             

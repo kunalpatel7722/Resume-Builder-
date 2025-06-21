@@ -5,13 +5,15 @@ import { Scale } from 'lucide-react';
 
 export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-black p-10 w-full h-full font-serif text-[11pt]">
       <header className="text-center mb-6">
-        <h1 className="text-3xl font-bold tracking-wider">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-3xl font-bold tracking-wider">{fullName || 'Your Name'}</h1>
         <div className="text-sm text-gray-700 mt-2 space-x-3">
-          <span>{personalInfo.address}</span>
+          <span>{fullAddress}</span>
           <span>|</span>
           <span>{personalInfo.phone}</span>
           <span>|</span>

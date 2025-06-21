@@ -5,14 +5,16 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building } 
 
 export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-8 w-full h-full font-['Garamond',_serif] text-base">
       <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
         <p className="text-lg text-gray-600 mt-1">{experience[0]?.role || 'Hospitality Manager'}</p>
         <div className="text-sm text-gray-500 mt-3 border-t border-gray-200 pt-2">
-          {personalInfo.phone} &nbsp;&bull;&nbsp; {personalInfo.email} &nbsp;&bull;&nbsp; {personalInfo.address}
+          {personalInfo.phone} &nbsp;&bull;&nbsp; {personalInfo.email} &nbsp;&bull;&nbsp; {fullAddress}
         </div>
       </header>
       

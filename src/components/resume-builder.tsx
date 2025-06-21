@@ -35,10 +35,14 @@ import { GraphicDesignerTemplate } from './resume-templates/graphic-designer-tem
 
 export interface ResumeData {
   personalInfo: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string;
-    address: string;
+    streetAddress: string;
+    city: string;
+    state: string;
+    zipCode: string;
   };
   summary: string;
   experience: {
@@ -59,7 +63,7 @@ export interface ResumeData {
 }
 
 const initialResumeData: ResumeData = {
-  personalInfo: { name: '', email: '', phone: '', address: '' },
+  personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
   summary: '',
   experience: [{ id: 1, company: '', role: '', dates: '', description: '' }],
   education: [{ id: 1, school: '', degree: '', dates: '' }],
@@ -249,7 +253,7 @@ export default function ResumeBuilder() {
       });
 
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`${resumeData.personalInfo.name.replace(' ', '_')}_Resume.pdf`);
+      pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
     } catch (error) {
       console.error(error);
       toast({
@@ -491,12 +495,23 @@ export default function ResumeBuilder() {
           )}
           {currentStep === 'personal' && (
               <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold">Personal Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div><Label htmlFor="name">Full Name</Label><Input id="name" name="name" value={resumeData.personalInfo.name} onChange={handlePersonalChange} /></div>
-                      <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
-                      <div><Label htmlFor="phone">Phone</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
-                      <div><Label htmlFor="address">Address, City, State</Label><Input id="address" name="address" value={resumeData.personalInfo.address} onChange={handlePersonalChange} /></div>
+                  <h3 className="text-2xl font-semibold">What's the best way for employers to contact you?</h3>
+                  <p className="text-muted-foreground">We suggest including an email and phone number.</p>
+                  <div className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
+                    </div>
+                    <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
+                    </div>
                   </div>
               </div>
           )}

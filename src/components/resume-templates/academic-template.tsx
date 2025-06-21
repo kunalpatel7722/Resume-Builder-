@@ -4,15 +4,17 @@ import type { ResumeData } from '@/components/resume-builder';
 
 export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-900 p-10 w-full h-full font-serif text-sm">
       <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
         <p className="text-md text-gray-700 mt-1">{experience[0]?.role || 'Professional Title'}</p>
         <div className="text-xs text-gray-600 mt-3">
-          <span>{personalInfo.address}</span>
-          {personalInfo.address && (personalInfo.phone || personalInfo.email) ? <span className="mx-2">·</span> : ''}
+          <span>{fullAddress}</span>
+          {fullAddress && (personalInfo.phone || personalInfo.email) ? <span className="mx-2">·</span> : ''}
           <span>{personalInfo.phone}</span>
           {personalInfo.phone && personalInfo.email ? <span className="mx-2">·</span> : ''}
           <span>{personalInfo.email}</span>
@@ -74,5 +76,3 @@ export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     </div>
   );
 };
-
-    

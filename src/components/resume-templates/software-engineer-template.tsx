@@ -5,18 +5,20 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Link
 
 export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-8 w-full h-full font-sans text-sm">
       <header className="flex justify-between items-center mb-6">
         <div>
-            <h1 className="text-4xl font-bold text-gray-900">{personalInfo.name || 'Your Name'}</h1>
+            <h1 className="text-4xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
             <h2 className="text-lg text-primary font-mono">{experience[0]?.role || 'Software Engineer'}</h2>
         </div>
         <div className="text-xs text-right space-y-1">
             <p className="flex items-center justify-end gap-2"><Mail size={14}/> {personalInfo.email}</p>
             <p className="flex items-center justify-end gap-2"><Phone size={14}/> {personalInfo.phone}</p>
-            <p className="flex items-center justify-end gap-2"><Globe size={14}/> {personalInfo.address}</p>
+            {fullAddress && <p className="flex items-center justify-end gap-2"><Globe size={14}/> {fullAddress}</p>}
         </div>
       </header>
       

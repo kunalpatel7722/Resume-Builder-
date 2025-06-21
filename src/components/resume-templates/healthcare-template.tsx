@@ -5,14 +5,16 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HeartPulse } from 
 
 export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-8 w-full h-full font-sans text-sm">
       <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-gray-800">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-4xl font-bold text-gray-800">{fullName || 'Your Name'}</h1>
         <h2 className="text-lg text-primary mt-1">{experience[0]?.role || 'Healthcare Professional'}</h2>
         <div className="text-xs text-gray-600 mt-3 flex justify-center items-center gap-4">
-          <span>{personalInfo.address}</span>
+          <span>{fullAddress}</span>
           <span>&bull;</span>
           <span>{personalInfo.phone}</span>
           <span>&bull;</span>

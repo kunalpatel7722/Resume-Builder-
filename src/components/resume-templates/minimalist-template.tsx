@@ -4,13 +4,15 @@ import type { ResumeData } from '@/components/resume-builder';
 
 export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-12 w-full h-full font-light tracking-wide text-sm">
       <header className="text-left mb-10">
-        <h1 className="text-5xl font-thin tracking-widest uppercase">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-5xl font-thin tracking-widest uppercase">{fullName || 'Your Name'}</h1>
         <div className="text-xs text-gray-500 mt-3 space-x-4">
-          <span>{personalInfo.address}</span>
+          <span>{fullAddress}</span>
           <span>{personalInfo.phone}</span>
           <span>{personalInfo.email}</span>
         </div>

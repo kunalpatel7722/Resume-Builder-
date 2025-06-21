@@ -5,6 +5,8 @@ import { Mail, Phone, MapPin, User, Star, Briefcase, GraduationCap } from 'lucid
 
 export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-sm">
@@ -13,7 +15,7 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 <div className="w-24 h-24 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center ring-4 ring-primary/20">
                     <User className="h-12 w-12 text-primary" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">{personalInfo.name || 'Your Name'}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
             </div>
 
             <div className="space-y-6">
@@ -22,7 +24,7 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     <div className="space-y-2 text-xs">
                         {personalInfo.email && <div className="flex items-start gap-2"><Phone size={14} className="text-primary mt-0.5"/><span>{personalInfo.email}</span></div>}
                         {personalInfo.phone && <div className="flex items-start gap-2"><Mail size={14} className="text-primary mt-0.5"/><span>{personalInfo.phone}</span></div>}
-                        {personalInfo.address && <div className="flex items-start gap-2"><MapPin size={14} className="text-primary mt-0.5"/><span>{personalInfo.address}</span></div>}
+                        {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="text-primary mt-0.5"/><span>{fullAddress}</span></div>}
                     </div>
                 </section>
 

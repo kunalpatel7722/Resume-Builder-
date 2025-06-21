@@ -5,12 +5,14 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp } from 
 
 export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
         <aside className="w-1/3 bg-gray-50 p-6 flex flex-col">
             <header className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{personalInfo.name || 'Your Name'}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
                 <h2 className="text-md text-primary">{experience[0]?.role || 'Finance Analyst'}</h2>
             </header>
             
@@ -20,7 +22,7 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     <div className="space-y-2 text-xs text-gray-600">
                         {personalInfo.email && <p>{personalInfo.email}</p>}
                         {personalInfo.phone && <p>{personalInfo.phone}</p>}
-                        {personalInfo.address && <p>{personalInfo.address}</p>}
+                        {fullAddress && <p>{fullAddress}</p>}
                     </div>
                 </section>
 

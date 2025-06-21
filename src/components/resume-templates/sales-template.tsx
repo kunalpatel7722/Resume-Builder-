@@ -5,18 +5,20 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, DollarSign, Target
 
 export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-8 w-full h-full font-sans text-sm">
       <header className="flex items-center justify-between mb-6 pb-4 border-b-2 border-primary">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{personalInfo.name || 'Your Name'}</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{fullName || 'Your Name'}</h1>
           <h2 className="text-lg font-semibold text-primary">{experience[0]?.role || 'Sales Professional'}</h2>
         </div>
         <div className="text-right text-xs space-y-1 text-gray-600">
             {personalInfo.email && <div className="flex items-center justify-end gap-2"><Mail size={12} /><span>{personalInfo.email}</span></div>}
             {personalInfo.phone && <div className="flex items-center justify-end gap-2"><Phone size={12} /><span>{personalInfo.phone}</span></div>}
-            {personalInfo.address && <div className="flex items-center justify-end gap-2"><MapPin size={12} /><span>{personalInfo.address}</span></div>}
+            {fullAddress && <div className="flex items-center justify-end gap-2"><MapPin size={12} /><span>{fullAddress}</span></div>}
         </div>
       </header>
 

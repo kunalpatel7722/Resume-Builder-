@@ -8,15 +8,17 @@ interface ModernTemplateProps {
 
 export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
+  const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   return (
     <div className="bg-white text-gray-800 p-8 shadow-lg w-full h-full font-sans text-sm">
       <header className="text-center mb-8 border-b-2 border-gray-300 pb-4">
-        <h1 className="text-4xl font-bold tracking-wider uppercase text-gray-800">{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-4xl font-bold tracking-wider uppercase text-gray-800">{fullName || 'Your Name'}</h1>
         <div className="flex justify-center items-center gap-x-4 gap-y-1 text-xs text-gray-600 mt-2 flex-wrap">
           {personalInfo.email && <div className="flex items-center gap-1"><Mail size={12} /><span>{personalInfo.email}</span></div>}
           {personalInfo.phone && <div className="flex items-center gap-1"><Phone size={12} /><span>{personalInfo.phone}</span></div>}
-          {personalInfo.address && <div className="flex items-center gap-1"><MapPin size={12} /><span>{personalInfo.address}</span></div>}
+          {fullAddress && <div className="flex items-center gap-1"><MapPin size={12} /><span>{fullAddress}</span></div>}
         </div>
       </header>
 
