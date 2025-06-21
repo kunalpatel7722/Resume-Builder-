@@ -41,6 +41,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 
 
 export interface ResumeData {
