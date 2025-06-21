@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Link, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { UploadCloud, Link, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle, TriangleAlert } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
@@ -359,19 +360,25 @@ export default function ProfileAnalyzer() {
                     {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
                   </TabsContent>
                   <TabsContent value="link" className="mt-4">
-                     <div className="space-y-2">
-                      <label htmlFor="url-input" className="text-sm font-medium">Public Profile URL</label>
-                      <Input
-                        id="url-input"
-                        type="url"
-                        placeholder="e.g., https://example.com/your-public-profile"
-                        value={pastedUrl}
-                        onChange={(e) => { setPastedUrl(e.target.value); setFile(null); }}
-                        className="h-12"
-                      />
-                      <p className="text-xs text-muted-foreground pt-1">
-                        Note: The URL must be publicly accessible. LinkedIn URLs may not work due to their privacy settings.
-                      </p>
+                     <div className="space-y-4">
+                      <div>
+                        <label htmlFor="url-input" className="text-sm font-medium">Public Profile URL</label>
+                        <Input
+                          id="url-input"
+                          type="url"
+                          placeholder="e.g., https://example.com/your-public-profile"
+                          value={pastedUrl}
+                          onChange={(e) => { setPastedUrl(e.target.value); setFile(null); }}
+                          className="h-12 mt-1"
+                        />
+                      </div>
+                       <Alert variant="destructive">
+                          <TriangleAlert className="h-4 w-4" />
+                          <AlertTitle>Important Note</AlertTitle>
+                          <AlertDescription>
+                              LinkedIn profile URLs are protected and <strong>will not work</strong>. To analyze your profile, please go to your LinkedIn page, select &apos;More&apos; -&gt; &apos;Save to PDF&apos;, and then upload that file in the &quot;Upload PDF&quot; tab.
+                          </AlertDescription>
+                       </Alert>
                     </div>
                   </TabsContent>
                 </Tabs>
