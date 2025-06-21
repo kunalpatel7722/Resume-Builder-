@@ -23,7 +23,7 @@ const ScoreCategorySchema = z.object({
   score: z.number().describe("The score for this category (out of 100)."),
   feedback: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved."),
   checks: z.array(z.object({
-    check: z.string().describe("A specific check performed within this category, e.g., 'Is your headline between 8-15 words long?'"),
+    check: z.string().describe("A specific check performed within this category, e.g., 'Is your headline between 10-20 words long?'"),
     passed: z.boolean().describe("Whether the profile passed this specific check."),
     details: z.string().describe("A short explanation of why this check passed or failed and how to improve it."),
   })).describe("A list of specific checks and their results for this category."),
@@ -47,14 +47,14 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile based on the provided data. The input may be from a PDF or raw text.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be a harsh but fair grader, providing "tough love" to help the user truly improve.
 
 Profile Data:
 {{#if pdfProfileData}}{{media url=pdfProfileData}}{{/if}}{{#if textProfileData}}{{{textProfileData}}}{{/if}}
 
 1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. If it was text, return that text. This is the source material.
 
-2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be critical and provide concrete examples for improvement.
+2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical and provide concrete examples for improvement. Score harshly.
 
     **Categories to Analyze:**
 
@@ -66,34 +66,34 @@ Profile Data:
             *   Avoids Clichés (does it avoid generic titles like 'Seeking new opportunities' or overly used buzzwords without context?).
     *   **Summary (About Section):**
         *   Checks:
-            *   Compelling Hook (does the first sentence grab the reader's attention?).
-            *   Structured Narrative (is it well-structured in 3-5 short paragraphs, telling a career story, not just listing skills?).
+            *   Compelling Hook (does the first sentence grab the reader's attention and make them want to read more?).
+            *   Structured Narrative (is it well-structured in 3-5 short paragraphs, telling a career story, not just listing skills? It should cover who they are, their key achievements, and their career goals).
             *   Readability (does it use white space effectively? Are paragraphs short and easy to scan?).
             *   Clear Call to Action (does it end with a clear, professional call to action, e.g., 'Feel free to connect or reach out at...').
             *   Strategic Keywords (is it optimized with a good mix of relevant skills, industry terms, and keywords?).
     *   **Experience Section:**
         *   Checks:
             *   Powerful Action Verbs (does each bullet point start with a strong, varied action verb like 'Orchestrated', 'Architected', 'Accelerated' instead of just 'Managed' or 'Led'?).
-            *   Quantifiable Achievements (are there at least 2-3 measurable achievements with metrics like %, $, or # for each recent role? e.g., 'Reduced customer churn by 15% in 6 months').
+            *   Quantifiable Achievements (are there at least 2-3 measurable achievements with metrics like %, $, or # for each recent role? This is critical. Simply listing responsibilities is not enough).
             *   Concise Bullet Points (is the experience described using 3-5 concise, impactful bullet points per role?).
             *   Role Context (is there a brief, 1-2 sentence description of the company and the role's primary responsibility before the bullet points?).
     *   **Skills & Endorsements:**
         *   Checks:
-            *   Sufficient Skill Quantity (are there at least 20-30 relevant skills listed? LinkedIn allows up to 50).
+            *   Sufficient Skill Quantity (are there at least 20-30 relevant skills listed? A comprehensive list is crucial).
             *   Skill Relevance (are the skills directly relevant and tailored to their target industry and roles mentioned in the headline/summary?).
-            *   Top Skills Pinned (note the importance of pinning the 3 most critical skills to the top of the section).
+            *   Top Skills Pinned (note the importance of pinning the 3 most critical skills to the top of the section, as this is prime real estate).
     *   **Profile Completeness & Social Proof:**
         *   Checks:
-            *   Professional Headshot (note the importance of a clear, professional headshot).
-            *   Custom Banner Image (note the importance of a custom banner that reflects their professional brand).
-            *   Filled-out Education Section (is the education section complete with degrees and institutions?).
-            *   Custom URL (mention the importance of a custom vanity URL for branding).
-            *   Featured Section (note the importance of using the 'Featured' section to showcase top work, articles, or projects).
-            *   Recommendations (note the importance of having at least 2-3 recommendations from previous managers or colleagues for social proof).
+            *   Professional Headshot (note the importance of a clear, professional headshot - no selfies, no group photos).
+            *   Custom Banner Image (note the importance of a custom banner that reflects their professional brand, not the default LinkedIn one).
+            *   Filled-out Education Section (is the education section complete with degrees, institutions, and dates?).
+            *   Custom URL (mention the importance of a custom vanity URL for branding, e.g., /in/john-doe).
+            *   Featured Section (note the importance of using the 'Featured' section to showcase top work, articles, or projects. An empty featured section is a missed opportunity).
+            *   Recommendations (note the importance of having at least 2-3 recommendations from previous managers or colleagues for social proof. These are essential for building trust).
 
-3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The headline, summary, and experience sections are the most important and should be weighted more heavily.
+3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The headline, summary, and experience sections are the most important and should be weighted most heavily. Be strict in your final calculation.
 
-4.  **Provide High-Level Summary**: Write a brief, encouraging summary of the profile's key strengths and the top 3 most critical areas for improvement to have the biggest impact.
+4.  **Provide High-Level Summary**: Write a brief, encouraging but direct summary of the profile's key strengths and the top 3 most critical areas for improvement to have the biggest impact.
 
 5.  **Format Output**: Return a single JSON object that strictly adheres to the provided output schema. Ensure all fields are populated correctly. The 'overallScore' should be the final calculated score. The 'scoreBreakdown' should be an array of objects, one for each category listed above.
 `,
