@@ -126,40 +126,33 @@ const linkedinProfileScoreFlow = ai.defineFlow(
     outputSchema: LinkedinProfileScoreOutputSchema,
   },
   async (input) => {
-    const promptInput: z.infer<typeof PromptInputSchema> = {};
-
-    if (input.pdfProfileData) {
-      promptInput.pdfProfileData = input.pdfProfileData;
-    } else if (input.profileUrl) {
-      try {
-        const response = await fetch(input.profileUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch URL with status: ${response.status}`);
-        }
-        const textContent = await response.text();
-        promptInput.textProfileData = textContent;
-      } catch (error) {
-        console.error(`Failed to fetch profile from URL: ${input.profileUrl}`, error);
-        throw new Error('Could not retrieve content from the provided URL. Please ensure it is a direct, public link or try uploading a PDF instead.');
-      }
-    }
-
-    if (!promptInput.pdfProfileData && !promptInput.textProfileData) {
-      throw new Error('No profile data provided.');
-    }
-
     const maxRetries = 3;
     for (let i = 0; i < maxRetries; i++) {
       try {
+        const promptInput: z.infer<typeof PromptInputSchema> = {};
+
+        if (input.pdfProfileData) {
+          promptInput.pdfProfileData = input.pdfProfileData;
+        } else if (input.profileUrl) {
+          const response = await fetch(input.profileUrl);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch URL with status: ${response.status}`);
+          }
+          const textContent = await response.text();
+          promptInput.textProfileData = textContent;
+        }
+
+        if (!promptInput.pdfProfileData && !promptInput.textProfileData) {
+          throw new Error('No profile data provided.');
+        }
+
         const { output } = await linkedinProfileScorePrompt(promptInput);
         return output!;
       } catch (error) {
         console.error(`Attempt ${i + 1} failed for linkedinProfileScoreFlow:`, error);
         if (i === maxRetries - 1) {
-          // If this was the last attempt, re-throw the error
-          throw error;
+          throw new Error('Could not analyze the profile. The URL may be inaccessible or the AI may be temporarily unavailable. Please try again.');
         }
-        // Wait for a short period before retrying (e.g., exponential backoff)
         const delay = Math.pow(2, i) * 1000; // 1s, 2s
         await new Promise(resolve => setTimeout(resolve, delay));
       }
