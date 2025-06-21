@@ -295,14 +295,24 @@ export default function ResumeBuilder() {
   const nextStep = () => {
     const currentIndex = steps.findIndex(step => step.id === currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1].id);
+      if (currentStep === 'experience' && resumeData.experience.every(exp => exp.role)) {
+        setCurrentStep('experience-description');
+      } else if (currentStep === 'experience') {
+        toast({ title: 'Role is required', description: 'Please enter a role for each experience before proceeding.', variant: 'destructive' });
+      } else {
+        setCurrentStep(steps[currentIndex + 1].id);
+      }
     }
   };
   
   const prevStep = () => {
     const currentIndex = steps.findIndex(step => step.id === currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1].id);
+       if (currentStep === 'experience-description') {
+        setCurrentStep('experience');
+      } else {
+        setCurrentStep(steps[currentIndex - 1].id);
+      }
     }
   };
 
@@ -431,7 +441,7 @@ export default function ResumeBuilder() {
         <div className="space-y-1">
           {steps.map((step, index) => {
             const stepIndex = steps.findIndex(s => s.id === currentStep);
-            const isActive = step.id === currentStep;
+            const isActive = step.id === currentStep || (currentStep === 'experience-description' && step.id === 'experience');
             const isCompleted = stepIndex > index;
             return (
               <button
@@ -685,20 +695,13 @@ export default function ResumeBuilder() {
                     <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-base flex items-center gap-2">
                         <Wand2 className="h-5 w-5 text-primary" />
-                        AI Content Helper
+                        Enhance with AI
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="flex items-center gap-2">
-                         <Input
-                              id={`ai-role-${exp.id}`}
-                              value={exp.role}
-                              readOnly
-                              placeholder="Job title from previous step"
-                              className="bg-background"
-                          />
-                          <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                         <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                               Get Suggestions
                           </Button>
                       </div>
@@ -728,19 +731,30 @@ export default function ResumeBuilder() {
             </div>
           )}
            {currentStep === 'education' && (
-              <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold">Education</h3>
+               <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold">Tell us about your education</h3>
+                  <p className="text-muted-foreground">Include every school, even if you're still there or didn't graduate.</p>
+                  
                   {resumeData.education.map((edu, index) => (
                       <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div><Label>School/University</Label><Input name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e)} /></div>
-                              <div><Label>Degree/Field of Study</Label><Input name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e)} /></div>
-                              <div><Label>Dates (e.g., 2016 - 2020)</Label><Input name="dates" value={edu.dates} onChange={(e) => handleEducationChange(index, e)} /></div>
-                          </div>
                           <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
+                          <div className="space-y-4">
+                              <div>
+                                  <Label htmlFor={`school-${edu.id}`}>School/University</Label>
+                                  <Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e)} />
+                              </div>
+                              <div>
+                                  <Label htmlFor={`degree-${edu.id}`}>Degree/Field of Study</Label>
+                                  <Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e)} />
+                              </div>
+                              <div>
+                                  <Label htmlFor={`dates-${edu.id}`}>Dates (e.g., 2016 - 2020)</Label>
+                                  <Input id={`dates-${edu.id}`} name="dates" value={edu.dates} onChange={(e) => handleEducationChange(index, e)} />
+                              </div>
+                          </div>
                       </div>
                   ))}
-                  <Button variant="outline" onClick={addEducation}><Plus className="mr-2" />Add Education</Button>
+                  <Button variant="outline" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
               </div>
           )}
            {currentStep === 'skills' && (
@@ -816,5 +830,3 @@ export default function ResumeBuilder() {
     </div>
   );
 }
-
-    
