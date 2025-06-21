@@ -17,7 +17,6 @@ import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit,
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
-import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 import { ProfessionalTemplate } from './resume-templates/professional-template';
 import { MinimalistTemplate } from './resume-templates/minimalist-template';
 import { ExecutiveTemplate } from './resume-templates/executive-template';
@@ -635,8 +634,8 @@ export default function ResumeBuilder() {
                       
                       <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                             <div><Label htmlFor={`role-${exp.id}`}>Job Title</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                            <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
@@ -809,8 +808,8 @@ export default function ResumeBuilder() {
           )}
            {currentStep === 'skills' && (
               <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold">Skills</h3>
-                  <p className="text-sm text-muted-foreground">Enter your skills below, separated by commas.</p>
+                  <h3 className="text-2xl font-semibold">What skills would you like to highlight?</h3>
+                  <p className="text-muted-foreground">Start with a few of the most important skills. We’ll suggest more for you to choose from based on your experience.</p>
                   <Textarea 
                       placeholder="e.g., React, Project Management, SEO, Public Speaking"
                       value={resumeData.skills.join(', ')}
@@ -819,7 +818,10 @@ export default function ResumeBuilder() {
                   {aiSuggestions && (
                         <Card className="bg-muted/50">
                           <CardHeader className='p-3'>
-                            <CardTitle className='text-sm'>Skill suggestions for '{suggestionsForIndex !== null ? resumeData.experience[suggestionsForIndex].role : 'your role'}'</CardTitle>
+                            <CardTitle className='text-sm flex items-center gap-2'>
+                              <Wand2 className="h-4 w-4 text-primary" />
+                              <span>Top skills for a {suggestionsForIndex !== null ? resumeData.experience[suggestionsForIndex].role : 'role'}</span>
+                            </CardTitle>
                           </CardHeader>
                           <CardContent className='p-3 pt-0'>
                             <p className="text-xs text-muted-foreground mb-2">Click to add a skill.</p>
