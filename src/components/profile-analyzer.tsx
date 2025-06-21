@@ -11,16 +11,12 @@ import { UploadCloud, Link as LinkIcon, Loader2, BarChart, FileText, Wand2, Arro
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { linkedinProfileScore, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
-import { getLinkedInProfileImprovementTips, type LinkedInProfileImprovementTipsOutput } from "@/ai/flows/linkedin-profile-improvement-tips";
 import ScoreDisplay from "@/components/score-display";
-import ImprovementTips from "@/components/improvement-tips";
 import ScoreBreakdown from "./score-breakdown";
-
-type ImprovementTip = LinkedInProfileImprovementTipsOutput['improvementTips'][0];
 
 type AnalysisResult = {
   score: number;
-  tips: ImprovementTip[];
+  summaryFeedback: string;
   scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
   extractedText: string;
 };
@@ -93,14 +89,10 @@ export default function ProfileAnalyzer() {
 
     try {
       const scoreOutput = await linkedinProfileScore({ profileData });
-      const tipsOutput = await getLinkedInProfileImprovementTips({
-        profileText: scoreOutput.extractedText,
-        profileScore: scoreOutput.score,
-      });
 
       setResult({
-        score: scoreOutput.score,
-        tips: tipsOutput.improvementTips,
+        score: scoreOutput.overallScore,
+        summaryFeedback: scoreOutput.summaryFeedback,
         scoreBreakdown: scoreOutput.scoreBreakdown,
         extractedText: scoreOutput.extractedText,
       });
@@ -140,12 +132,13 @@ export default function ProfileAnalyzer() {
        <div className="min-h-screen bg-muted/40">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
-            <Card className="shadow-sm p-4 space-y-4">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">LinkBoost Report</h1>
-                 <Button variant="outline" onClick={() => setResult(null)} className="w-full">
+            <Card className="shadow-sm p-4">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">LinkBoost Report</h1>
+                 <Button variant="outline" onClick={() => setResult(null)} className="w-full mb-4">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Analyze Another Profile
                 </Button>
+                <p className="text-sm text-muted-foreground p-3 bg-muted rounded-md border">{result.summaryFeedback}</p>
             </Card>
             
             <Card className="shadow-sm p-6">
@@ -156,9 +149,6 @@ export default function ProfileAnalyzer() {
               <ScoreBreakdown breakdown={result.scoreBreakdown} />
             </Card>
 
-            <Card className="shadow-sm p-6">
-              <ImprovementTips tips={result.tips} />
-            </Card>
           </aside>
 
           <main className="lg:col-span-8 xl:col-span-9">

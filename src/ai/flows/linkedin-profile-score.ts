@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file defines a Genkit flow for scoring a LinkedIn profile.
  *
- * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a score (out of 100) indicating its completeness and effectiveness.
+ * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a detailed score and analysis.
  * - LinkedinProfileScoreInput - The input type for the linkedinProfileScore function.
  * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScore function.
  */
@@ -17,16 +17,24 @@ const LinkedinProfileScoreInputSchema = z.object({
 
 export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInputSchema>;
 
+const ScoreCategorySchema = z.object({
+  title: z.string().describe("The title of the category, e.g., 'Headline' or 'Experience Section'."),
+  score: z.number().describe("The score for this category (out of 100)."),
+  feedback: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved."),
+  checks: z.array(z.object({
+    check: z.string().describe("A specific check performed within this category, e.g., 'Is your headline between 8-15 words long?'"),
+    passed: z.boolean().describe("Whether the profile passed this specific check."),
+    details: z.string().describe("A short explanation of why this check passed or failed and how to improve it."),
+  })).describe("A list of specific checks and their results for this category."),
+});
+
 const LinkedinProfileScoreOutputSchema = z.object({
-  score: z.number().describe("A score (out of 100) indicating the completeness and effectiveness of the LinkedIn profile."),
-  scoreBreakdown: z.array(z.object({
-    category: z.string().describe("The category being scored, e.g., 'Keyword Usage', 'Profile Completeness'."),
-    score: z.number().describe("The score for this category (out of 100)."),
-    feedback: z.string().describe("Specific feedback for this category."),
-  })).describe("A detailed breakdown of the profile score across different categories."),
-  improvementTips: z.array(z.string()).describe("A list of improvement tips for the LinkedIn profile."),
+  overallScore: z.number().describe("The overall score for the LinkedIn profile, from 0 to 100."),
+  summaryFeedback: z.string().describe("A high-level summary of the profile's strengths and weaknesses."),
+  scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories."),
   extractedText: z.string().describe("The full text extracted from the provided LinkedIn profile data that was used for the analysis."),
 });
+
 
 export type LinkedinProfileScoreOutput = z.infer<typeof LinkedinProfileScoreOutputSchema>;
 
@@ -38,24 +46,52 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are an expert LinkedIn profile optimizer. Given the following LinkedIn profile data, your task is to first extract the text content from it, then analyze the extracted text to provide a comprehensive evaluation.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise and actionable review of a LinkedIn profile.
 
 Profile Data: {{{profileData}}}
 
-1.  **Extract Text**: Thoroughly extract all textual content from the provided profile data.
-2.  **Analyze and Score**: Based on the extracted text, assess the profile's completeness and effectiveness. Provide an overall score out of 100.
-3.  **Provide Breakdown**: Give a detailed breakdown of the score across the following categories:
-    *   Keyword Usage
-    *   Profile Completeness (summary, skills, experience, education)
-    *   Headline and Summary Quality
-    *   Overall Presentation
-    For each category, provide a score (out of 100) and specific feedback.
-4.  **Suggest Improvements**: Provide a list of general improvement tips.
-5.  **Format Output**: Return a single JSON object containing:
-    *   'score': The overall score (0-100).
-    *   'scoreBreakdown': An array of objects with 'category', 'score', and 'feedback'.
-    *   'improvementTips': An array of strings with improvement suggestions.
-    *   'extractedText': The full, unmodified text you extracted in step 1.
+1.  **Extract Text**: First, thoroughly extract all textual content from the provided profile data. This extracted text will be the basis for your entire analysis.
+
+2.  **Analyze and Score with Precision**: Based on the extracted text, perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed reasoning.
+
+    **Categories to Analyze:**
+
+    *   **Headline:**
+        *   Checks:
+            *   Length (is it between 8-20 words?).
+            *   Keywords (does it contain relevant keywords for their target role/industry?).
+            *   Value Proposition (does it clearly state their value?).
+            *   Uniqueness (does it avoid generic titles like 'Unemployed' or 'Seeking opportunities'?).
+    *   **Summary (About Section):**
+        *   Checks:
+            *   Presence (does a summary exist?).
+            *   Length (is it between 3-5 short paragraphs, or around 100-200 words?).
+            *   First-person perspective (is it written in the first person?).
+            *   Call to Action (does it include a clear call to action at the end?).
+            *   Keyword Optimization (is it optimized with relevant skills and keywords?).
+    *   **Experience Section:**
+        *   Checks:
+            *   Action Verbs (are bullet points starting with strong action verbs?).
+            *   Quantifiable Results (are there measurable achievements, e.g., 'Increased sales by 20%').
+            *   Bullet Points (is the experience described using 3-5 bullet points per role?).
+            *   Relevance (is the experience relevant to their likely career goals?).
+    *   **Skills & Endorsements:**
+        *   Checks:
+            *   Number of Skills (are there at least 10-15 relevant skills listed?).
+            *   Relevance of Skills (are the skills relevant to their industry/target roles?).
+            *   Endorsements (do top skills have endorsements? Acknowledge you can't see endorsement counts, but check if the skills section is well-populated).
+    *   **Profile Completeness:**
+        *   Checks:
+            *   Profile Picture (note the importance of a professional headshot).
+            *   Banner Image (note the importance of a custom, relevant banner image).
+            *   Education Section (is it filled out completely?).
+            *   Custom URL (mention the importance of a custom vanity URL and check if the provided URL seems to be a custom one).
+
+3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The headline and experience sections are most important.
+
+4.  **Provide High-Level Summary**: Write a brief, encouraging summary of the profile's key strengths and most important areas for improvement.
+
+5.  **Format Output**: Return a single JSON object that strictly adheres to the provided output schema. Ensure all fields are populated correctly. The 'overallScore' should be the final calculated score. The 'scoreBreakdown' should be an array of objects, one for each category listed above.
 `,
 });
 
