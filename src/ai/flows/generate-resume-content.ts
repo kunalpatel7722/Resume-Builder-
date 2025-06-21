@@ -11,12 +11,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateResumeContentInputSchema = z.object({
+const GenerateResumeContentInputSchema = z.object({
   jobTitle: z.string().describe("The job title to generate content for, e.g., 'Software Engineer' or 'Marketing Manager'."),
 });
 export type GenerateResumeContentInput = z.infer<typeof GenerateResumeContentInputSchema>;
 
-export const GenerateResumeContentOutputSchema = z.object({
+const GenerateResumeContentOutputSchema = z.object({
   responsibilities: z.array(z.string()).describe("A list of 5-7 concise, action-oriented bullet points describing typical responsibilities for the job title."),
   skills: z.array(z.string()).describe("A list of 8-10 relevant hard and soft skills for the job title."),
 });
