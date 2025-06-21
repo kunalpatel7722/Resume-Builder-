@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ResumeAtsCheckInputSchema = z.object({
+const ResumeAtsCheckInputSchema = z.object({
   resumePdfData: z.string().describe("The resume data as a PDF data URI."),
   jobDescription: z.string().describe("The full text of the job description the user is applying for."),
 });
@@ -34,7 +34,7 @@ const ImprovementTipSchema = z.object({
   description: z.string().describe("A detailed, actionable paragraph explaining the improvement with examples."),
 });
 
-export const ResumeAtsCheckOutputSchema = z.object({
+const ResumeAtsCheckOutputSchema = z.object({
   overallScore: z.number().describe("The overall ATS score for the resume against the job description, from 0 to 100."),
   summaryFeedback: z.string().describe("A high-level summary of the resume's strengths and weaknesses, starting with the strengths."),
   scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories relevant to ATS scanning."),
