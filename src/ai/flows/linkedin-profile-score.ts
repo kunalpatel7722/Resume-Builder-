@@ -50,7 +50,7 @@ const linkedinProfileScorePrompt = ai.definePrompt({
 
 Profile Data: {{{profileData}}}
 
-1.  **Extract Text**: First, thoroughly extract all textual content from the provided profile data. This extracted text will be the basis for your entire analysis.
+1.  **Extract Text**: First, you must meticulously extract all textual content from the provided profile data. It is critical that you capture every single detail, including headlines, contact information, the 'About' section, all experiences with their full descriptions and dates, education history, licenses & certifications, skills, and recommendations. The full, unabridged text you extract will be the basis for your entire analysis and must be returned in the 'extractedText' field of the output. Do not summarize, shorten, or omit any part of the source profile text. If you are given a URL, note that you cannot access it and state that fact in the extracted text.
 
 2.  **Analyze and Score with Precision**: Based on the extracted text, perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed reasoning.
 
