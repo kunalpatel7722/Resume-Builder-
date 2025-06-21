@@ -23,10 +23,9 @@ const ScoreBreakdown = ({ breakdown }: ScoreBreakdownProps) => {
 
   return (
     <div className="w-full">
-       <h3 className="text-xl font-bold mb-4">Detailed Analysis</h3>
       <Accordion type="multiple" defaultValue={breakdown.map(item => item.title)} className="w-full space-y-3">
         {breakdown.map((category) => (
-          <AccordionItem value={category.title} key={category.title} className="border bg-card rounded-lg shadow-sm data-[state=open]:shadow-md">
+          <AccordionItem value={category.title} key={category.title} className="border rounded-lg shadow-sm data-[state=open]:shadow-md">
             <AccordionTrigger className="px-4 py-3 hover:no-underline text-left">
               <div className="flex items-center gap-4 w-full">
                 <div className="flex-1">

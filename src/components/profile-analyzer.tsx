@@ -22,6 +22,13 @@ type AnalysisResult = {
   extractedText: string;
 };
 
+const getScoreMessage = (score: number) => {
+  if (score >= 85) return "Excellent Profile!";
+  if (score >= 70) return "Great Job!";
+  if (score >= 50) return "Good Start!";
+  return "Needs Improvement";
+};
+
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
@@ -124,21 +131,36 @@ export default function ProfileAnalyzer() {
        <div className="min-h-screen bg-muted/40">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
-            <Card className="shadow-sm p-4">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">LinkBoost Report</h1>
-                 <Button variant="outline" onClick={() => setResult(null)} className="w-full mb-4">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Analyze Another Profile
-                </Button>
-                <p className="text-sm text-muted-foreground p-3 bg-muted rounded-md border">{result.summaryFeedback}</p>
+            <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-2xl tracking-tight text-foreground">LinkBoost Report</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" onClick={() => setResult(null)} className="w-full mb-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Analyze Another Profile
+                  </Button>
+                  <p className="text-sm text-muted-foreground p-3 bg-muted rounded-md border">{result.summaryFeedback}</p>
+                </CardContent>
             </Card>
             
-            <Card className="shadow-sm p-6">
-              <ScoreDisplay score={result.score} />
+            <Card className="shadow-sm">
+              <CardHeader className="items-center pb-4">
+                <CardTitle className="text-xl">Overall Score</CardTitle>
+                <CardDescription>{getScoreMessage(result.score)}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScoreDisplay score={result.score} />
+              </CardContent>
             </Card>
 
-            <Card className="shadow-sm p-6">
-              <ScoreBreakdown breakdown={result.scoreBreakdown} />
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl">Detailed Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScoreBreakdown breakdown={result.scoreBreakdown} />
+              </CardContent>
             </Card>
 
           </aside>
