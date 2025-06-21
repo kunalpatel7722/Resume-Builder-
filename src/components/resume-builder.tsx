@@ -237,7 +237,6 @@ export default function ResumeBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
-  const previewRef = useRef<HTMLDivElement>(null);
   
   const [aiSuggestions, setAiSuggestions] = useState<GenerateResumeContentOutput | null>(null);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
@@ -261,6 +260,42 @@ export default function ResumeBuilder() {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [accentColor, setAccentColor] = useState(colorOptions[0].color);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = previewContainerRef.current;
+    const content = previewContentRef.current;
+
+    if (!container || !content) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+        const previewBaseWidth = 850; // The fixed width of the unscaled resume
+        if (container.offsetWidth > 0 && previewBaseWidth > 0) {
+            const scale = container.offsetWidth / previewBaseWidth;
+            content.style.transform = `scale(${scale})`;
+            content.style.transformOrigin = 'top left';
+        }
+    });
+
+    resizeObserver.observe(container);
+
+    // Initial scale calculation
+    const previewBaseWidth = 850;
+    if (container.offsetWidth > 0 && previewBaseWidth > 0) {
+        const scale = container.offsetWidth / previewBaseWidth;
+        content.style.transform = `scale(${scale})`;
+        content.style.transformOrigin = 'top left';
+    }
+
+
+    return () => {
+        if (container) {
+            resizeObserver.unobserve(container);
+        }
+    };
+  }, [isFinalizing, isMobile, mobileView]);
 
   const showPreview = !fullWidthSteps.includes(currentStep);
 
@@ -695,7 +730,7 @@ export default function ResumeBuilder() {
 
 
   const handleDownloadPdf = async () => {
-    const element = previewRef.current;
+    const element = previewContentRef.current;
     if (!element) {
         if(isMobile) {
             toast({ title: "Preview not visible", description: "Please switch to the Preview tab to download the PDF.", variant: "destructive" });
@@ -846,7 +881,7 @@ export default function ResumeBuilder() {
                     </div>
                 </div>
             </aside>
-            <main className="lg:col-span-9 p-4 lg:p-8 flex flex-col items-center justify-center">
+            <main className="lg:col-span-9 p-4 lg:p-8 flex flex-col items-center justify-start overflow-y-auto">
                  <div className="flex justify-end w-full max-w-xl mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
@@ -854,10 +889,12 @@ export default function ResumeBuilder() {
                     </Button>
                  </div>
                  <div 
-                    ref={previewRef} 
-                    className="w-full max-w-xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+                    ref={previewContainerRef}
+                    className="w-full max-w-xl aspect-[1/1.414] overflow-hidden shadow-xl ring-1 ring-black/5"
                   >
-                    <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                    <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+                        <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                    </div>
                   </div>
             </main>
         </div>
@@ -872,7 +909,7 @@ export default function ResumeBuilder() {
             : "min-h-[calc(100vh-4rem)]"
     )}>
       
-      {showPreview && (
+      {showPreview && !isMobile && (
         <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 overflow-y-auto">
           <h2 className="text-xl font-bold text-foreground">Resume Builder</h2>
           <div className="space-y-1">
@@ -1578,13 +1615,15 @@ export default function ResumeBuilder() {
             <div className="space-y-4">
                 <div className="bg-muted p-2 -mx-4 -mt-4">
                     <div 
-                        ref={previewRef} 
-                        className="w-full aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+                        ref={previewContainerRef} 
+                        className="w-full aspect-[1/1.414] overflow-hidden shadow-xl ring-1 ring-black/5"
                     >
-                       <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                       <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+                            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                        </div>
                     </div>
                 </div>
-                {currentStep === 'finalize' && (
+                {isFinalizing && (
                     <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className="w-full">
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -1594,13 +1633,15 @@ export default function ResumeBuilder() {
         )}
       </main>
 
-      {showPreview && (
+      {showPreview && !isMobile && (
         <aside className="hidden lg:flex lg:col-span-5 bg-muted p-8 items-center justify-center">
           <div 
-            ref={previewRef} 
-            className="w-full max-w-xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+            ref={previewContainerRef}
+            className="w-full max-w-xl aspect-[1/1.414] overflow-hidden shadow-xl ring-1 ring-black/5"
           >
-            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+             <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+                <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+            </div>
           </div>
         </aside>
       )}
