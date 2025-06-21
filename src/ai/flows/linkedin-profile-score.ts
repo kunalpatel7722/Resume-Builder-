@@ -60,8 +60,24 @@ const linkedinProfileScoreFlow = ai.defineFlow(
     inputSchema: LinkedinProfileScoreInputSchema,
     outputSchema: LinkedinProfileScoreOutputSchema,
   },
-  async input => {
-    const {output} = await linkedinProfileScorePrompt(input);
-    return output!;
+  async (input) => {
+    const maxRetries = 3;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const { output } = await linkedinProfileScorePrompt(input);
+        return output!;
+      } catch (error) {
+        console.error(`Attempt ${i + 1} failed for linkedinProfileScoreFlow:`, error);
+        if (i === maxRetries - 1) {
+          // If this was the last attempt, re-throw the error
+          throw error;
+        }
+        // Wait for a short period before retrying (e.g., exponential backoff)
+        const delay = Math.pow(2, i) * 1000; // 1s, 2s
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    // This should be unreachable
+    throw new Error('Flow failed after all retries.');
   }
 );

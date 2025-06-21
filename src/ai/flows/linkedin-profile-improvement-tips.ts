@@ -55,8 +55,21 @@ const linkedInProfileImprovementTipsFlow = ai.defineFlow(
     inputSchema: LinkedInProfileImprovementTipsInputSchema,
     outputSchema: LinkedInProfileImprovementTipsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const maxRetries = 3;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const { output } = await prompt(input);
+        return output!;
+      } catch (error) {
+        console.error(`Attempt ${i + 1} failed for linkedInProfileImprovementTipsFlow:`, error);
+        if (i === maxRetries - 1) {
+          throw error;
+        }
+        const delay = Math.pow(2, i) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error('Flow failed after all retries.');
   }
 );
