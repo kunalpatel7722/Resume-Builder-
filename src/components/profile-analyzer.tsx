@@ -134,6 +134,14 @@ export default function ProfileAnalyzer() {
     if (activeTab === 'pdf' && file) {
       scoreInput.pdfProfileData = await fileToDataURL(file);
     } else if (activeTab === 'link' && pastedUrl) {
+      if (pastedUrl.toLowerCase().includes('linkedin.com')) {
+        toast({
+          title: "LinkedIn URLs Not Supported",
+          description: "Direct analysis of LinkedIn URLs is blocked for privacy reasons. Please use the 'Save to PDF' feature on your profile and upload the file instead.",
+          variant: "destructive",
+        });
+        return;
+      }
       try {
         new URL(pastedUrl);
         scoreInput.profileUrl = pastedUrl;
@@ -392,3 +400,5 @@ export default function ProfileAnalyzer() {
     </div>
   );
 }
+
+    
