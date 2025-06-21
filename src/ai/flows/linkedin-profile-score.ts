@@ -11,7 +11,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// This is the public-facing schema for the flow.
 const LinkedinProfileScoreInputSchema = z.object({
   pdfProfileData: z.string().describe("The LinkedIn profile data as a PDF data URI."),
 });
@@ -49,14 +48,9 @@ export async function linkedinProfileScore(input: LinkedinProfileScoreInput): Pr
   return linkedinProfileScoreFlow(input);
 }
 
-// This is the internal schema for the prompt itself. It only deals with raw data.
-const PromptInputSchema = z.object({
-  pdfProfileData: z.string().describe("The LinkedIn profile data as a PDF data URI."),
-});
-
 const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
-  input: {schema: PromptInputSchema},
+  input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
   prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve. While your scoring is strict, your feedback must be constructive and always acknowledge what the user has done well before moving on to critiques.
 
@@ -131,7 +125,7 @@ const linkedinProfileScoreFlow = ai.defineFlow(
           throw new Error('No profile data provided. Please upload a PDF.');
         }
 
-        const { output } = await linkedinProfileScorePrompt({pdfProfileData: input.pdfProfileData});
+        const { output } = await linkedinProfileScorePrompt(input);
         if (!output) {
           throw new Error('AI model returned an empty response.');
         }
