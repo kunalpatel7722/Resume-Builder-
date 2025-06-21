@@ -5,7 +5,7 @@
  *
  * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a detailed score and analysis.
  * - LinkedinProfileScoreInput - The input type for the linkedinProfileScore function.
- * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScore function.
+ * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScoreOutput function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -46,13 +46,13 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise and actionable review of a LinkedIn profile.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise and actionable review of a LinkedIn profile based on the provided data.
 
 Profile Data: {{{profileData}}}
 
-1.  **Extract Text**: First, you must meticulously extract all textual content from the provided profile data. It is critical that you capture every single detail, including headlines, contact information, the 'About' section, all experiences with their full descriptions and dates, education history, licenses & certifications, skills, and recommendations. The full, unabridged text you extract will be the basis for your entire analysis and must be returned in the 'extractedText' field of the output. Do not summarize, shorten, or omit any part of the source profile text. If you are given a URL, note that you cannot access it and state that fact in the extracted text.
+1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the original, unedited 'Profile Data' in the 'extractedText' field of the output. This is the source material.
 
-2.  **Analyze and Score with Precision**: Based on the extracted text, perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed reasoning.
+2.  **Analyze and Score with Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed reasoning.
 
     **Categories to Analyze:**
 
