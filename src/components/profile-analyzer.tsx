@@ -88,7 +88,7 @@ export default function ProfileAnalyzer() {
   if (result) {
     return (
        <div className="min-h-screen bg-muted/40 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
              <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">LinkedIn Review Results</h1>
@@ -100,30 +100,25 @@ export default function ProfileAnalyzer() {
               </Button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-6">
-                <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
-                <ImprovementTips suggestions={result.aiSuggestions} />
-                <div className="space-y-4">
-                  {result.reportSections.map((section, index) => (
-                    <ReportSection key={index} section={section} />
-                  ))}
-                </div>
+            <div className="space-y-8">
+              <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
+              <ImprovementTips suggestions={result.aiSuggestions} />
+              <div className="space-y-4">
+                {result.reportSections.map((section, index) => (
+                  <ReportSection key={index} section={section} />
+                ))}
               </div>
-
-              <div className="lg:col-span-1">
-                <Card className="sticky top-24">
-                  <CardHeader>
-                      <CardTitle>Extracted Profile Text</CardTitle>
-                      <CardDescription>This is the text our AI used for the analysis.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[calc(100vh-14rem)] overflow-y-auto">
-                          {result.extractedText}
-                      </pre>
-                  </CardContent>
-                </Card>
-              </div>
+              <Card>
+                <CardHeader>
+                    <CardTitle>Extracted Profile Text</CardTitle>
+                    <CardDescription>This is the text our AI used for the analysis.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
+                        {result.extractedText}
+                    </pre>
+                </CardContent>
+              </Card>
             </div>
         </div>
       </div>
