@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, ArrowLeft, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,9 +112,9 @@ export default function ResumeChecker() {
               </Button>
             </header>
             
-            <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 lg:items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
               {/* Left Column */}
-              <div className="lg:col-span-3 space-y-4">
+              <div className="lg:col-span-2 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 
                 {result.keywordAnalysis && (
@@ -234,9 +234,11 @@ export default function ResumeChecker() {
                   </CardContent>
               </Card>
           </div>
-          <Button type="submit" className="w-full mt-8 text-lg py-6" disabled={!file}>
-            <BarChart className="mr-2" />Analyze Resume
-          </Button>
+          <CardFooter className="mt-8 p-0">
+            <Button type="submit" className="w-full text-lg py-6" disabled={!file}>
+                <BarChart className="mr-2" />Analyze Resume
+            </Button>
+          </CardFooter>
         </form>
       </div>
     </div>

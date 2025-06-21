@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -96,7 +96,7 @@ export default function ProfileAnalyzer() {
   if (result) {
     return (
        <div className="min-h-screen bg-muted/40">
-        <div className="max-w-6xl mx-auto p-4 md:p-8">
+        <div className="max-w-7xl mx-auto p-4 md:p-8">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">LinkedIn Review Results</h1>
@@ -108,9 +108,8 @@ export default function ProfileAnalyzer() {
               </Button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 lg:items-start">
-              {/* Left Column */}
-              <div className="lg:col-span-3 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
+              <div className="lg:col-span-2 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 <div className="space-y-4">
                   {result.reportSections.map((section, index) => (
@@ -143,7 +142,6 @@ export default function ProfileAnalyzer() {
                 </div>
               </div>
 
-              {/* Right Column */}
               <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
