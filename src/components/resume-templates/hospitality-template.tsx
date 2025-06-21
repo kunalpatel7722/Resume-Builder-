@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building } 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -49,7 +50,7 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
                         <p className="text-sm text-gray-600">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                     </div>
                     <p className="text-md italic">{job.role || 'Job Title'}</p>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-base max-w-none prose-serif text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-base max-w-none prose-serif text-gray-700">
                       {job.description}
                     </ReactMarkdown>
                 </div>

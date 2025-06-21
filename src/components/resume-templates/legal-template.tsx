@@ -5,6 +5,7 @@ import { Scale } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -54,7 +55,7 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     <p className="text-sm font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                   </div>
                   <p className="text-md italic">{job.role || 'Job Title'}</p>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-800">
                       {job.description}
                   </ReactMarkdown>
                 </div>

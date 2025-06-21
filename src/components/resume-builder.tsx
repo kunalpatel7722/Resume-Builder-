@@ -13,7 +13,7 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -246,7 +246,7 @@ export default function ResumeBuilder() {
     handleExperienceChange(experienceIndex, 'description', newDescription);
   };
 
-  const applyFormat = (index: number, format: 'bold' | 'italic' | 'bullet') => {
+  const applyFormat = (index: number, format: 'bold' | 'italic' | 'underline' | 'bullet') => {
     const expId = resumeData.experience[index].id;
     const textareaId = `description-${expId}`;
     const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
@@ -270,6 +270,11 @@ export default function ResumeBuilder() {
       case 'italic':
         newValue = `${text.substring(0, start)}*${selectedText || 'text'}*${text.substring(end)}`;
         newStart = start + 1;
+        newEnd = newStart + (selectedText || 'text').length;
+        break;
+      case 'underline':
+        newValue = `${text.substring(0, start)}<u>${selectedText || 'text'}</u>${text.substring(end)}`;
+        newStart = start + 3;
         newEnd = newStart + (selectedText || 'text').length;
         break;
       case 'bullet':
@@ -605,7 +610,7 @@ export default function ResumeBuilder() {
           )}
           {currentStep === 'experience' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Tell us about your most recent job</h3>
+                <h3 className="text-2xl font-semibold">Tell us about your work experience</h3>
                 <p className="text-muted-foreground">Start with your most recent job and work backward.</p>
                 
                 {resumeData.experience.map((exp, index) => (
@@ -660,6 +665,7 @@ export default function ResumeBuilder() {
                         <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'underline')}><Underline size={16}/></Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bullet')}><List size={16}/></Button>
                         </div>
                         <Textarea 

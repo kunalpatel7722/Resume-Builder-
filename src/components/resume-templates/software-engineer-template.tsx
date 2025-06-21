@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Link
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -59,7 +60,7 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
                     </div>
                     <div className="col-span-3">
                       <h4 className="font-bold text-md text-gray-800">{job.role || 'Job Title'}</h4>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
                           {job.description}
                       </ReactMarkdown>
                     </div>

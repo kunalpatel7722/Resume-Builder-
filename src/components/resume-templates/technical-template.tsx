@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code } from 'lucid
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -86,7 +87,7 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                           <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                         </div>
                         <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600 prose-code:font-mono">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600 prose-code:font-mono">
                             {job.description}
                         </ReactMarkdown>
                       </div>

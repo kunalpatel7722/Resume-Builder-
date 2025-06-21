@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HardDrive, Termina
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const ItProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -52,7 +53,7 @@ export const ItProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data })
                       <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'} @ {job.company || 'Company'}{location && ` - ${location}`}</h4>
                       <p className="text-xs text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                     </div>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-code text-gray-600">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-code text-gray-600">
                         {job.description}
                     </ReactMarkdown>
                   </div>

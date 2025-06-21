@@ -5,6 +5,7 @@ import { Mail, Phone, MapPin, Feather, BookOpen, PenTool } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -49,7 +50,7 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
                         <h3 className="text-xl font-semibold">{job.role || 'Job Title'}</h3>
                         <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'}{location && `, ${location}`} &mdash; <span className="text-sm text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</span></p>
                     </div>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-800">
                         {job.description}
                     </ReactMarkdown>
                 </div>

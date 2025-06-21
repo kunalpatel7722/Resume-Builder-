@@ -4,6 +4,7 @@ import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
+import rehypeRaw from 'rehype-raw';
 
 export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -51,7 +52,7 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
                         <p className="text-xs text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                         </div>
                         <p className="text-md text-gray-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
                           {job.description}
                         </ReactMarkdown>
                     </div>
