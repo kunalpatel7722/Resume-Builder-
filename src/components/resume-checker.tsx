@@ -132,7 +132,7 @@ export default function ResumeChecker() {
        <div className="min-h-screen bg-background">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 flex h-[calc(100vh-7.5rem)] flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm">
+            <div className="sticky top-24 flex h-[calc(100vh-7.5rem)] flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
                 <ScoreDisplay score={result.overallScore} />
 
                 <Separator/>
@@ -152,8 +152,8 @@ export default function ResumeChecker() {
                                     href={`#${link.id}`}
                                     onClick={(e) => handleScrollTo(e, link.id)}
                                     className={cn(
-                                        "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                                        activeSection === link.id && "bg-muted font-semibold text-foreground"
+                                        "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                                        activeSection === link.id && "font-semibold text-primary"
                                     )}
                                 >
                                     {link.title}
@@ -174,7 +174,7 @@ export default function ResumeChecker() {
 
           <main className="lg:col-span-8 xl:col-span-9 space-y-6">
              <div className="mb-2">
-                <h1 className="text-3xl font-bold text-foreground">ATS Resume Scan Results</h1>
+                <h1 className="text-4xl font-bold tracking-tight text-foreground">ATS Resume Scan Results</h1>
                 <p className="text-muted-foreground">Here's a detailed breakdown of your resume's match for the job.</p>
             </div>
 
@@ -229,7 +229,7 @@ export default function ResumeChecker() {
                     <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ScrollArea className="h-[calc(100vh-18rem)] rounded-md border p-4 bg-muted/50">
+                    <ScrollArea className="h-[calc(100vh-18rem)] rounded-md border p-4">
                     <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
                         {result.extractedText}
                     </pre>
