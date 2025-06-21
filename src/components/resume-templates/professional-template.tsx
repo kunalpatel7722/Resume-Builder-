@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+};
+
+export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,8 +33,10 @@ export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) =
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
+    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
         <aside className="w-1/3 bg-slate-800 text-white p-6 flex flex-col space-y-8">
             <section>
                 <h1 className="text-3xl font-bold tracking-tight">{fullName || 'Your Name'}</h1>

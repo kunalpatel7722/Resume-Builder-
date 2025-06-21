@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,12 +33,14 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-gray-800 p-8 w-full h-full font-sans text-sm">
-      <header className="flex items-center justify-between mb-6 pb-4 border-b-2 border-primary">
+    <div className={cn("bg-white text-gray-800 p-8 w-full h-full font-sans", fontClass)}>
+      <header className="flex items-center justify-between mb-6 pb-4" style={{ borderBottom: `2px solid ${accentColor}` }}>
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{fullName || 'Your Name'}</h1>
-          <h2 className="text-lg font-semibold text-primary">{experience[0]?.role || 'Sales Professional'}</h2>
+          <h2 className="text-lg font-semibold" style={{ color: accentColor }}>{experience[0]?.role || 'Sales Professional'}</h2>
         </div>
         <div className="text-right text-xs space-y-1 text-gray-600">
             {personalInfo.email && <div className="flex items-center justify-end gap-2"><Mail size={12} /><span>{personalInfo.email}</span></div>}
@@ -53,7 +68,7 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                       <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
                       <p className="text-xs text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                     </div>
-                    <p className="text-sm font-semibold text-primary">{job.company || 'Company Name'}{location && ` | ${location}`}</p>
+                    <p className="text-sm font-semibold" style={{ color: accentColor }}>{job.company || 'Company Name'}{location && ` | ${location}`}</p>
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
                         {job.description}
                     </ReactMarkdown>
@@ -89,7 +104,7 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 <ul className="text-sm text-gray-700 space-y-1">
                     {skills.filter(skill => skill).map((skill, index) => (
                         <li key={index} className="flex items-center gap-2">
-                           <div className="h-1.5 w-1.5 bg-primary rounded-full" />
+                           <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accentColor }} />
                            <span>{skill}</span>
                         </li>
                     ))}
@@ -105,7 +120,7 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 return (
                   <div key={edu.id} className="mb-2">
                      <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
-                     <p className="text-sm font-semibold text-primary">{edu.school || 'School Name'}</p>
+                     <p className="text-sm font-semibold" style={{ color: accentColor }}>{edu.school || 'School Name'}</p>
                      <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
                   </div>
                 )
@@ -118,7 +133,7 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               {certifications.map((cert) => (
                 <div key={cert.id} className="mb-2">
                    <h4 className="text-md font-bold text-gray-800">{cert.name || 'Certification Name'}</h4>
-                   <p className="text-sm font-semibold text-primary">{cert.issuer || 'Issuing Body'}</p>
+                   <p className="text-sm font-semibold" style={{ color: accentColor }}>{cert.issuer || 'Issuing Body'}</p>
                    <p className="text-xs text-gray-500">{cert.date || 'Date'}</p>
                 </div>
               ))}
@@ -140,7 +155,7 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               <ul className="text-sm text-gray-700 space-y-1">
                 {languages.map((lang) => (
                     <li key={lang.id} className="flex items-center gap-2">
-                       <div className="h-1.5 w-1.5 bg-primary rounded-full" />
+                       <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accentColor }}/>
                        <span>{lang.name} - {lang.level}</span>
                     </li>
                 ))}

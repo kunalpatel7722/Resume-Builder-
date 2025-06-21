@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+};
+
+export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -19,12 +32,14 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
     return start;
   };
+  
+  const fontClass = fontClasses[fontSize];
 
   return (
-    <div className="bg-white text-gray-900 p-10 w-full h-full font-['Lora',_serif] text-base">
+    <div className={cn("bg-white text-gray-900 p-10 w-full h-full font-['Lora',_serif]", fontClass)}>
       <header className="text-center mb-8">
-        <div className="inline-block bg-primary/10 rounded-full p-2 mb-2">
-            <Feather className="h-8 w-8 text-primary"/>
+        <div className="inline-block rounded-full p-2 mb-2" style={{ backgroundColor: `${accentColor}1A` }}>
+            <Feather className="h-8 w-8" style={{ color: accentColor }}/>
         </div>
         <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
         <p className="text-lg text-gray-600 mt-1">{experience[0]?.role || 'Creative Writer & Editor'}</p>
@@ -142,7 +157,7 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
             <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><LinkIcon /> Portfolio</h2>
             <div className="text-center space-x-4">
               {websites.map((site) => (
-                <a key={site.id} href={site.url} className="text-primary hover:underline">{site.label || site.url}</a>
+                <a key={site.id} href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a>
               ))}
             </div>
           </section>

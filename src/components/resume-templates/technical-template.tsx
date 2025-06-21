@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+};
+
+export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,12 +33,14 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
+    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
         <aside className="w-1/3 bg-gray-900 text-white p-6 flex flex-col space-y-6">
             <section className="text-center">
                 <h1 className="text-2xl font-bold tracking-tight">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md text-primary mt-1 font-mono">{experience[0]?.role || 'Your Title'}</h2>
+                <h2 className="text-md mt-1 font-mono" style={{ color: accentColor }}>{experience[0]?.role || 'Your Title'}</h2>
             </section>
 
             <div className="w-full h-px bg-gray-700" />
@@ -37,7 +52,7 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} /><span>{personalInfo.phone}</span></div>}
                     {fullAddress && <div className="flex items-center gap-2"><MapPin size={14} /><span>{fullAddress}</span></div>}
                     {websites.map(site => (
-                        <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} /><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></div>
+                        <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} /><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></div>
                     ))}
                 </div>
             </section>
@@ -67,7 +82,7 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Skills</h3>
                     <ul className="flex flex-wrap gap-1.5">
                         {skills.filter(skill => skill).map((skill, index) => (
-                            <li key={index} className="bg-primary/20 text-primary-foreground text-[11px] font-mono px-2 py-0.5 rounded">{skill}</li>
+                            <li key={index} className="text-primary-foreground text-[11px] font-mono px-2 py-0.5 rounded" style={{ backgroundColor: `${accentColor}33` }}>{skill}</li>
                         ))}
                     </ul>
                 </section>

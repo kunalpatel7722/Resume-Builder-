@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-[10pt]',
+  md: 'text-[11pt]',
+  lg: 'text-[12pt]',
+};
+
+export const LegalTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,8 +33,10 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-black p-10 w-full h-full font-serif text-[11pt]">
+    <div className={cn("bg-white text-black p-10 w-full h-full font-serif", fontClass)}>
       <header className="text-center mb-6">
         <h1 className="text-3xl font-bold tracking-wider">{fullName || 'Your Name'}</h1>
         <div className="text-sm text-gray-700 mt-2 space-x-3">

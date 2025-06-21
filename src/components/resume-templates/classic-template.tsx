@@ -5,8 +5,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,7 +33,7 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   };
 
   return (
-    <div className="bg-white text-gray-900 p-10 shadow-lg w-full h-full font-serif text-sm">
+    <div className={cn("bg-white text-gray-900 p-10 shadow-lg w-full h-full font-serif", fontClasses[fontSize])}>
       <header className="text-center mb-6">
         <h1 className="text-4xl font-bold tracking-widest uppercase">{fullName || 'Your Name'}</h1>
         <div className="text-xs text-gray-600 mt-2">
@@ -126,7 +139,7 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Links</h2>
             <div className="text-center">
               {websites.map((site) => (
-                <a key={site.id} href={site.url} className="text-primary hover:underline text-sm mx-2">{site.label || site.url}</a>
+                <a key={site.id} href={site.url} className="hover:underline text-sm mx-2" style={{ color: accentColor }}>{site.label || site.url}</a>
               ))}
             </div>
           </section>

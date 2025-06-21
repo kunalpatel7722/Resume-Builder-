@@ -15,7 +15,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil, CaseSensitive, FileSignature, SpellCheck, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -132,8 +132,30 @@ const optionalStepsData = [
 
 const finalSteps = [
   { id: 'add-section', name: 'Add Section' },
-  { id: 'finalize', name: 'Finalize' },
+];
+
+const finalizationSections = [
+    {id: 'summary', name: 'Summary', icon: FileSignature},
+    {id: 'skills', name: 'Skills', icon: CheckCircle},
+    {id: 'experience', name: 'Experience', icon: Briefcase},
+    {id: 'education', name: 'Education', icon: GraduationCap},
+];
+
+const colorOptions = [
+    { name: 'Indigo', color: '#4F46E5' },
+    { name: 'Blue', color: '#3B82F6' },
+    { name: 'Green', color: '#10B981' },
+    { name: 'Red', color: '#EF4444' },
+    { name: 'Gray', color: '#6B7280' },
+    { name: 'Black', color: '#111827' },
+];
+
+const fontSizes = [
+    { id: 'sm', name: 'Small' },
+    { id: 'md', name: 'Medium' },
+    { id: 'lg', name: 'Large' },
 ]
+
 
 const templates = [
   { id: 'modern', name: 'Modern' },
@@ -236,6 +258,10 @@ export default function ResumeBuilder() {
   const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
   const [addedSections, setAddedSections] = useState<string[]>([]);
 
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [accentColor, setAccentColor] = useState(colorOptions[0].color);
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+
   const showPreview = !fullWidthSteps.includes(currentStep);
 
   const steps = [
@@ -243,6 +269,32 @@ export default function ResumeBuilder() {
     ...optionalStepsData.filter(s => addedSections.includes(s.id)),
     ...finalSteps,
   ];
+
+  const templateComponents = {
+    modern: ModernTemplate,
+    classic: ClassicTemplate,
+    creative: CreativeTemplate,
+    professional: ProfessionalTemplate,
+    minimalist: MinimalistTemplate,
+    executive: ExecutiveTemplate,
+    simple: SimpleTemplate,
+    technical: TechnicalTemplate,
+    academic: AcademicTemplate,
+    sales: SalesTemplate,
+    marketing: MarketingTemplate,
+    healthcare: HealthcareTemplate,
+    legal: LegalTemplate,
+    finance: FinanceTemplate,
+    hospitality: HospitalityTemplate,
+    'software-engineer': SoftwareEngineerTemplate,
+    'graphic-designer': GraphicDesignerTemplate,
+    'customer-service': CustomerServiceTemplate,
+    'it-professional': ItProfessionalTemplate,
+    'project-manager': ProjectManagerTemplate,
+    'creative-writer': CreativeWriterTemplate,
+  };
+  
+  const TemplateComponent = templateComponents[selectedTemplate as keyof typeof templateComponents];
 
   useEffect(() => {
     // This is the cleanup function for the component unmount
@@ -568,6 +620,10 @@ export default function ResumeBuilder() {
 
   const nextStep = () => {
     const currentIndex = steps.findIndex(step => step.id === currentStep);
+    if (currentStep === 'add-section') {
+      setIsFinalizing(true);
+      return;
+    }
     if (currentIndex < steps.length - 1) {
       if (currentStep === 'experience' && resumeData.experience.every(exp => exp.role)) {
         setCurrentStep('experience-description');
@@ -580,6 +636,10 @@ export default function ResumeBuilder() {
   };
   
   const prevStep = () => {
+    if (isFinalizing) {
+        setIsFinalizing(false);
+        return;
+    }
     const currentIndex = steps.findIndex(step => step.id === currentStep);
     if (currentIndex > 0) {
        if (currentStep === 'experience-description') {
@@ -592,6 +652,11 @@ export default function ResumeBuilder() {
       }
     }
   };
+  
+  const handleGoToStep = (stepId: string) => {
+    setCurrentStep(stepId);
+    setIsFinalizing(false);
+  }
 
   const handleCareerLevelSelect = (level: string) => {
     setCareerLevel(level);
@@ -715,29 +780,89 @@ export default function ResumeBuilder() {
   const currentStepIndex = steps.findIndex(s => s.id === currentStep);
   const nextStepName = currentStepIndex < steps.length - 1 ? steps[currentStepIndex + 1].name : '';
 
-  const templateComponents = {
-    modern: <ModernTemplate data={resumeData} />,
-    classic: <ClassicTemplate data={resumeData} />,
-    creative: <CreativeTemplate data={resumeData} />,
-    professional: <ProfessionalTemplate data={resumeData} />,
-    minimalist: <MinimalistTemplate data={resumeData} />,
-    executive: <ExecutiveTemplate data={resumeData} />,
-    simple: <SimpleTemplate data={resumeData} />,
-    technical: <TechnicalTemplate data={resumeData} />,
-    academic: <AcademicTemplate data={resumeData} />,
-    sales: <SalesTemplate data={resumeData} />,
-    marketing: <MarketingTemplate data={resumeData} />,
-    healthcare: <HealthcareTemplate data={resumeData} />,
-    legal: <LegalTemplate data={resumeData} />,
-    finance: <FinanceTemplate data={resumeData} />,
-    hospitality: <HospitalityTemplate data={resumeData} />,
-    'software-engineer': <SoftwareEngineerTemplate data={resumeData} />,
-    'graphic-designer': <GraphicDesignerTemplate data={resumeData} />,
-    'customer-service': <CustomerServiceTemplate data={resumeData} />,
-    'it-professional': <ItProfessionalTemplate data={resumeData} />,
-    'project-manager': <ProjectManagerTemplate data={resumeData} />,
-    'creative-writer': <CreativeWriterTemplate data={resumeData} />,
-  };
+  if (isFinalizing) {
+    return (
+        <div className="grid lg:grid-cols-12 h-[calc(100vh-4rem)] bg-muted/40">
+            <aside className="lg:col-span-3 border-r bg-background p-4 lg:p-6 overflow-y-auto">
+                <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-4">
+                    <ArrowLeft className="mr-2" />
+                    Back to Editor
+                </Button>
+                <div className="space-y-6">
+                    <div>
+                        <h3 className="font-semibold text-lg mb-4">Template</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                             {templates.map((template) => (
+                                <div 
+                                    key={template.id}
+                                    onClick={() => setSelectedTemplate(template.id)}
+                                    className={cn(
+                                        "cursor-pointer rounded-md border-2 p-0.5 transition-all",
+                                        selectedTemplate === template.id ? "border-primary" : "border-transparent hover:border-primary/50"
+                                    )}
+                                >
+                                    <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Color</h3>
+                        <div className="flex flex-wrap gap-3">
+                            {colorOptions.map(option => (
+                                <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><CaseSensitive size={20}/> Font Size</h3>
+                        <div className="flex items-center gap-2">
+                            {fontSizes.map(size => (
+                                <Button key={size.id} variant={fontSize === size.id ? 'default' : 'outline'} onClick={() => setFontSize(size.id as 'sm'|'md'|'lg')}>{size.name}</Button>
+                            ))}
+                        </div>
+                    </div>
+                     <div>
+                         <h3 className="font-semibold text-lg mb-4">Resume Sections</h3>
+                        <div className="space-y-2">
+                            {finalizationSections.map(section => (
+                                <Button key={section.id} variant="ghost" className="w-full justify-start" onClick={() => handleGoToStep(section.id)}>
+                                    <section.icon className="mr-2" />
+                                    {section.name}
+                                </Button>
+                            ))}
+                             <Button variant="ghost" className="w-full justify-start" onClick={() => handleGoToStep('add-section')}>
+                                <Plus className="mr-2" />
+                                Add a section
+                            </Button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg mb-4">Proofread</h3>
+                         <Button variant="outline" className="w-full justify-start" disabled>
+                            <SpellCheck className="mr-2" />
+                            Spell Check (Coming Soon)
+                        </Button>
+                    </div>
+                </div>
+            </aside>
+            <main className="lg:col-span-9 p-4 lg:p-8 flex flex-col items-center justify-start overflow-y-auto">
+                 <div className="flex justify-end w-full max-w-2xl mb-4">
+                     <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
+                        Download PDF
+                    </Button>
+                 </div>
+                 <div 
+                    ref={previewRef} 
+                    className="w-full max-w-2xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+                  >
+                    <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                  </div>
+            </main>
+        </div>
+    );
+}
 
   return (
     <div className={cn(
@@ -1431,18 +1556,6 @@ export default function ResumeBuilder() {
               </Card>
             </div>
            )}
-           {currentStep === 'finalize' && (
-              <div className="text-center space-y-4 flex flex-col items-center justify-center h-full">
-                  <FileCheck2 className="w-16 h-16 text-green-500" />
-                  <h3 className="text-2xl font-bold">Your Resume is Ready!</h3>
-                  <p className="text-muted-foreground max-w-md">
-                    {isMobile
-                      ? "Switch to the Preview tab to see your resume and download it."
-                      : "Review your resume on the right. If you need to make changes, just click on a previous step."
-                    }
-                  </p>
-              </div>
-          )}
         </div>
         
         <div className={cn("mt-8 pt-6 border-t flex", 
@@ -1450,13 +1563,8 @@ export default function ResumeBuilder() {
           isMobile && mobileView === 'preview' ? 'hidden' : 'block'
         )}>
           <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Previous</Button>
-          {currentStep === 'finalize' ? (
-              <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className={cn(isMobile && 'hidden')}>
-                  {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
-                  Download PDF
-              </Button>
-          ) : currentStep === 'add-section' ? (
-              <Button onClick={() => setCurrentStep('finalize')}>
+           {currentStep === 'add-section' ? (
+              <Button onClick={nextStep}>
                   Finish & Next
               </Button>
           ) : currentStep !== 'career-level' && currentStep !== 'target-country' && currentStep !== 'select-method' ? (
@@ -1473,7 +1581,7 @@ export default function ResumeBuilder() {
                         ref={previewRef} 
                         className="w-full aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
                     >
-                        {templateComponents[selectedTemplate as keyof typeof templateComponents]}
+                       <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                 </div>
                 {currentStep === 'finalize' && (
@@ -1492,7 +1600,7 @@ export default function ResumeBuilder() {
             ref={previewRef} 
             className="w-full max-w-2xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
           >
-            {templateComponents[selectedTemplate as keyof typeof templateComponents]}
+            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
           </div>
         </aside>
       )}

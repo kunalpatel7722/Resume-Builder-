@@ -5,8 +5,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -18,9 +31,11 @@ export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
     return start;
   };
+  
+  const fontClass = fontClasses[fontSize];
 
   return (
-    <div className="bg-white text-gray-800 p-10 w-full h-full font-sans text-sm">
+    <div className={cn("bg-white text-gray-800 p-10 w-full h-full font-sans", fontClass)}>
       <header className="text-left mb-8">
         <h1 className="text-4xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
         <p className="text-md text-gray-600 mt-1">{experience[0]?.role || 'Professional Title'}</p>
@@ -139,7 +154,7 @@ export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Links</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {websites.map(site => (
-                  <a key={site.id} href={site.url} className="text-primary hover:underline">{site.label || site.url}</a>
+                  <a key={site.id} href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a>
                 ))}
             </div>
            </section>

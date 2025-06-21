@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-[10px]',
+  md: 'text-xs',
+  lg: 'text-sm',
+};
+
+export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,12 +33,14 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
+    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
         <aside className="w-1/3 bg-gray-50 p-6 flex flex-col">
             <header className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md text-primary">{experience[0]?.role || 'Finance Analyst'}</h2>
+                <h2 className="text-md" style={{ color: accentColor }}>{experience[0]?.role || 'Finance Analyst'}</h2>
             </header>
             
             <div className="space-y-6">
@@ -81,7 +96,7 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Links</h3>
                         <ul className="space-y-1">
                             {websites.map(site => (
-                                <li key={site.id}><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></li>
+                                <li key={site.id}><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></li>
                             ))}
                         </ul>
                     </section>

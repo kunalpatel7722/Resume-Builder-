@@ -6,8 +6,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+};
+
+export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,8 +33,10 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
   return (
-    <div className="bg-white text-gray-800 p-8 w-full h-full font-['Garamond',_serif] text-base">
+    <div className={cn("bg-white text-gray-800 p-8 w-full h-full font-['Garamond',_serif]", fontClass)}>
       <header className="text-center mb-6">
         <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
         <p className="text-lg text-gray-600 mt-1">{experience[0]?.role || 'Hospitality Manager'}</p>

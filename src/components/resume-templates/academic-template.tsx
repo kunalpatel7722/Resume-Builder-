@@ -5,8 +5,21 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { cn } from '@/lib/utils';
 
-export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+export interface TemplateProps {
+  data: ResumeData;
+  accentColor: string;
+  fontSize: 'sm' | 'md' | 'lg';
+}
+
+const fontClasses = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+};
+
+export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
@@ -20,7 +33,7 @@ export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   };
 
   return (
-    <div className="bg-white text-gray-900 p-10 w-full h-full font-serif text-sm">
+    <div className={cn("bg-white text-gray-900 p-10 w-full h-full font-serif", fontClasses[fontSize])}>
       <header className="text-center mb-6">
         <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
         <p className="text-md text-gray-700 mt-1">{experience[0]?.role || 'Professional Title'}</p>
@@ -120,7 +133,7 @@ export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-700 mb-2">Websites & Links</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {websites.map((site) => (
-                <a key={site.id} href={site.url} className="text-primary hover:underline text-sm">{site.label || site.url}</a>
+                <a key={site.id} href={site.url} className="hover:underline text-sm" style={{ color: accentColor }}>{site.label || site.url}</a>
               ))}
             </div>
           </section>
