@@ -38,6 +38,7 @@ import { ProjectManagerTemplate } from './resume-templates/project-manager-templ
 import { CreativeWriterTemplate } from './resume-templates/creative-writer-template';
 import { DatePicker } from './ui/date-picker';
 import { Checkbox } from './ui/checkbox';
+import rehypeRaw from 'rehype-raw';
 
 export interface ResumeData {
   personalInfo: {
@@ -608,10 +609,6 @@ export default function ResumeBuilder() {
                       <div className="space-y-4">
                           <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
@@ -645,6 +642,10 @@ export default function ResumeBuilder() {
                               <Label htmlFor={`currentJob-${exp.id}`} className="font-normal">
                                   I currently work here
                               </Label>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
                       </div>
 
@@ -784,3 +785,5 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+
+    
