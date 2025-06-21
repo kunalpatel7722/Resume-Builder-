@@ -24,6 +24,14 @@ import { ExecutiveTemplate } from './resume-templates/executive-template';
 import { SimpleTemplate } from './resume-templates/simple-template';
 import { TechnicalTemplate } from './resume-templates/technical-template';
 import { AcademicTemplate } from './resume-templates/academic-template';
+import { SalesTemplate } from './resume-templates/sales-template';
+import { MarketingTemplate } from './resume-templates/marketing-template';
+import { HealthcareTemplate } from './resume-templates/healthcare-template';
+import { LegalTemplate } from './resume-templates/legal-template';
+import { FinanceTemplate } from './resume-templates/finance-template';
+import { HospitalityTemplate } from './resume-templates/hospitality-template';
+import { SoftwareEngineerTemplate } from './resume-templates/software-engineer-template';
+import { GraphicDesignerTemplate } from './resume-templates/graphic-designer-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -81,6 +89,14 @@ const templates = [
   { id: 'simple', name: 'Simple' },
   { id: 'technical', name: 'Technical' },
   { id: 'academic', name: 'Academic' },
+  { id: 'sales', name: 'Sales' },
+  { id: 'marketing', name: 'Marketing' },
+  { id: 'healthcare', name: 'Healthcare' },
+  { id: 'legal', name: 'Legal' },
+  { id: 'finance', name: 'Finance' },
+  { id: 'hospitality', name: 'Hospitality' },
+  { id: 'software-engineer', name: 'Software Engineer' },
+  { id: 'graphic-designer', name: 'Graphic Designer' },
 ];
 
 const careerLevels = [
@@ -305,6 +321,14 @@ export default function ResumeBuilder() {
     simple: <SimpleTemplate data={resumeData} />,
     technical: <TechnicalTemplate data={resumeData} />,
     academic: <AcademicTemplate data={resumeData} />,
+    sales: <SalesTemplate data={resumeData} />,
+    marketing: <MarketingTemplate data={resumeData} />,
+    healthcare: <HealthcareTemplate data={resumeData} />,
+    legal: <LegalTemplate data={resumeData} />,
+    finance: <FinanceTemplate data={resumeData} />,
+    hospitality: <HospitalityTemplate data={resumeData} />,
+    'software-engineer': <SoftwareEngineerTemplate data={resumeData} />,
+    'graphic-designer': <GraphicDesignerTemplate data={resumeData} />,
   };
 
   return (
@@ -590,5 +614,3 @@ export default function ResumeBuilder() {
     </div>
   );
 }
-
-    
