@@ -17,26 +17,9 @@ import ImprovementTips from "@/components/improvement-tips";
 import KeywordAnalysis from "@/components/keyword-analysis";
 import { cn } from "@/lib/utils";
 import ScoreBreakdownChart from "@/components/score-breakdown-chart";
+import CategoryScoreIndicator from "@/components/category-score-indicator";
 
 type AnalysisResult = ResumeAtsCheckOutput;
-
-const getScoreStyle = (score: number): React.CSSProperties => {
-  if (score >= 80) return { backgroundColor: 'hsl(var(--chart-2))', color: 'hsl(var(--primary-foreground))' };
-  if (score >= 70) return { backgroundColor: 'hsl(var(--chart-4))', color: 'hsl(var(--foreground))' };
-  if (score >= 50) return { backgroundColor: 'hsl(var(--chart-1))', color: 'hsl(var(--primary-foreground))' };
-  return { backgroundColor: 'hsl(var(--destructive))', color: 'hsl(var(--destructive-foreground))' };
-};
-
-const ScoreBadge = ({ score }: { score: number }) => {
-  return (
-    <div
-      className="flex items-center justify-center w-12 h-7 rounded-md font-bold text-sm"
-      style={getScoreStyle(score)}
-    >
-      {score}
-    </div>
-  );
-};
 
 export default function ResumeChecker() {
   const [file, setFile] = useState<File | null>(null);
@@ -212,7 +195,7 @@ export default function ResumeChecker() {
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between text-xl">
                     <span>{category.title}</span>
-                    <ScoreBadge score={category.score} />
+                    <CategoryScoreIndicator score={category.score} />
                     </CardTitle>
                     <CardDescription>
                     {category.feedback}
@@ -221,7 +204,7 @@ export default function ResumeChecker() {
                 <CardContent>
                     <div className="space-y-3">
                     {category.checks.map((check, checkIndex) => (
-                        <div key={checkIndex} className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
+                        <div key={checkIndex} className="flex items-start gap-3 p-3 rounded-md">
                         {check.passed ? (
                             <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
                         ) : (
