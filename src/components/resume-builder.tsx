@@ -15,9 +15,9 @@ import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
 import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
+import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 
 export interface ResumeData {
   personalInfo: {
@@ -66,9 +66,9 @@ const steps = [
 ];
 
 const templates = [
-  { id: 'modern', name: 'Modern', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume template' },
-  { id: 'classic', name: 'Classic', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume classic' },
-  { id: 'creative', name: 'Creative', thumbnail: 'https://placehold.co/400x566.png', hint: 'resume creative' },
+  { id: 'modern', name: 'Modern' },
+  { id: 'classic', name: 'Classic' },
+  { id: 'creative', name: 'Creative' },
 ];
 
 const careerLevels = [
@@ -406,16 +406,7 @@ export default function ResumeBuilder() {
                                 selectedTemplate === template.id ? "border-primary shadow-lg" : "border-transparent hover:border-primary/50"
                             )}
                         >
-                            <div className="aspect-[1/1.414] overflow-hidden rounded-md bg-muted">
-                                <Image 
-                                    src={template.thumbnail} 
-                                    alt={`${template.name} template thumbnail`} 
-                                    width={400} 
-                                    height={566} 
-                                    data-ai-hint={template.hint}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
+                            <ResumeThumbnail templateId={template.id as 'modern' | 'classic' | 'creative'} />
                             <p className="text-center text-sm font-medium mt-2">{template.name}</p>
                         </div>
                     ))}
