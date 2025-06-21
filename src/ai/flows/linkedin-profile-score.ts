@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file defines a Genkit flow for scoring a LinkedIn profile.
  *
- * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a detailed score and analysis.
+ * - linkedinProfileScore -  A function that processes a LinkedIn profile PDF and returns a detailed score and analysis.
  * - LinkedinProfileScoreInput - The input type for the linkedinProfileScore function.
  * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScoreOutput function.
  */
@@ -13,8 +13,7 @@ import {z} from 'genkit';
 
 // This is the public-facing schema for the flow.
 const LinkedinProfileScoreInputSchema = z.object({
-  pdfProfileData: z.string().optional().describe("The LinkedIn profile data as a PDF data URI."),
-  profileUrl: z.string().optional().describe("A public URL to the user's profile content."),
+  pdfProfileData: z.string().describe("The LinkedIn profile data as a PDF data URI."),
 });
 
 export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInputSchema>;
@@ -52,8 +51,7 @@ export async function linkedinProfileScore(input: LinkedinProfileScoreInput): Pr
 
 // This is the internal schema for the prompt itself. It only deals with raw data.
 const PromptInputSchema = z.object({
-  pdfProfileData: z.string().optional().describe("The LinkedIn profile data as a PDF data URI."),
-  textProfileData: z.string().optional().describe("The LinkedIn profile data as raw text."),
+  pdfProfileData: z.string().describe("The LinkedIn profile data as a PDF data URI."),
 });
 
 const linkedinProfileScorePrompt = ai.definePrompt({
@@ -68,9 +66,9 @@ const linkedinProfileScorePrompt = ai.definePrompt({
 - **Positive Reinforcement:** For passed checks, your 'details' should be encouraging and explain *why* it's a good practice. For overall feedback in each category and in the final summary, always start with the positives.
 
 Profile Data:
-{{#if pdfProfileData}}{{media url=pdfProfileData}}{{/if}}{{#if textProfileData}}{{{textProfileData}}}{{/if}}
+{{media url=pdfProfileData}}
 
-1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. If it was text, return that text. This is the source material.
+1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. This is the source material.
 
 2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical in your scoring, but balanced and constructive in your feedback. For a check to 'pass', it must be executed perfectly.
 
@@ -129,24 +127,11 @@ const linkedinProfileScoreFlow = ai.defineFlow(
     const maxRetries = 3;
     for (let i = 0; i < maxRetries; i++) {
       try {
-        const promptInput: z.infer<typeof PromptInputSchema> = {};
-
-        if (input.pdfProfileData) {
-          promptInput.pdfProfileData = input.pdfProfileData;
-        } else if (input.profileUrl) {
-          const response = await fetch(input.profileUrl);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch URL with status: ${response.status}`);
-          }
-          const textContent = await response.text();
-          promptInput.textProfileData = textContent;
+        if (!input.pdfProfileData) {
+          throw new Error('No profile data provided. Please upload a PDF.');
         }
 
-        if (!promptInput.pdfProfileData && !promptInput.textProfileData) {
-          throw new Error('No profile data provided.');
-        }
-
-        const { output } = await linkedinProfileScorePrompt(promptInput);
+        const { output } = await linkedinProfileScorePrompt({pdfProfileData: input.pdfProfileData});
         if (!output) {
           throw new Error('AI model returned an empty response.');
         }
@@ -154,11 +139,7 @@ const linkedinProfileScoreFlow = ai.defineFlow(
       } catch (error) {
         console.error(`Attempt ${i + 1} failed for linkedinProfileScoreFlow:`, error);
         if (i === maxRetries - 1) {
-          let finalMessage = 'Could not analyze the profile after multiple attempts. The AI may be temporarily unavailable.';
-          if (input.profileUrl) {
-            finalMessage = 'Could not analyze the profile from the provided URL. It may be private, protected (like LinkedIn), or temporarily inaccessible. Please try uploading a PDF instead, which is more reliable.';
-          }
-          throw new Error(finalMessage);
+          throw new Error('Could not analyze the profile after multiple attempts. The PDF might be corrupted or the AI may be temporarily unavailable.');
         }
         const delay = Math.pow(2, i) * 1000; // 1s, 2s
         await new Promise(resolve => setTimeout(resolve, delay));

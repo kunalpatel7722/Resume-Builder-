@@ -4,13 +4,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Link, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle, TriangleAlert } from "lucide-react";
+import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
@@ -53,21 +51,17 @@ const ScoreBadge = ({ score }: { score: number }) => {
 
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
-  const [pastedUrl, setPastedUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("pdf");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
 
   const [activeSection, setActiveSection] = useState("overview");
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const toKebabCase = (str: string) => str.toLowerCase().replace(/\s/g, '-').replace(/[&']/g, '');
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // The observer will handle setting the active section
   };
 
   useEffect(() => {
@@ -105,7 +99,6 @@ export default function ProfileAnalyzer() {
       const selectedFile = e.target.files[0];
       if (selectedFile.type === "application/pdf") {
         setFile(selectedFile);
-        setPastedUrl("");
       } else {
         toast({
           title: "Invalid File Type",
@@ -129,40 +122,17 @@ export default function ProfileAnalyzer() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    let scoreInput: LinkedinProfileScoreInput = {};
-
-    if (activeTab === 'pdf' && file) {
-      scoreInput.pdfProfileData = await fileToDataURL(file);
-    } else if (activeTab === 'link' && pastedUrl) {
-      if (pastedUrl.toLowerCase().includes('linkedin.com')) {
-        toast({
-          title: "LinkedIn URLs Not Supported",
-          description: "Direct analysis of LinkedIn URLs is blocked for privacy reasons. Please use the 'Save to PDF' feature on your profile and upload the file instead.",
-          variant: "destructive",
-        });
-        return;
-      }
-      try {
-        new URL(pastedUrl);
-        scoreInput.profileUrl = pastedUrl;
-      } catch (error) {
-        toast({
-          title: "Invalid URL",
-          description: "Please provide a valid URL.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    if (!scoreInput.pdfProfileData && !scoreInput.profileUrl) {
+    if (!file) {
       toast({
-        title: "No Input Provided",
-        description: "Please upload a PDF or paste a link to analyze.",
+        title: "No PDF Provided",
+        description: "Please upload a PDF of your LinkedIn profile to analyze.",
         variant: "destructive",
       });
       return;
     }
+    
+    const pdfProfileData = await fileToDataURL(file);
+    const scoreInput: LinkedinProfileScoreInput = { pdfProfileData };
     
     setIsLoading(true);
     setResult(null);
@@ -346,50 +316,24 @@ export default function ProfileAnalyzer() {
 
         <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText /> Start Your Analysis</CardTitle>
-              <CardDescription>Upload your profile as a PDF or paste a link to your public profile for an instant review.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><UploadCloud /> Upload Your Profile PDF</CardTitle>
+              <CardDescription>
+                To get started, go to your LinkedIn profile, click the "More" button, select "Save to PDF," and upload the file below.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
-                    <TabsTrigger value="link"><Link className="w-4 h-4 mr-2" /> Paste Link</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="pdf" className="mt-4">
+                  <div>
                     <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
-                            <p className="text-xs text-muted-foreground">or drag and drop (PDF only)</p>
+                            <p className="text-xs text-muted-foreground">or drag and drop your LinkedIn PDF</p>
                         </div>
                         <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
                     </label>
                     {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
-                  </TabsContent>
-                  <TabsContent value="link" className="mt-4">
-                     <div className="space-y-4">
-                      <div>
-                        <label htmlFor="url-input" className="text-sm font-medium">Public Profile URL</label>
-                        <Input
-                          id="url-input"
-                          type="url"
-                          placeholder="e.g., https://example.com/your-public-profile"
-                          value={pastedUrl}
-                          onChange={(e) => { setPastedUrl(e.target.value); setFile(null); }}
-                          className="h-12 mt-1"
-                        />
-                      </div>
-                       <Alert variant="destructive">
-                          <TriangleAlert className="h-4 w-4" />
-                          <AlertTitle>Important Note</AlertTitle>
-                          <AlertDescription>
-                              LinkedIn profile URLs are protected and <strong>will not work</strong>. To analyze your profile, please go to your LinkedIn page, select &apos;More&apos; -&gt; &apos;Save to PDF&apos;, and then upload that file in the &quot;Upload PDF&quot; tab.
-                          </AlertDescription>
-                       </Alert>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
                 <Button type="submit" className="w-full mt-6 text-lg py-6">
                   <BarChart className="mr-2" />Analyze Profile
                 </Button>
@@ -400,5 +344,3 @@ export default function ProfileAnalyzer() {
     </div>
   );
 }
-
-    
