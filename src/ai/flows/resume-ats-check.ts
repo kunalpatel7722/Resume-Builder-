@@ -86,16 +86,51 @@ Job Description:
 3.  **Analyze and Score (ATS-Focused)**: Perform a detailed analysis and generate a score for each category below, focusing on how well the resume is optimized for an Applicant Tracking System (ATS) based on the provided job description. The scoring must be heavily influenced by the keyword match.
 
     **Categories to Analyze (ATS Scan):**
-    *   **Impact & Achievements (Weight: 40%)**: Evaluates the quality and impact of the language and achievements. Checks: Uses strong action verbs (e.g., "Led", "Managed", "Developed"), Contains at least 3-5 quantifiable results (using numbers, %, or $), Bullet points are concise and results-oriented (1-2 lines each), Avoids clichés and filler words.
-    *   **Format & Readability (Weight: 30%)**: Assesses the visual presentation and clarity. Checks: Resume is an appropriate length (ideally 1 page), Uses a professional and readable font (10-12pt), Layout is clean, consistent, and uses white space effectively, Free of typos and grammatical errors.
-    *   **ATS Compatibility & Keywords (Weight: 30%)**: Checks for technical elements and keyword alignment. Checks: Uses standard, recognizable section headers (e.g., "Work Experience", "Education"), Design is simple and avoids columns, images, or complex tables, High keyword match score based on the job description.
+    *   **Content (Weight: 35%)**: Analyzes the quality of language and achievements.
+        *   Checks:
+            *   Quantifying Impact: Are there at least 3-5 measurable achievements with metrics (%, $, #) across the resume?
+            *   Active Voice: Does each bullet point start with a strong, varied action verb (e.g., 'Orchestrated', 'Accelerated')?
+            *   Buzzwords & Cliches: Does the resume avoid vague buzzwords ('team player', 'hard worker') and focus on concrete skills?
+            *   Repetition: Does it avoid repeating the same action verbs and phrases excessively?
+    *   **Tailoring (Weight: 25%)**: Assesses how well the resume is tailored to the job description.
+        *   Checks:
+            *   Hard Skills Match: Does the resume contain a high percentage of the hard skills identified in the job description?
+            *   Soft Skills Match: Does the resume reflect the soft skills (e.g., 'communication', 'leadership') mentioned in the job description?
+            *   Keyword Density: Are keywords from the job description naturally integrated throughout the experience section, not just listed in a skills section?
+    *   **Format & Sections (Weight: 25%)**: Evaluates the visual presentation, structure, and clarity.
+        *   Checks:
+            *   Resume Length: Is the resume an appropriate length (ideally 1 page for <10 years experience, max 2 pages for more)?
+            *   Spelling & Grammar: Is the resume free of typos and grammatical errors? A single error should fail this check.
+            *   Essential Sections: Does the resume include all essential sections: Contact Info, Work Experience, Education, and Skills?
+            *   Contact Information: Is the contact information complete (Name, Phone, Email, LinkedIn URL) and professional?
+            *   Readability: Is the layout clean, with consistent formatting, readable font (10-12pt), and good use of white space? Avoids long paragraphs.
+    *   **ATS Compatibility (Weight: 15%)**: Checks technical elements for parsability.
+        *   Checks:
+            *   ATS Parse Rate: Is the design simple, avoiding columns, images, graphics, or complex tables that can confuse an ATS?
+            *   Standard Headers: Does it use standard, recognizable section headers (e.g., "Work Experience", "Education")?
+            *   File Format: Note the importance of using PDF format for universal compatibility.
 
 {{else}}
-2.  **Analyze and Score (General Review)**: Perform a detailed analysis and generate a score for each category below, focusing on general resume best practices for clarity, impact, and professionalism.
+2.  **Analyze and Score (General Review)**: Perform a detailed analysis and generate a score for each category below, focusing on general resume best practices.
 
     **Categories to Analyze (General Review):**
-    *   **Impact & Achievements (Weight: 50%)**: Analyzes the quality of the language and achievements. Checks: Starts bullet points with strong action verbs, Includes at least 3-5 measurable achievements across the resume, Experience is described with concise, impactful bullet points, The professional summary is compelling and concise (2-4 lines).
-    *   **Format & Readability (Weight: 50%)**: Assesses the visual presentation and clarity. Checks: Resume length is appropriate (1 page for <10 years exp.), Font is professional and readable (10-12pt), Layout is clean with good use of white space, Free of typos and grammatical errors.
+    *   **Content (Weight: 40%)**: Analyzes the quality of language and achievements.
+        *   Checks:
+            *   Quantifying Impact: Are there at least 3-5 measurable achievements with metrics (%, $, #) across the resume?
+            *   Active Voice: Does each bullet point start with a strong, varied action verb?
+            *   Buzzwords & Cliches: Does the resume avoid vague buzzwords and focus on concrete skills?
+            *   Spelling & Grammar: Is the resume free of typos and grammatical errors?
+    *   **Format & Sections (Weight: 40%)**: Evaluates the visual presentation, structure, and clarity.
+        *   Checks:
+            *   Resume Length: Is the resume an appropriate length (ideally 1 page)?
+            *   Essential Sections: Does the resume include all essential sections: Contact Info, Work Experience, Education, and Skills?
+            *   Contact Information: Is the contact information complete and professional (professional email address)?
+            *   Readability: Is the layout clean, with consistent formatting, readable font (10-12pt), and good use of white space?
+    *   **ATS Compatibility (Weight: 20%)**: Checks technical elements for parsability.
+        *   Checks:
+            *   ATS Parse Rate: Is the design simple, avoiding columns, images, or complex tables?
+            *   Standard Headers: Does it use standard, recognizable section headers?
+            *   File Format: Note the importance of using PDF format.
     
     **IMPORTANT**: Since no job description was provided, you MUST NOT generate the 'keywordAnalysis' field in the output. Your analysis should be general and not tailored to a specific role.
 
