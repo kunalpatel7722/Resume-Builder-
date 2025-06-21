@@ -846,8 +846,8 @@ export default function ResumeBuilder() {
                     </div>
                 </div>
             </aside>
-            <main className="lg:col-span-9 p-4 lg:p-8 flex flex-col items-center justify-start overflow-y-auto">
-                 <div className="flex justify-end w-full max-w-2xl mb-4">
+            <main className="lg:col-span-9 p-4 lg:p-8 flex flex-col items-center justify-center">
+                 <div className="flex justify-end w-full max-w-xl mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -855,7 +855,7 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewRef} 
-                    className="w-full max-w-2xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+                    className="w-full max-w-xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
                   >
                     <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                   </div>
@@ -1595,10 +1595,10 @@ export default function ResumeBuilder() {
       </main>
 
       {showPreview && (
-        <aside className="hidden lg:flex lg:col-span-5 bg-muted p-8 items-start justify-center overflow-y-auto">
+        <aside className="hidden lg:flex lg:col-span-5 bg-muted p-8 items-center justify-center">
           <div 
             ref={previewRef} 
-            className="w-full max-w-2xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+            className="w-full max-w-xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
           >
             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
           </div>
