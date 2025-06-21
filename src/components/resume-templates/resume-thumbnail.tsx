@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface ResumeThumbnailProps {
-  templateId: 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist' | 'executive' | 'simple' | 'technical' | 'academic' | 'sales' | 'marketing' | 'healthcare' | 'legal' | 'finance' | 'hospitality' | 'software-engineer' | 'graphic-designer';
+  templateId: 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist' | 'executive' | 'simple' | 'technical' | 'academic' | 'sales' | 'marketing' | 'healthcare' | 'legal' | 'finance' | 'hospitality' | 'software-engineer' | 'graphic-designer' | 'customer-service' | 'it-professional' | 'project-manager' | 'creative-writer';
 }
 
 const ModernThumbnail: React.FC = () => (
@@ -171,7 +171,7 @@ const SalesThumbnail: React.FC = () => (
     <div className="p-2 bg-white h-full flex gap-2">
         <div className="w-2/3 space-y-2">
             <div className="h-4 w-full bg-gray-400 rounded-sm" />
-            <div className="h-2 w-2/3 bg-gray-500 rounded-sm" />
+            <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
             <div className="border-b border-blue-500 my-1" />
             <div className="h-2 w-1/3 bg-gray-400 rounded-sm" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
@@ -299,6 +299,72 @@ const GraphicDesignerThumbnail: React.FC = () => (
     </div>
 );
 
+const CustomerServiceThumbnail: React.FC = () => (
+    <div className="p-2 bg-white h-full flex flex-col">
+        <div className="flex justify-between items-start">
+            <div className="w-2/3 space-y-1">
+                <div className="h-3 w-full bg-gray-400 rounded-sm" />
+                <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
+            </div>
+            <div className="w-8 h-8 rounded-full bg-blue-200" />
+        </div>
+        <div className="border-b border-blue-400 my-2" />
+        <div className="flex gap-2 flex-grow">
+            <div className="w-2/3 space-y-2">
+                <div className="h-2 w-1/3 bg-gray-400 rounded-sm" />
+                <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+                <div className="h-1.5 w-5/6 bg-gray-300 rounded-sm" />
+            </div>
+            <div className="w-1/3 space-y-2">
+                 <div className="h-2 w-full bg-gray-400 rounded-sm" />
+                 <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+                 <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+            </div>
+        </div>
+    </div>
+);
+
+const ItProfessionalThumbnail: React.FC = () => (
+    <div className="p-2 bg-white h-full space-y-2 font-mono">
+        <div className="h-3 w-2/3 bg-blue-500 rounded-sm" />
+        <div className="h-2 w-1/2 bg-gray-400 rounded-sm" />
+        <div className="h-4 w-full bg-gray-200 rounded-sm" />
+        <div className="h-2 w-1/3 bg-blue-500 rounded-sm mt-2" />
+        <div className="h-6 w-full bg-gray-200 rounded-sm" />
+        <div className="h-2 w-1/3 bg-blue-500 rounded-sm mt-2" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+    </div>
+);
+
+const ProjectManagerThumbnail: React.FC = () => (
+     <div className="flex h-full bg-white">
+        <div className="w-1/3 bg-gray-100 p-2 space-y-3">
+            <div className="h-3 w-full bg-gray-400 rounded-sm" />
+            <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
+            <div className="h-2 w-1/3 bg-gray-400 rounded-sm mt-4" />
+            <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+        </div>
+        <div className="w-2/3 p-2 space-y-2">
+            <div className="h-2.5 w-1/2 bg-gray-500 rounded-sm border-b border-gray-200 pb-1"/>
+            <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+            <div className="h-2.5 w-1/2 bg-gray-500 rounded-sm border-b border-gray-200 pb-1 mt-2"/>
+            <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+        </div>
+    </div>
+);
+
+const CreativeWriterThumbnail: React.FC = () => (
+    <div className="p-2 bg-white h-full flex flex-col items-center font-serif">
+        <div className="h-6 w-6 rounded-full bg-blue-200" />
+        <div className="h-3 w-2/3 bg-gray-400 rounded-sm mt-1" />
+        <div className="h-2 w-1/2 bg-gray-300 rounded-sm" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm mt-4" />
+        <div className="w-1/4 h-px bg-gray-300 my-2" />
+        <div className="h-2 w-1/3 bg-gray-400 rounded-sm" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+    </div>
+);
+
 
 export const ResumeThumbnail: React.FC<ResumeThumbnailProps> = ({ templateId }) => {
     const templates = {
@@ -319,6 +385,10 @@ export const ResumeThumbnail: React.FC<ResumeThumbnailProps> = ({ templateId }) 
         hospitality: <HospitalityThumbnail />,
         'software-engineer': <SoftwareEngineerThumbnail />,
         'graphic-designer': <GraphicDesignerThumbnail />,
+        'customer-service': <CustomerServiceThumbnail />,
+        'it-professional': <ItProfessionalThumbnail />,
+        'project-manager': <ProjectManagerThumbnail />,
+        'creative-writer': <CreativeWriterThumbnail />,
     };
 
     return (

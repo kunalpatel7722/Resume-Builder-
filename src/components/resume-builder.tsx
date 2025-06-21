@@ -32,6 +32,10 @@ import { FinanceTemplate } from './resume-templates/finance-template';
 import { HospitalityTemplate } from './resume-templates/hospitality-template';
 import { SoftwareEngineerTemplate } from './resume-templates/software-engineer-template';
 import { GraphicDesignerTemplate } from './resume-templates/graphic-designer-template';
+import { CustomerServiceTemplate } from './resume-templates/customer-service-template';
+import { ItProfessionalTemplate } from './resume-templates/it-professional-template';
+import { ProjectManagerTemplate } from './resume-templates/project-manager-template';
+import { CreativeWriterTemplate } from './resume-templates/creative-writer-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -102,6 +106,10 @@ const templates = [
   { id: 'hospitality', name: 'Hospitality' },
   { id: 'software-engineer', name: 'Software Engineer' },
   { id: 'graphic-designer', name: 'Graphic Designer' },
+  { id: 'customer-service', name: 'Customer Service' },
+  { id: 'it-professional', name: 'IT Professional' },
+  { id: 'project-manager', name: 'Project Manager' },
+  { id: 'creative-writer', name: 'Creative Writer' },
 ];
 
 const careerLevels = [
@@ -334,6 +342,10 @@ export default function ResumeBuilder() {
     hospitality: <HospitalityTemplate data={resumeData} />,
     'software-engineer': <SoftwareEngineerTemplate data={resumeData} />,
     'graphic-designer': <GraphicDesignerTemplate data={resumeData} />,
+    'customer-service': <CustomerServiceTemplate data={resumeData} />,
+    'it-professional': <ItProfessionalTemplate data={resumeData} />,
+    'project-manager': <ProjectManagerTemplate data={resumeData} />,
+    'creative-writer': <CreativeWriterTemplate data={resumeData} />,
   };
 
   return (
