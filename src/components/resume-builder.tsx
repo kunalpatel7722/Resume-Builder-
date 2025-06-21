@@ -185,29 +185,44 @@ export default function ResumeBuilder() {
 
   useEffect(() => {
     const fetchSkillSuggestions = async () => {
-      // Only run on the skills step
-      if (currentStep === 'skills') {
-        const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
+      // We only care about this effect when on the 'skills' step.
+      if (currentStep !== 'skills') {
+        return;
+      }
 
-        // Check if there's a role and if it's different from the one we last fetched for
-        if (lastExperienceWithRole && lastExperienceWithRole.role && lastExperienceWithRole.role !== suggestionsForRole) {
-          setGeneratingSkills(true);
-          setAiSuggestions(null); // Clear old suggestions
-          
-          try {
-            const result = await generateResumeContent({ jobTitle: lastExperienceWithRole.role });
-            setAiSuggestions(result);
-            setSuggestionsForRole(lastExperienceWithRole.role); // Remember the role we fetched for
-            
-            const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
-            setSuggestionsForIndex(experienceIndex);
-          } catch (error) {
-            console.error(error);
-            toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-          } finally {
-            setGeneratingSkills(false);
-          }
-        }
+      const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
+      const latestRole = lastExperienceWithRole?.role;
+
+      // If there is no role with a title, we can't get suggestions.
+      if (!latestRole) {
+        setAiSuggestions(null);
+        setSuggestionsForRole(null);
+        return;
+      }
+      
+      // If we already have the correct suggestions, don't re-fetch.
+      if (latestRole === suggestionsForRole) {
+        return;
+      }
+
+      // We need to fetch new suggestions.
+      setGeneratingSkills(true);
+      setAiSuggestions(null); // Clear old ones to show loader.
+      
+      try {
+        const result = await generateResumeContent({ jobTitle: latestRole });
+        setAiSuggestions(result);
+        setSuggestionsForRole(latestRole);
+        
+        const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
+        setSuggestionsForIndex(experienceIndex);
+      } catch (error) {
+        console.error(error);
+        toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
+        setAiSuggestions(null); // Ensure no stale suggestions on error.
+        setSuggestionsForRole(null); // Allow a re-fetch attempt on next visit.
+      } finally {
+        setGeneratingSkills(false);
       }
     };
 
@@ -269,6 +284,7 @@ export default function ResumeBuilder() {
     try {
       const result = await generateResumeContent({ jobTitle });
       setAiSuggestions(result);
+      setSuggestionsForRole(jobTitle);
     } catch (error) {
       console.error(error);
       toast({ title: 'AI Generation Failed', description: 'Could not generate suggestions. Please try again.', variant: 'destructive' });
