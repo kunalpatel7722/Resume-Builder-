@@ -10,11 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/flows/generate-resume-content';
-import { suggestJobTitles, type SuggestJobTitlesOutput } from '@/ai/flows/suggest-job-titles';
+import { suggestJobTitles } from '@/ai/flows/suggest-job-titles';
+import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -197,6 +198,9 @@ export default function ResumeBuilder() {
   const [activeSuggestionBox, setActiveSuggestionBox] = useState<number | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [summarySuggestions, setSummarySuggestions] = useState<string[]>([]);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+
   const showPreview = !fullWidthSteps.includes(currentStep);
 
   useEffect(() => {
@@ -234,12 +238,12 @@ export default function ResumeBuilder() {
         return;
       }
       
+      // Only re-fetch if the role has changed since last fetch
       if (latestRole === suggestionsForRole) {
         return;
       }
   
       setGeneratingSkills(true);
-      setAiSuggestions(null);
       
       try {
         const result = await generateResumeContent({ jobTitle: latestRole });
@@ -248,14 +252,17 @@ export default function ResumeBuilder() {
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setAiSuggestions(null);
+        // Don't clear suggestions on failure, maybe previous are still useful
+        // setAiSuggestions(null); 
         setSuggestionsForRole(null);
       } finally {
         setGeneratingSkills(false);
       }
     };
   
-    fetchSkillSuggestions();
+    if(currentStep === 'skills') {
+      fetchSkillSuggestions();
+    }
   }, [currentStep, resumeData.experience, suggestionsForRole, generatingSkills, toast]);
 
 
@@ -426,6 +433,29 @@ export default function ResumeBuilder() {
     if (!resumeData.skills.includes(skill)) {
       setResumeData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
     }
+  };
+
+  const handleGenerateSummary = async () => {
+    setIsGeneratingSummary(true);
+    setSummarySuggestions([]);
+    try {
+        const relevantExperience = resumeData.experience.map(({ role, company, description }) => ({ role: role || '', company: company || '', description: description || '' }));
+        const result = await generateResumeSummary({
+            experience: relevantExperience,
+            skills: resumeData.skills,
+        });
+        setSummarySuggestions(result.summaries);
+    } catch (error) {
+        console.error(error);
+        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again.', variant: 'destructive' });
+    } finally {
+        setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleApplySummary = (summary: string) => {
+    setResumeData(prev => ({...prev, summary: summary}));
+    toast({ title: 'Summary Applied', description: 'The AI-generated summary has been added to the editor.'});
   };
 
   const nextStep = () => {
@@ -1029,10 +1059,56 @@ export default function ResumeBuilder() {
               </div>
           )}
            {currentStep === 'summary' && (
-              <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold">Professional Summary</h3>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-semibold">Almost there! Let’s write your summary.</h3>
                   <p className="text-sm text-muted-foreground">Write a brief, 2-4 sentence summary of your career, key achievements, and professional goals.</p>
-                  <Textarea className="h-32" value={resumeData.summary} onChange={handleSummaryChange} />
+                </div>
+                <Textarea 
+                  className="h-32" 
+                  value={resumeData.summary} 
+                  onChange={handleSummaryChange} 
+                  placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
+                />
+                <Card className="bg-muted/50">
+                  <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                          <Wand2 className="h-5 w-5 text-primary" />
+                            AI Summary Writer
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Use the information you've already provided to get a custom-written summary.
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                        <Button onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                            {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                            Write with AI
+                        </Button>
+                  </CardContent>
+                </Card>
+
+                  {summarySuggestions.length > 0 && (
+                  <Card>
+                    <CardHeader className='p-4 pb-2'>
+                      <CardTitle className='text-base'>AI Suggestions</CardTitle>
+                      <CardDescription className="text-xs">Click a summary to use it.</CardDescription>
+                    </CardHeader>
+                    <CardContent className='p-4 pt-0'>
+                      <div className="space-y-3">
+                        {summarySuggestions.map((suggestion, i) => (
+                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                            <p className="text-sm text-muted-foreground flex-1">{suggestion}</p>
+                            <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
+                              <ClipboardPaste className="mr-2 h-4 w-4" />
+                              Use
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
           )}
            {currentStep === 'finalize' && (
