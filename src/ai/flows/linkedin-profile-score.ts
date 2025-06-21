@@ -47,14 +47,14 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be a harsh but fair grader, providing "tough love" to help the user truly improve.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve. Do not be generous with your scoring; a 'good' profile might only score 60/100. An average profile should score below 50.
 
 Profile Data:
 {{#if pdfProfileData}}{{media url=pdfProfileData}}{{/if}}{{#if textProfileData}}{{{textProfileData}}}{{/if}}
 
 1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. If it was text, return that text. This is the source material.
 
-2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical and provide concrete examples for improvement. Score harshly.
+2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical and provide concrete examples for improvement. **Score very harshly.** For a check to 'pass', it must be executed perfectly, not just attempted. For example, if a headline has keywords but they are not the *most* impactful, the check should fail.
 
     **Categories to Analyze:**
 
@@ -91,7 +91,7 @@ Profile Data:
             *   Featured Section (note the importance of using the 'Featured' section to showcase top work, articles, or projects. An empty featured section is a missed opportunity).
             *   Recommendations (note the importance of having at least 2-3 recommendations from previous managers or colleagues for social proof. These are essential for building trust).
 
-3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The headline, summary, and experience sections are the most important and should be weighted most heavily. Be strict in your final calculation.
+3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The headline, summary, and experience sections are the most important and should be weighted most heavily. **Be extremely strict in your final calculation.** The overall score should be a true reflection of a very high standard, not a simple average. A profile with one weak core section (like Experience) should not be able to achieve a high overall score, no matter how good the other sections are.
 
 4.  **Provide High-Level Summary**: Write a brief, encouraging but direct summary of the profile's key strengths and the top 3 most critical areas for improvement to have the biggest impact.
 
