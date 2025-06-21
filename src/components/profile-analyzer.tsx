@@ -140,35 +140,33 @@ export default function ProfileAnalyzer() {
        <div className="min-h-screen bg-background">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 flex h-[calc(100vh-7.5rem)] flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+            <div className="sticky top-24 flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
                 <ScoreDisplay score={result.score} />
 
                 <Separator/>
 
-                <div className="flex-grow overflow-y-auto">
-                    <div className="flex flex-col gap-4 pr-4">
-                        <div>
-                            <h3 className="font-bold text-foreground">Summary</h3>
-                            <p className="text-sm text-muted-foreground mt-1">{result.summaryFeedback}</p>
-                        </div>
-                        
-                        <nav className="space-y-1">
-                            <p className="font-bold text-foreground mb-1">Content</p>
-                            {navLinks.map(link => (
-                                <a 
-                                    key={link.id}
-                                    href={`#${link.id}`}
-                                    onClick={(e) => handleScrollTo(e, link.id)}
-                                    className={cn(
-                                        "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                                        activeSection === link.id && "font-semibold text-primary"
-                                    )}
-                                >
-                                    {link.title}
-                                </a>
-                            ))}
-                        </nav>
+                <div className="flex flex-col gap-4">
+                    <div>
+                        <h3 className="font-bold text-foreground">Summary</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{result.summaryFeedback}</p>
                     </div>
+                    
+                    <nav className="space-y-1">
+                        <p className="font-bold text-foreground mb-1">Content</p>
+                        {navLinks.map(link => (
+                            <a 
+                                key={link.id}
+                                href={`#${link.id}`}
+                                onClick={(e) => handleScrollTo(e, link.id)}
+                                className={cn(
+                                    "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+                                    activeSection === link.id && "font-semibold text-primary"
+                                )}
+                            >
+                                {link.title}
+                            </a>
+                        ))}
+                    </nav>
                 </div>
 
                 <Separator/>
