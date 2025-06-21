@@ -137,7 +137,7 @@ export default function ResumeChecker() {
 
                 <Separator/>
 
-                <ScrollArea className="flex-grow">
+                <div className="flex-grow overflow-y-auto">
                     <div className="flex flex-col gap-4 pr-4">
                         <div>
                             <h3 className="font-bold text-foreground">Summary</h3>
@@ -161,7 +161,7 @@ export default function ResumeChecker() {
                             ))}
                         </nav>
                     </div>
-                </ScrollArea>
+                </div>
 
                 <Separator/>
 
