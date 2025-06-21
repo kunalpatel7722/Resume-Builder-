@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'LinkedIn Review' },
   { href: '/resume-checker', label: 'ATS Resume Checker' },
+  { href: '/resume-builder', label: 'Resume Builder' },
 ];
 
 export function Header() {
