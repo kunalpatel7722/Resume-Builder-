@@ -170,6 +170,7 @@ export default function ResumeBuilder() {
   const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
   const [editorFocus, setEditorFocus] = useState<{ id: string; start: number; end: number } | null>(null);
   const [generatingSkills, setGeneratingSkills] = useState(false);
+  const [suggestionsForRole, setSuggestionsForRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (editorFocus) {
@@ -184,14 +185,20 @@ export default function ResumeBuilder() {
 
   useEffect(() => {
     const fetchSkillSuggestions = async () => {
-      if (currentStep === 'skills' && !aiSuggestions && resumeData.experience.length > 0) {
+      // Only run on the skills step
+      if (currentStep === 'skills') {
         const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
 
-        if (lastExperienceWithRole) {
+        // Check if there's a role and if it's different from the one we last fetched for
+        if (lastExperienceWithRole && lastExperienceWithRole.role && lastExperienceWithRole.role !== suggestionsForRole) {
           setGeneratingSkills(true);
+          setAiSuggestions(null); // Clear old suggestions
+          
           try {
             const result = await generateResumeContent({ jobTitle: lastExperienceWithRole.role });
             setAiSuggestions(result);
+            setSuggestionsForRole(lastExperienceWithRole.role); // Remember the role we fetched for
+            
             const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
             setSuggestionsForIndex(experienceIndex);
           } catch (error) {
@@ -205,7 +212,7 @@ export default function ResumeBuilder() {
     };
 
     fetchSkillSuggestions();
-  }, [currentStep, resumeData.experience, aiSuggestions, toast]);
+  }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -734,7 +741,7 @@ export default function ResumeBuilder() {
                     <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-base flex items-center gap-2">
                             <Wand2 className="h-5 w-5 text-primary" />
-                             Enhance with AI
+                             AI Content Helper
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -914,4 +921,3 @@ export default function ResumeBuilder() {
     </div>
   );
 }
- 
