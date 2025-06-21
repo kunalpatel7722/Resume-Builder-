@@ -109,7 +109,7 @@ export default function ProfileAnalyzer() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-1 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 <div className="space-y-4">
                   {result.reportSections.map((section, index) => (
@@ -142,7 +142,7 @@ export default function ProfileAnalyzer() {
                 </div>
               </div>
 
-              <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
+              <div className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>

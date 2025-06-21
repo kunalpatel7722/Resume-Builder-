@@ -114,7 +114,7 @@ export default function ResumeChecker() {
             
             <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
               {/* Left Column */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-1 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 
                 {result.keywordAnalysis && (
@@ -153,7 +153,7 @@ export default function ResumeChecker() {
               </div>
 
               {/* Right Column */}
-              <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
+              <div className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>
