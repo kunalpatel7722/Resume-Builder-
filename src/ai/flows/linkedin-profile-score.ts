@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file defines a Genkit flow for scoring a LinkedIn profile.
  *
- * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or raw text) and returns a detailed score and analysis.
+ * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a detailed score and analysis.
  * - LinkedinProfileScoreInput - The input type for the linkedinProfileScore function.
  * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScoreOutput function.
  */
@@ -11,9 +11,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// This is the public-facing schema for the flow.
 const LinkedinProfileScoreInputSchema = z.object({
   pdfProfileData: z.string().optional().describe("The LinkedIn profile data as a PDF data URI."),
-  textProfileData: z.string().optional().describe("The LinkedIn profile data as raw text."),
+  profileUrl: z.string().optional().describe("A public URL to the user's profile content."),
 });
 
 export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInputSchema>;
@@ -49,9 +50,15 @@ export async function linkedinProfileScore(input: LinkedinProfileScoreInput): Pr
   return linkedinProfileScoreFlow(input);
 }
 
+// This is the internal schema for the prompt itself. It only deals with raw data.
+const PromptInputSchema = z.object({
+  pdfProfileData: z.string().optional().describe("The LinkedIn profile data as a PDF data URI."),
+  textProfileData: z.string().optional().describe("The LinkedIn profile data as raw text."),
+});
+
 const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
-  input: {schema: LinkedinProfileScoreInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
   prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve. While your scoring is strict, your feedback must be constructive and always acknowledge what the user has done well before moving on to critiques.
 
@@ -119,10 +126,32 @@ const linkedinProfileScoreFlow = ai.defineFlow(
     outputSchema: LinkedinProfileScoreOutputSchema,
   },
   async (input) => {
+    const promptInput: z.infer<typeof PromptInputSchema> = {};
+
+    if (input.pdfProfileData) {
+      promptInput.pdfProfileData = input.pdfProfileData;
+    } else if (input.profileUrl) {
+      try {
+        const response = await fetch(input.profileUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch URL with status: ${response.status}`);
+        }
+        const textContent = await response.text();
+        promptInput.textProfileData = textContent;
+      } catch (error) {
+        console.error(`Failed to fetch profile from URL: ${input.profileUrl}`, error);
+        throw new Error('Could not retrieve content from the provided URL. Please ensure it is a direct, public link or try uploading a PDF instead.');
+      }
+    }
+
+    if (!promptInput.pdfProfileData && !promptInput.textProfileData) {
+      throw new Error('No profile data provided.');
+    }
+
     const maxRetries = 3;
     for (let i = 0; i < maxRetries; i++) {
       try {
-        const { output } = await linkedinProfileScorePrompt(input);
+        const { output } = await linkedinProfileScorePrompt(promptInput);
         return output!;
       } catch (error) {
         console.error(`Attempt ${i + 1} failed for linkedinProfileScoreFlow:`, error);

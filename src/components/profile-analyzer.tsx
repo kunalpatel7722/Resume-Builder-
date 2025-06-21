@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { UploadCloud, Link, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
@@ -53,7 +52,7 @@ const ScoreBadge = ({ score }: { score: number }) => {
 
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
-  const [pastedText, setPastedText] = useState("");
+  const [pastedUrl, setPastedUrl] = useState("");
   const [activeTab, setActiveTab] = useState("pdf");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -105,7 +104,7 @@ export default function ProfileAnalyzer() {
       const selectedFile = e.target.files[0];
       if (selectedFile.type === "application/pdf") {
         setFile(selectedFile);
-        setPastedText("");
+        setPastedUrl("");
       } else {
         toast({
           title: "Invalid File Type",
@@ -133,14 +132,24 @@ export default function ProfileAnalyzer() {
 
     if (activeTab === 'pdf' && file) {
       scoreInput.pdfProfileData = await fileToDataURL(file);
-    } else if (activeTab === 'text' && pastedText) {
-      scoreInput.textProfileData = pastedText;
+    } else if (activeTab === 'link' && pastedUrl) {
+      try {
+        new URL(pastedUrl);
+        scoreInput.profileUrl = pastedUrl;
+      } catch (error) {
+        toast({
+          title: "Invalid URL",
+          description: "Please provide a valid URL.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
-    if (!scoreInput.pdfProfileData && !scoreInput.textProfileData) {
+    if (!scoreInput.pdfProfileData && !scoreInput.profileUrl) {
       toast({
         title: "No Input Provided",
-        description: "Please upload a PDF or paste your profile text to analyze.",
+        description: "Please upload a PDF or paste a link to analyze.",
         variant: "destructive",
       });
       return;
@@ -164,7 +173,7 @@ export default function ProfileAnalyzer() {
       console.error("Analysis failed:", error);
       toast({
         title: "Analysis Failed",
-        description: "Something went wrong while analyzing your profile. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong while analyzing your profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -329,14 +338,14 @@ export default function ProfileAnalyzer() {
         <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><FileText /> Start Your Analysis</CardTitle>
-              <CardDescription>Upload your profile as a PDF or paste the text directly for an instant review.</CardDescription>
+              <CardDescription>Upload your profile as a PDF or paste a link to your public profile for an instant review.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
-                    <TabsTrigger value="text"><Keyboard className="w-4 h-4 mr-2" /> Paste Text</TabsTrigger>
+                    <TabsTrigger value="link"><Link className="w-4 h-4 mr-2" /> Paste Link</TabsTrigger>
                   </TabsList>
                   <TabsContent value="pdf" className="mt-4">
                     <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
@@ -349,16 +358,20 @@ export default function ProfileAnalyzer() {
                     </label>
                     {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
                   </TabsContent>
-                  <TabsContent value="text" className="mt-4">
+                  <TabsContent value="link" className="mt-4">
                      <div className="space-y-2">
-                      <label htmlFor="text-input" className="text-sm font-medium">Paste Profile Text</label>
-                      <Textarea
-                        id="text-input"
-                        placeholder="Paste the text from your 'About' and 'Experience' sections here..."
-                        value={pastedText}
-                        onChange={(e) => { setPastedText(e.target.value); setFile(null); }}
-                        className="h-48"
+                      <label htmlFor="url-input" className="text-sm font-medium">Public Profile URL</label>
+                      <Input
+                        id="url-input"
+                        type="url"
+                        placeholder="e.g., https://example.com/your-public-profile"
+                        value={pastedUrl}
+                        onChange={(e) => { setPastedUrl(e.target.value); setFile(null); }}
+                        className="h-12"
                       />
+                      <p className="text-xs text-muted-foreground pt-1">
+                        Note: The URL must be publicly accessible. LinkedIn URLs may not work due to their privacy settings.
+                      </p>
                     </div>
                   </TabsContent>
                 </Tabs>
