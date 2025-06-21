@@ -15,7 +15,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -104,6 +104,7 @@ const steps = [
   { id: 'education', name: 'Education' },
   { id: 'skills', name: 'Skills' },
   { id: 'summary', name: 'Summary' },
+  { id: 'add-section', name: 'Add Section' },
   { id: 'finalize', name: 'Finalize' },
 ];
 
@@ -446,7 +447,7 @@ export default function ResumeBuilder() {
         setSummarySuggestions(result.summaries);
     } catch (error) {
         console.error(error);
-        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again.', variant: 'destructive' });
+        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again. Please try again.', variant: 'destructive' });
     } finally {
         setIsGeneratingSummary(false);
     }
@@ -1139,6 +1140,34 @@ export default function ResumeBuilder() {
                 )}
               </div>
           )}
+           {currentStep === 'add-section' && (
+            <div className="space-y-4">
+              <h3 className="text-2xl font-semibold">Do you want to add any other sections?</h3>
+              <p className="text-muted-foreground">Employers are impressed by a thorough resume. Add any of the sections below.</p>
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                {[
+                  { title: 'Accomplishments', icon: Trophy },
+                  { title: 'Certifications', icon: Award },
+                  { title: 'Additional Information', icon: Info },
+                  { title: 'Languages', icon: Languages },
+                  { title: 'Publications', icon: FileText },
+                  { title: 'References', icon: Users },
+                ].map((section) => (
+                  <button
+                    key={section.title}
+                    disabled
+                    className="w-full flex items-center gap-3 p-3 rounded-md text-left text-muted-foreground bg-muted/50 cursor-not-allowed"
+                  >
+                    <section.icon className="h-5 w-5" />
+                    <span>{section.title}</span>
+                    <span className="ml-auto text-xs font-semibold text-primary/80">Coming Soon</span>
+                  </button>
+                ))}
+                </CardContent>
+              </Card>
+            </div>
+           )}
            {currentStep === 'finalize' && (
               <div className="text-center space-y-4 flex flex-col items-center justify-center h-full">
                   <FileCheck2 className="w-16 h-16 text-green-500" />
@@ -1162,6 +1191,10 @@ export default function ResumeBuilder() {
               <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className={cn(isMobile && 'hidden')}>
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                   Download PDF
+              </Button>
+          ) : currentStep === 'add-section' ? (
+              <Button onClick={nextStep}>
+                  Finish
               </Button>
           ) : currentStep !== 'career-level' && currentStep !== 'target-country' && currentStep !== 'select-method' ? (
               <Button onClick={nextStep}>
