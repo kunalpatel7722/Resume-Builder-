@@ -1,10 +1,11 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { Header } from '@/components/header';
 
 export const metadata: Metadata = {
-  title: 'LinkBoost - AI LinkedIn Profile Review',
-  description: 'Get an instant score and AI-powered tips to improve your LinkedIn profile.',
+  title: 'AI Profile & Resume Analyzer',
+  description: 'Get an instant score and AI-powered tips to improve your LinkedIn profile and resume.',
 };
 
 export default function RootLayout({
@@ -20,7 +21,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <Header />
+        <main>{children}</main>
         <Toaster />
       </body>
     </html>
