@@ -4,29 +4,25 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
-  accentColor: string;
-  fontSize: 'sm' | 'md' | 'lg';
+  accentColor?: string;
 }
 
-const fontClasses = {
-  sm: 'text-[10pt]',
-  md: 'text-[11pt]',
-  lg: 'text-[12pt]',
-};
-
-export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
+export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => {
+  const { personalInfo, summary, experience, education, skills, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
-  const hasExperience = experience.some(e => e.role || e.company || e.description);
-  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
-  const hasSkills = skills.some(s => s);
-  const hasCustomSections = customSections.some(c => c.title || c.content);
+  const palette = { accent: '#000000', text: '#000000', muted: '#555555', line: '#B5B5B5', bg: '#FFFFFF' };
+
+  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+
+  const hasExperience = hasContent(experience, 'role', 'company', 'description');
+  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasSkills = skills.length > 0;
+  const hasCerts = hasContent(certifications, 'name');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -36,55 +32,55 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
     return start;
   };
 
-  const fontClass = fontClasses[fontSize];
-
   const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-[.2em] text-center mb-3">{title}</h2>
+        <h2 className="text-[var(--fs-h2)] font-bold tracking-[.2em] uppercase text-center mb-3" style={{ color: palette.accent }}>
+          {title}
+        </h2>
         {children}
       </section>
     );
   };
 
   return (
-    <div className={cn("bg-white text-black p-10 w-full h-full font-serif", fontClass)}>
+    <div className="bg-white p-8 w-full h-full text-[var(--fs-body)]" style={{ fontFamily: "'Source Serif 4', serif", color: palette.text }}>
       <header className="text-center mb-4">
-        <h1 className="text-3xl font-bold tracking-widest">{fullName || 'Your Name'}</h1>
-        <div className="text-xs text-gray-600 mt-2">
+        <h1 className="text-[var(--fs-name)] font-bold" style={{ color: palette.accent }}>{fullName || 'Your Name'}</h1>
+        <div className="text-[var(--fs-small)] mt-2" style={{ color: palette.muted }}>
           <span>{fullAddress || 'Address'}</span>
-          {(fullAddress && (personalInfo.phone || personalInfo.email)) ? <span className="mx-2">|</span> : ''}
+          {(fullAddress && (personalInfo.phone || personalInfo.email)) && <span className="mx-2">|</span>}
           <span>{personalInfo.phone || 'Phone'}</span>
-          {(personalInfo.phone && personalInfo.email) ? <span className="mx-2">|</span> : ''}
+          {(personalInfo.phone && personalInfo.email) && <span className="mx-2">|</span>}
           <span>{personalInfo.email || 'Email'}</span>
         </div>
       </header>
 
-      <div className="w-full h-px bg-gray-300 my-4" />
+      <hr className="my-4" style={{ borderColor: palette.line }} />
 
-      <main className="space-y-4">
+      <main className="space-y-5">
         <Section title="Summary">
-          {summary ? (
-            <p className="text-gray-800 leading-relaxed text-center">{summary}</p>
-          ) : (
-            <p className="text-gray-400 italic text-center">Your professional summary will appear here.</p>
-          )}
+          <p className="text-center leading-relaxed">
+            {summary || 'A brief summary about your professional background and career goals.'}
+          </p>
         </Section>
         
         <Section title="Experience" show={hasExperience}>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id}>
                   <div className="flex justify-between items-baseline">
-                    <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
-                    <p className="text-xs text-gray-600 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                    <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                    <p className="text-[var(--fs-small)] font-medium" style={{ color: palette.muted }}>
+                      {formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}
+                    </p>
                   </div>
-                  <p className="text-sm font-bold italic text-gray-700">{job.company || 'Company Name'}{location && `, ${location}`}</p>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-800">
-                    {job.description || '* Your job description will appear here.'}
+                  <p className="text-[var(--fs-body)] font-bold italic">{job.company || 'Company Name'}{location && `, ${location}`}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {job.description || '* Responsibilities and achievements in this role.'}
                   </ReactMarkdown>
                 </div>
               );
@@ -99,27 +95,36 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
               return (
                 <div key={edu.id}>
                    <div className="flex justify-between items-baseline">
-                      <h3 className="text-base font-bold">{edu.school || 'School Name'}</h3>
-                      <p className="text-xs text-gray-600 font-medium">{gradDate || 'Date'}</p>
+                      <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'School Name'}</h3>
+                      <p className="text-[var(--fs-small)] font-medium" style={{ color: palette.muted }}>{gradDate || 'Date'}</p>
                   </div>
-                  <p className="text-sm italic">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
+                  <p className="italic">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                 </div>
               );
             })}
           </div>
         </Section>
-
-        <Section title="Skills" show={hasSkills}>
-          <p className="text-center text-gray-800">{skills.join(' • ')}</p>
-        </Section>
-
-        {hasCustomSections && customSections.map(section => (
-          <Section key={section.id} title={section.title || 'Custom Section'}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-800">
-                {section.content || 'Your custom section content will appear here.'}
-            </ReactMarkdown>
-          </Section>
-        ))}
+        
+        <div className="grid grid-cols-2 gap-4">
+            <Section title="Skills" show={hasSkills}>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {skills.map((skill, i) => (
+                        <span key={i} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                        {skill}
+                        </span>
+                    ))}
+                </div>
+            </Section>
+            <Section title="Certifications" show={hasCerts}>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {certifications.map((cert) => (
+                        <span key={cert.id} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                        {cert.name}
+                        </span>
+                    ))}
+                </div>
+            </Section>
+        </div>
       </main>
     </div>
   );

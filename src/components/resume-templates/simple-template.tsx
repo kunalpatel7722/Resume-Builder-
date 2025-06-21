@@ -4,28 +4,25 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
   data: ResumeData;
-  accentColor: string;
-  fontSize: 'sm' | 'md' | 'lg';
+  accentColor?: string;
 }
 
-const fontClasses = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
-};
-
-export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp }) => {
+  const { personalInfo, summary, experience, education, skills, tools } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
-  const hasExperience = experience.some(e => e.role || e.company || e.description);
-  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
-  const hasSkills = skills.some(s => s);
+  const palette = { accent: '#333333', text: '#111111', muted: '#777777', bg: '#FFFFFF' };
+  const accentColor = accentColorProp || palette.accent;
+
+  const hasContent = (arr: any[], ...fields: string[]) => arr.some(item => fields.some(field => item[field]));
+
+  const hasExperience = hasContent(experience, 'role', 'company', 'description');
+  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasSkills = skills.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -35,44 +32,38 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
     return start;
   };
   
-  const fontClass = fontClasses[fontSize];
-
   const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-[.2em] text-gray-600 mb-2">{title}</h2>
+        <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-[.2em] mb-2" style={{color: accentColor}}>{title}</h2>
         <div className="space-y-4">{children}</div>
       </section>
     );
   };
   
   return (
-    <div className={cn("bg-white text-gray-800 p-10 w-full h-full", fontClass)} style={{ fontFamily: "'Open Sans', sans-serif" }}>
+    <div className="bg-white text-[var(--fs-body)] p-8 w-full h-full" style={{ fontFamily: "'Open Sans', sans-serif" }}>
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
-        <p className="text-lg text-gray-600 mt-1">{hasExperience ? experience[0]?.role : 'Professional Title'}</p>
-        <p className="text-xs text-gray-500 mt-3">{personalInfo.phone} &bull; {personalInfo.email} &bull; {fullAddress}</p>
+        <h1 className="text-[var(--fs-name)] font-bold" style={{color: palette.text}}>{fullName || 'Your Name'}</h1>
+        <p className="text-[var(--fs-h3)]" style={{color: palette.muted}}>{experience[0]?.role || 'Professional Title'}</p>
+        <p className="text-[var(--fs-small)] text-gray-500 mt-3">{personalInfo.phone} &bull; {personalInfo.email} &bull; {fullAddress}</p>
       </header>
       
       <main className="space-y-6">
         <Section title="Summary">
-          {summary ? (
-            <p className="text-gray-700 leading-relaxed">{summary}</p>
-          ) : (
-            <p className="text-gray-400 italic">Your professional summary will appear here.</p>
-          )}
+          <p className="leading-relaxed">{summary || 'Your professional summary will appear here.'}</p>
         </Section>
 
         <Section title="Experience" show={hasExperience}>
           {experience.map(job => (
             <div key={job.id}>
               <div className="flex justify-between items-baseline">
-                <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
-                <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
+                <p className="text-[var(--fs-small)] font-medium" style={{color: palette.muted}}>{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
               </div>
-              <p className="text-sm font-semibold italic text-gray-600">{job.company || 'Company Name'}</p>
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+              <p className="font-semibold italic">{job.company || 'Company Name'}</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
                 {job.description || '* Your job description will appear here.'}
               </ReactMarkdown>
             </div>
@@ -83,16 +74,16 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
             {education.map(edu => (
                 <div key={edu.id} className="flex justify-between items-baseline">
                     <div>
-                        <h3 className="text-base font-bold">{edu.school || 'University Name'}</h3>
-                        <p className="text-sm text-gray-600">{edu.degree || 'Degree'}</p>
+                        <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
+                        <p>{edu.degree || 'Degree'}</p>
                     </div>
-                    <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                    <p className="text-[var(--fs-small)]" style={{color: palette.muted}}>{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                 </div>
             ))}
         </Section>
         
         <Section title="Skills" show={hasSkills}>
-            <p className="text-gray-700">{skills.join(' | ')}</p>
+            <p>{skills.join(' | ')}</p>
         </Section>
       </main>
     </div>
