@@ -20,7 +20,7 @@ type AnalysisResult = {
   score: number;
   summaryFeedback: string;
   scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
-  improvementTips: LinkedinProfileScoreOutput['improvementTips'];
+  aiSuggestions: LinkedinProfileScoreOutput['aiSuggestions'];
   extractedText: string;
 };
 
@@ -120,7 +120,7 @@ export default function ProfileAnalyzer() {
         score: scoreOutput.overallScore,
         summaryFeedback: scoreOutput.summaryFeedback,
         scoreBreakdown: scoreOutput.scoreBreakdown,
-        improvementTips: scoreOutput.improvementTips,
+        aiSuggestions: scoreOutput.aiSuggestions,
         extractedText: scoreOutput.extractedText,
       });
     } catch (error) {
@@ -207,7 +207,7 @@ export default function ProfileAnalyzer() {
             </div>
 
             <div id="overview" data-section-id="overview" className="scroll-mt-20 space-y-6">
-              <ImprovementTips tips={result.improvementTips} />
+              <ImprovementTips suggestions={result.aiSuggestions} />
               <ScoreBreakdownChart data={result.scoreBreakdown} />
             </div>
 

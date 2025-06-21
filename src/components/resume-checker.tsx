@@ -198,7 +198,7 @@ export default function ResumeChecker() {
             </div>
 
             <div id="overview" data-section-id="overview" className="scroll-mt-20 space-y-6">
-                <ImprovementTips tips={result.improvementTips} />
+                <ImprovementTips suggestions={result.aiSuggestions} />
                 <ScoreBreakdownChart data={result.scoreBreakdown} />
             </div>
 
@@ -234,7 +234,7 @@ export default function ResumeChecker() {
                             <p className="text-xs text-muted-foreground">{check.details}</p>
                           </div>
                         </div>
-                    ))}
+                      ))}
                     </div>
                 </CardContent>
                 </Card>

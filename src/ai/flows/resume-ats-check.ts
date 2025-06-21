@@ -30,16 +30,16 @@ const ScoreCategorySchema = z.object({
   })).describe("A list of specific checks and their results for this category."),
 });
 
-const ImprovementTipSchema = z.object({
-  title: z.string().describe("A short, catchy title for the improvement tip."),
-  description: z.string().describe("A detailed, actionable paragraph explaining the improvement with examples."),
+const AiSuggestionSchema = z.object({
+  title: z.string().describe("A short, catchy title for the AI suggestion."),
+  description: z.string().describe("A detailed, actionable paragraph explaining the AI-powered suggestion with examples."),
 });
 
 const ResumeAtsCheckOutputSchema = z.object({
   overallScore: z.number().describe("The overall score for the resume, from 0 to 100."),
   summaryFeedback: z.string().describe("A high-level summary of the resume's strengths and weaknesses, starting with the strengths."),
   scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories relevant to the analysis."),
-  improvementTips: z.array(ImprovementTipSchema).describe("A list of the top 3 most impactful, personalized improvement tips."),
+  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions."),
   extractedText: z.string().describe("The full text extracted from the provided resume PDF that was used for the analysis."),
   keywordAnalysis: z.object({
       foundKeywords: z.array(z.string()).describe("List of important keywords from the job description that were found in the resume."),
@@ -105,7 +105,7 @@ Job Description:
 
 5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Start with the strengths.
 
-6.  **Generate Top 3 Improvement Tips**: Based on your analysis, identify the three most critical areas for improvement that will have the biggest impact on the score. Generate personalized, actionable tips.
+6.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three most critical areas for improvement that will have the biggest impact on the score. Generate personalized, actionable AI suggestions and return them in the 'aiSuggestions' field.
 
 7.  **Format Output**: Return a single JSON object that strictly adheres to the output schema. Ensure all fields are populated correctly.
 `,
