@@ -5,10 +5,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Award, Globe } from 'lucide-react';
 
 export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -85,6 +84,23 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
           </section>
         )}
 
+        {awards.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Awards</h2>
+            <div className="space-y-4">
+            {awards.map((award) => (
+              <div key={award.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-lg font-normal">{award.name || 'Award Name'}</h3>
+                    <p className="text-xs text-gray-500">{award.date || 'Date'}</p>
+                  </div>
+                  <p className="text-md text-gray-600">{award.description}</p>
+              </div>
+            ))}
+            </div>
+          </section>
+        )}
+
         {certifications.length > 0 && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Certifications</h2>
@@ -109,12 +125,46 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
            </section>
         )}
 
+        {activities.length > 0 && (
+            <section>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Activities</h2>
+                <p className="text-gray-600 leading-6">{activities.filter(a => a).join(', ')}</p>
+            </section>
+        )}
+
+        {websites.length > 0 && (
+            <section>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Links</h2>
+                 <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {websites.map(site => (
+                      <a key={site.id} href={site.url} className="text-primary hover:underline">{site.label || site.url}</a>
+                    ))}
+                </div>
+            </section>
+        )}
+        
+        {customSections.map(section => (
+          <section key={section.id}>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">{section.title}</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
         {languages.length > 0 && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Languages</h2>
             <p className="text-gray-600 leading-6">
               {languages.map(lang => `${lang.name} (${lang.level})`).join(', ')}
             </p>
+          </section>
+        )}
+
+        {showReferences && (
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">References</h2>
+            <p className="text-gray-600 leading-6">Available upon request.</p>
           </section>
         )}
       </main>

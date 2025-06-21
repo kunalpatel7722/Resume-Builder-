@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, DollarSign, Target, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, DollarSign, Target, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -62,6 +62,26 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               })}
             </section>
           )}
+           {awards.length > 0 && (
+            <section>
+              <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Trophy size={16} /> Awards</h3>
+              {awards.map((award) => (
+                <div key={award.id} className="mb-2">
+                   <h4 className="text-md font-bold text-gray-800">{award.name || 'Award Name'}</h4>
+                   <p className="text-sm text-gray-600">{award.description}</p>
+                   <p className="text-xs text-gray-500">{award.date || 'Date'}</p>
+                </div>
+              ))}
+            </section>
+          )}
+          {customSections.map(section => (
+            <section key={section.id}>
+              <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Pencil size={16} /> {section.title}</h3>
+               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                  {section.content}
+              </ReactMarkdown>
+            </section>
+          ))}
         </div>
         <div className="col-span-1 space-y-6">
            <section>
@@ -104,6 +124,16 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               ))}
             </section>
           )}
+          {activities.length > 0 && (
+            <section>
+              <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Activity size={16} /> Activities</h3>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {activities.map((activity, index) => (
+                    <li key={index}>{activity}</li>
+                ))}
+              </ul>
+            </section>
+          )}
           {languages.length > 0 && (
             <section>
               <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Globe size={16} /> Languages</h3>
@@ -115,6 +145,12 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     </li>
                 ))}
               </ul>
+            </section>
+          )}
+          {showReferences && (
+            <section>
+              <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Users size={16} /> References</h3>
+              <p className="text-xs text-gray-600">Available upon request.</p>
             </section>
           )}
         </div>

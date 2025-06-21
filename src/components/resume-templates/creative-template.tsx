@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, User, Star, Briefcase, GraduationCap, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, User, Star, Briefcase, GraduationCap, Award, Globe, Link as LinkIcon, Trophy, Activity, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -51,12 +51,34 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     </section>
                 )}
                 
+                {activities.length > 0 && (
+                    <section>
+                        <h2 className="text-md font-semibold uppercase tracking-wider border-b-2 border-primary pb-1 mb-3 flex items-center gap-2"><Activity size={16} />Activities</h2>
+                        <ul className="space-y-1 text-xs">
+                           {activities.map((activity, index) => (
+                             <li key={index}>{activity}</li>
+                           ))}
+                        </ul>
+                    </section>
+                )}
+
                 {languages.length > 0 && (
                     <section>
                         <h2 className="text-md font-semibold uppercase tracking-wider border-b-2 border-primary pb-1 mb-3 flex items-center gap-2"><Globe size={16} />Languages</h2>
                         <ul className="space-y-1 text-xs">
                            {languages.map(lang => (
                              <li key={lang.id}>{lang.name} <span className="text-gray-500">({lang.level})</span></li>
+                           ))}
+                        </ul>
+                    </section>
+                )}
+
+                {websites.length > 0 && (
+                    <section>
+                        <h2 className="text-md font-semibold uppercase tracking-wider border-b-2 border-primary pb-1 mb-3 flex items-center gap-2"><LinkIcon size={16} />Links</h2>
+                        <ul className="space-y-1 text-xs">
+                           {websites.map(site => (
+                             <li key={site.id}><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></li>
                            ))}
                         </ul>
                     </section>
@@ -119,6 +141,20 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                  </div>
               </section>
             )}
+            
+            {awards.length > 0 && (
+                <section>
+                    <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-4 flex items-center gap-2"><Trophy size={20}/>Awards</h2>
+                    <div className="space-y-2">
+                        {awards.map((award) => (
+                          <div key={award.id} className="mb-2">
+                             <h3 className="text-md font-bold text-gray-800">{award.name || 'Award Name'} - <span className="font-normal text-sm text-gray-500">{award.date}</span></h3>
+                             <p className="text-sm text-gray-600">{award.description}</p>
+                          </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {certifications.length > 0 && (
                 <section>
@@ -132,6 +168,22 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         ))}
                     </div>
                 </section>
+            )}
+            
+            {customSections.map(section => (
+              <section key={section.id} className="mb-8">
+                <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-3 flex items-center gap-2"><Pencil size={20}/>{section.title}</h2>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                    {section.content}
+                </ReactMarkdown>
+              </section>
+            ))}
+
+            {showReferences && (
+              <section>
+                <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-3 flex items-center gap-2"><Users size={20}/>References</h2>
+                <p className="text-gray-600">Available upon request.</p>
+              </section>
             )}
         </main>
     </div>

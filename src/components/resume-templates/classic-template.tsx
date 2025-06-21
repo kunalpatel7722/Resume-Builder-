@@ -5,11 +5,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Award, Globe } from 'lucide-react';
-
 
 export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -85,6 +83,18 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
           </section>
         )}
         
+        {awards.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Awards & Accomplishments</h2>
+            {awards.map((award) => (
+              <div key={award.id} className="mb-2 text-center">
+                 <p className="text-md font-semibold">{award.name || 'Award Name'} - {award.date || 'Date'}</p>
+                 <p className="text-sm italic text-gray-800">{award.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        
         {certifications.length > 0 && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Certifications</h2>
@@ -104,12 +114,46 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
            </section>
         )}
 
+        {activities.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Activities</h2>
+            <p className="text-gray-700 text-sm text-center">{activities.filter(a => a).join(' • ')}</p>
+          </section>
+        )}
+        
+        {websites.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Links</h2>
+            <div className="text-center">
+              {websites.map((site) => (
+                <a key={site.id} href={site.url} className="text-primary hover:underline text-sm mx-2">{site.label || site.url}</a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {customSections.map(section => (
+          <section key={section.id} className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">{section.title}</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-700">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
         {languages.length > 0 && (
           <section>
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Languages</h2>
             <p className="text-gray-700 text-sm text-center">
                 {languages.map(lang => `${lang.name} (${lang.level})`).join(' • ')}
             </p>
+          </section>
+        )}
+
+        {showReferences && (
+          <section>
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">References</h2>
+            <p className="text-gray-700 text-sm text-center">Available upon request.</p>
           </section>
         )}
       </main>

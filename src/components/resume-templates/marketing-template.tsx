@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Megaphone, LineChart, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Megaphone, LineChart, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -40,11 +40,21 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     </section>
                 )}
                  {languages.length > 0 && (
-                    <section>
+                    <section className="mb-6">
                         <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Globe size={16} /> Languages</h3>
                         <ul className="space-y-1">
                             {languages.map(lang => (
                                 <li key={lang.id} className="text-xs">{lang.name} <span className="text-gray-500">({lang.level})</span></li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+                 {activities.length > 0 && (
+                    <section>
+                        <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Activity size={16} /> Activities</h3>
+                        <ul className="space-y-1">
+                            {activities.map((activity, index) => (
+                                <li key={index} className="text-xs">{activity}</li>
                             ))}
                         </ul>
                     </section>
@@ -55,6 +65,9 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 {personalInfo.email && <div className="flex items-center gap-2"><Mail size={14} className="text-primary"/><span>{personalInfo.email}</span></div>}
                 {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} className="text-primary"/><span>{personalInfo.phone}</span></div>}
                 {fullAddress && <div className="flex items-center gap-2"><MapPin size={14} className="text-primary"/><span>{fullAddress}</span></div>}
+                {websites.map(site => (
+                  <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} className="text-primary"/><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></div>
+                ))}
             </div>
         </aside>
 
@@ -116,6 +129,31 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                            <p className="text-sm text-gray-600 italic">{cert.issuer} - {cert.date}</p>
                         </div>
                     ))}
+                </section>
+            )}
+            {awards.length > 0 && (
+                <section>
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Trophy size={18}/>Awards</h3>
+                    {awards.map(award => (
+                        <div key={award.id} className="mb-2">
+                           <h4 className="text-md font-bold text-gray-800">{award.name}</h4>
+                           <p className="text-sm text-gray-600 italic">{award.description} - {award.date}</p>
+                        </div>
+                    ))}
+                </section>
+            )}
+             {customSections.map(section => (
+                <section key={section.id}>
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Pencil size={18}/>{section.title}</h3>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                        {section.content}
+                    </ReactMarkdown>
+                </section>
+            ))}
+            {showReferences && (
+                <section>
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Users size={18}/>References</h3>
+                    <p className="text-gray-600">Available upon request.</p>
                 </section>
             )}
         </main>

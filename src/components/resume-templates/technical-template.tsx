@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -36,6 +36,9 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     {personalInfo.email && <div className="flex items-center gap-2"><Mail size={14} /><span>{personalInfo.email}</span></div>}
                     {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} /><span>{personalInfo.phone}</span></div>}
                     {fullAddress && <div className="flex items-center gap-2"><MapPin size={14} /><span>{fullAddress}</span></div>}
+                    {websites.map(site => (
+                        <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} /><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></div>
+                    ))}
                 </div>
             </section>
 
@@ -66,6 +69,15 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         {skills.filter(skill => skill).map((skill, index) => (
                             <li key={index} className="bg-primary/20 text-primary-foreground text-[11px] font-mono px-2 py-0.5 rounded">{skill}</li>
                         ))}
+                    </ul>
+                </section>
+            )}
+            
+            {activities.length > 0 && (
+                <section>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Activities</h3>
+                    <ul className="space-y-1 text-gray-300">
+                        {activities.map((activity, index) => <li key={index}>{activity}</li>)}
                     </ul>
                 </section>
             )}
@@ -113,8 +125,22 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               </section>
             )}
 
+            {awards.length > 0 && (
+              <section className="mb-6">
+                <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Trophy size={18}/>Awards</h2>
+                <div className="space-y-4">
+                  {awards.map((award) => (
+                    <div key={award.id}>
+                      <h3 className="text-base font-bold text-gray-900">{award.name || 'Award Name'} - <span className="font-normal text-sm text-gray-500">{award.date || 'Date'}</span></h3>
+                      <p className="text-gray-600">{award.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {certifications.length > 0 && (
-              <section>
+              <section className="mb-6">
                 <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Award size={18}/>Certifications</h2>
                 <div className="space-y-4">
                   {certifications.map((cert) => (
@@ -125,6 +151,22 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                   ))}
                 </div>
               </section>
+            )}
+
+            {customSections.map(section => (
+                <section key={section.id} className="mb-6">
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Pencil size={18}/>{section.title}</h2>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                        {section.content}
+                    </ReactMarkdown>
+                </section>
+            ))}
+
+            {showReferences && (
+                <section>
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Users size={18}/>References</h2>
+                    <p className="text-gray-600">Available upon request.</p>
+                </section>
             )}
         </main>
     </div>

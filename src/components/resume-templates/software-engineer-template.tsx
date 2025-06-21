@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Linkedin, Globe, Award } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Linkedin, Globe, Award, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -30,7 +30,10 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
         <div className="text-xs text-right space-y-1">
             <p className="flex items-center justify-end gap-2"><Mail size={14}/> {personalInfo.email}</p>
             <p className="flex items-center justify-end gap-2"><Phone size={14}/> {personalInfo.phone}</p>
-            {fullAddress && <p className="flex items-center justify-end gap-2"><Globe size={14}/> {fullAddress}</p>}
+            {fullAddress && <p className="flex items-center justify-end gap-2"><MapPin size={14}/> {fullAddress}</p>}
+            {websites.map(site => (
+                <p key={site.id} className="flex items-center justify-end gap-2"><LinkIcon size={14}/> <a href={site.url}>{site.label || site.url}</a></p>
+            ))}
         </div>
       </header>
       
@@ -95,6 +98,25 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
           </section>
         )}
         
+        {awards.length > 0 && (
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Awards</h3>
+            <div className="space-y-2">
+                {awards.map((award) => (
+                    <div key={award.id} className="grid grid-cols-4 gap-4">
+                        <div className="col-span-1 text-xs text-gray-600">
+                            <p className="font-semibold">{award.date || 'Date'}</p>
+                        </div>
+                        <div className="col-span-3">
+                            <p className="font-semibold text-md text-gray-800">{award.name || 'Award'}</p>
+                            <p className="text-sm text-gray-700">{award.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+          </section>
+        )}
+
         {certifications.length > 0 && (
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Certifications</h3>
@@ -114,6 +136,15 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
           </section>
         )}
 
+        {customSections.map(section => (
+          <section key={section.id}>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">{section.title}</h3>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
         {languages.length > 0 && (
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
@@ -122,6 +153,13 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
                     <span key={lang.id} className="text-sm text-gray-700 font-mono">{lang.name} ({lang.level})</span>
                 ))}
             </div>
+          </section>
+        )}
+
+        {showReferences && (
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">References</h3>
+            <p className="text-sm text-gray-700">Available upon request.</p>
           </section>
         )}
       </main>

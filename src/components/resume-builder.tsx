@@ -15,7 +15,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -83,6 +83,11 @@ export interface ResumeData {
   skills: string[];
   languages: { id: number; name: string; level: string }[];
   certifications: { id: number; name: string; issuer: string; date: string }[];
+  activities: string[];
+  awards: { id: number; name: string; date: string; description: string }[];
+  websites: { id: number; label: string; url: string }[];
+  customSections: { id: number; title: string; content: string }[];
+  showReferences: boolean;
   targetCountry: string;
 }
 
@@ -94,6 +99,11 @@ const initialResumeData: ResumeData = {
   skills: [],
   languages: [],
   certifications: [],
+  activities: [],
+  awards: [],
+  websites: [],
+  customSections: [],
+  showReferences: false,
   targetCountry: '',
 };
 
@@ -111,8 +121,13 @@ const coreSteps = [
 ];
 
 const optionalStepsData = [
-  { id: 'certifications', name: 'Certifications', icon: Award },
-  { id: 'languages', name: 'Languages', icon: Languages },
+  { id: 'activities', name: 'Activities', icon: Activity, description: "Show that you're a well-rounded individual! This highlights your ability to balance different aspects of your life. It could be anything from Beekeeping to Urban Gardening to Ethical Fashion!" },
+  { id: 'awards', name: 'Awards & Accomplishments', icon: Trophy, description: "Did you receive awards, exceed targets, earn a leadership role or achieve recognition of some sort? Make them shine in this section. Include anything you've authored or co-authored. For example: a brand logo project, a best selling book" },
+  { id: 'certifications', name: 'Certifications & Licenses', icon: Award, description: 'Elevate your resume with noteworthy credentials that prove you are an expert in your field. Include certificate or license name and date of issuance' },
+  { id: 'languages', name: 'Languages', icon: Languages, description: 'If you are proficient in one or more languages, mention them in this section. Native Beginner (A1)' },
+  { id: 'websites', name: 'Websites & Social Links', icon: LinkIcon, description: 'Include a direct link to your portfolio or samples of your work for an added boost. Let your skills speak for themselves!' },
+  { id: 'custom', name: 'Add Your Own', icon: Pencil, description: 'Use this space to build a custom section, and make it your own. Volunteer work, Memberships, Interests, etc.' },
+  { id: 'references', name: 'References', icon: Users, description: 'Checking the box shows that you are willing to share a point of contact. This builds trust and confidence in your candidacy.' },
 ];
 
 const finalSteps = [
@@ -367,7 +382,6 @@ export default function ResumeBuilder() {
     setResumeData(prev => ({ ...prev, skills: newSkills }));
   };
 
-  // Handlers for Certifications
   const addCertification = () => {
     setResumeData(prev => ({ ...prev, certifications: [...prev.certifications, { id: Date.now(), name: '', issuer: '', date: '' }]}));
   };
@@ -380,7 +394,6 @@ export default function ResumeBuilder() {
     setResumeData(prev => ({ ...prev, certifications: newCerts }));
   };
 
-  // Handlers for Languages
   const addLanguage = () => {
     setResumeData(prev => ({ ...prev, languages: [...prev.languages, { id: Date.now(), name: '', level: 'Proficient' }]}));
   };
@@ -391,6 +404,58 @@ export default function ResumeBuilder() {
     const newLangs = [...resumeData.languages];
     (newLangs[index] as any)[name] = value;
     setResumeData(prev => ({ ...prev, languages: newLangs }));
+  };
+
+  const addActivity = () => {
+    setResumeData(prev => ({ ...prev, activities: [...prev.activities, ''] }));
+  };
+  const removeActivity = (index: number) => {
+    setResumeData(prev => ({ ...prev, activities: prev.activities.filter((_, i) => i !== index) }));
+  };
+  const handleActivityChange = (index: number, value: string) => {
+    const newActivities = [...resumeData.activities];
+    newActivities[index] = value;
+    setResumeData(prev => ({ ...prev, activities: newActivities }));
+  };
+
+  const addAward = () => {
+    setResumeData(prev => ({...prev, awards: [...prev.awards, { id: Date.now(), name: '', date: '', description: '' }]}));
+  };
+  const removeAward = (id: number) => {
+    setResumeData(prev => ({ ...prev, awards: prev.awards.filter(a => a.id !== id) }));
+  };
+  const handleAwardChange = (index: number, name: string, value: string) => {
+    const newAwards = [...resumeData.awards];
+    (newAwards[index] as any)[name] = value;
+    setResumeData(prev => ({ ...prev, awards: newAwards }));
+  };
+  
+  const addWebsite = () => {
+    setResumeData(prev => ({ ...prev, websites: [...prev.websites, { id: Date.now(), label: '', url: '' }]}));
+  };
+  const removeWebsite = (id: number) => {
+    setResumeData(prev => ({ ...prev, websites: prev.websites.filter(w => w.id !== id) }));
+  };
+  const handleWebsiteChange = (index: number, name: string, value: string) => {
+    const newWebsites = [...resumeData.websites];
+    (newWebsites[index] as any)[name] = value;
+    setResumeData(prev => ({ ...prev, websites: newWebsites }));
+  };
+  
+  const addCustomSection = () => {
+    setResumeData(prev => ({ ...prev, customSections: [...prev.customSections, { id: Date.now(), title: '', content: '' }]}));
+  };
+  const removeCustomSection = (id: number) => {
+    setResumeData(prev => ({ ...prev, customSections: prev.customSections.filter(c => c.id !== id) }));
+  };
+  const handleCustomSectionChange = (index: number, name: string, value: string) => {
+    const newCustomSections = [...resumeData.customSections];
+    (newCustomSections[index] as any)[name] = value;
+    setResumeData(prev => ({ ...prev, customSections: newCustomSections }));
+  };
+  
+  const handleReferencesChange = (checked: boolean) => {
+    setResumeData(prev => ({ ...prev, showReferences: checked }));
   };
   
   const handleAiGenerate = async (index: number) => {
@@ -547,7 +612,20 @@ export default function ResumeBuilder() {
 
   const handleRemoveSection = (sectionId: string) => {
     setAddedSections(prev => prev.filter(id => id !== sectionId));
-    (setResumeData as any)(prev => ({ ...prev, [sectionId]: [] }));
+    
+    const resetFunctions: { [key: string]: () => void } = {
+        certifications: () => setResumeData(prev => ({ ...prev, certifications: [] })),
+        languages: () => setResumeData(prev => ({ ...prev, languages: [] })),
+        activities: () => setResumeData(prev => ({ ...prev, activities: [] })),
+        awards: () => setResumeData(prev => ({ ...prev, awards: [] })),
+        websites: () => setResumeData(prev => ({ ...prev, websites: [] })),
+        custom: () => setResumeData(prev => ({ ...prev, customSections: [] })),
+        references: () => setResumeData(prev => ({ ...prev, showReferences: false })),
+    };
+
+    if (resetFunctions[sectionId]) {
+        resetFunctions[sectionId]();
+    }
   };
 
 
@@ -1241,32 +1319,114 @@ export default function ResumeBuilder() {
               <Button variant="outline" onClick={addLanguage}><Plus className="mr-2" />Add Another Language</Button>
             </div>
           )}
+          {currentStep === 'activities' && (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-semibold">What are your main activities or hobbies?</h3>
+                <p className="text-muted-foreground">List a few key activities that show your personality.</p>
+                {resumeData.activities.map((activity, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <Input 
+                            value={activity}
+                            onChange={(e) => handleActivityChange(index, e.target.value)}
+                            placeholder="e.g., Volunteer Soccer Coach"
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}><Trash2 size={16} className="text-destructive"/></Button>
+                    </div>
+                ))}
+                 <Button variant="outline" onClick={addActivity}><Plus className="mr-2" />Add Activity</Button>
+            </div>
+          )}
+          {currentStep === 'awards' && (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-semibold">Have you received any awards or accomplishments?</h3>
+                <p className="text-muted-foreground">Showcase your achievements and recognition.</p>
+                {resumeData.awards.map((award, index) => (
+                    <div key={award.id} className="space-y-4 p-4 border rounded-lg relative">
+                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeAward(award.id)}><Trash2 size={16}/></Button>
+                        <div><Label htmlFor={`awardName-${award.id}`}>Award/Accomplishment</Label><Input id={`awardName-${award.id}`} name="name" value={award.name} onChange={(e) => handleAwardChange(index, e.target.name, e.target.value)} /></div>
+                        <div><Label htmlFor={`awardDate-${award.id}`}>Date Received</Label><Input id={`awardDate-${award.id}`} name="date" value={award.date} onChange={(e) => handleAwardChange(index, e.target.name, e.target.value)} placeholder="e.g., June 2024" /></div>
+                        <div><Label htmlFor={`awardDesc-${award.id}`}>Description</Label><Textarea id={`awardDesc-${award.id}`} name="description" value={award.description} onChange={(e) => handleAwardChange(index, 'description', e.target.value)} /></div>
+                    </div>
+                ))}
+                 <Button variant="outline" onClick={addAward}><Plus className="mr-2" />Add Award</Button>
+            </div>
+          )}
+           {currentStep === 'websites' && (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-semibold">Add your websites or social links</h3>
+                <p className="text-muted-foreground">Link to your portfolio, GitHub, LinkedIn, etc.</p>
+                {resumeData.websites.map((website, index) => (
+                    <div key={website.id} className="space-y-4 p-4 border rounded-lg relative">
+                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeWebsite(website.id)}><Trash2 size={16}/></Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><Label htmlFor={`websiteLabel-${website.id}`}>Label</Label><Input id={`websiteLabel-${website.id}`} name="label" value={website.label} onChange={(e) => handleWebsiteChange(index, e.target.name, e.target.value)} placeholder="e.g., Portfolio" /></div>
+                            <div><Label htmlFor={`websiteUrl-${website.id}`}>URL</Label><Input id={`websiteUrl-${website.id}`} name="url" value={website.url} onChange={(e) => handleWebsiteChange(index, e.target.name, e.target.value)} placeholder="https://..." /></div>
+                        </div>
+                    </div>
+                ))}
+                <Button variant="outline" onClick={addWebsite}><Plus className="mr-2" />Add Link</Button>
+            </div>
+          )}
+          {currentStep === 'custom' && (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-semibold">Create a custom section</h3>
+                <p className="text-muted-foreground">Add a section with your own title and content.</p>
+                {resumeData.customSections.map((section, index) => (
+                    <div key={section.id} className="space-y-4 p-4 border rounded-lg relative">
+                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeCustomSection(section.id)}><Trash2 size={16}/></Button>
+                        <div><Label htmlFor={`customTitle-${section.id}`}>Section Title</Label><Input id={`customTitle-${section.id}`} name="title" value={section.title} onChange={(e) => handleCustomSectionChange(index, e.target.name, e.target.value)} placeholder="e.g., Volunteer Experience" /></div>
+                        <div><Label htmlFor={`customContent-${section.id}`}>Content</Label><Textarea id={`customContent-${section.id}`} name="content" value={section.content} onChange={(e) => handleCustomSectionChange(index, 'content', e.target.value)} placeholder="Describe your experience..." /></div>
+                    </div>
+                ))}
+                <Button variant="outline" onClick={addCustomSection}><Plus className="mr-2" />Add Custom Section</Button>
+            </div>
+          )}
+          {currentStep === 'references' && (
+            <div className="space-y-4">
+                <h3 className="text-2xl font-semibold">References</h3>
+                <p className="text-muted-foreground">It's standard practice to make references available upon request rather than listing them directly on your resume. Check the box to add this line to your resume.</p>
+                <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <Checkbox
+                        id="showReferences"
+                        checked={resumeData.showReferences}
+                        onCheckedChange={(checked) => handleReferencesChange(checked === true)}
+                    />
+                    <Label htmlFor="showReferences" className="font-normal text-base">
+                        Show "References available upon request" on my resume.
+                    </Label>
+                </div>
+            </div>
+          )}
            {currentStep === 'add-section' && (
             <div className="space-y-4">
               <h3 className="text-2xl font-semibold">Do you want to add any other sections?</h3>
               <p className="text-muted-foreground">Employers are impressed by a thorough resume. Add any of the sections below.</p>
               <Card>
                 <CardContent className="p-4 space-y-2">
-                {optionalStepsData.map((section) => {
-                    const isAdded = addedSections.includes(section.id);
-                    return (
-                        <div key={section.id} className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
-                             <section.icon className={cn("h-5 w-5", isAdded ? "text-primary" : "text-muted-foreground")} />
-                             <span className={cn(isAdded && "font-semibold")}>{section.name}</span>
-                             {isAdded ? (
-                                <div className="ml-auto flex items-center gap-2">
-                                    <CheckCircle className="h-5 w-5 text-green-500"/>
-                                    <Button variant="ghost" size="sm" onClick={() => handleRemoveSection(section.id)}>Remove</Button>
-                                    <Button variant="outline" size="sm" onClick={() => setCurrentStep(section.id)}>Edit</Button>
+                    {optionalStepsData.map((section) => {
+                        const isAdded = addedSections.includes(section.id);
+                        return (
+                            <div key={section.id} className="flex items-start gap-4 p-3 rounded-md bg-muted/50">
+                                <section.icon className={cn("h-6 w-6 mt-1 flex-shrink-0", isAdded ? "text-primary" : "text-muted-foreground")} />
+                                <div className="flex-1">
+                                    <span className={cn("font-semibold", isAdded && "text-foreground")}>{section.name}</span>
+                                    <p className="text-xs text-muted-foreground">{section.description}</p>
                                 </div>
-                             ) : (
-                                <Button className="ml-auto" variant="secondary" size="sm" onClick={() => handleAddSection(section.id)}>
-                                    <Plus className="mr-2 h-4 w-4" /> Add
-                                </Button>
-                             )}
-                        </div>
-                    );
-                })}
+                                <div className="ml-auto flex items-center gap-2 self-center">
+                                {isAdded ? (
+                                    <>
+                                        <Button variant="ghost" size="sm" onClick={() => handleRemoveSection(section.id)}>Remove</Button>
+                                        <Button variant="outline" size="sm" onClick={() => setCurrentStep(section.id)}>Edit</Button>
+                                    </>
+                                ) : (
+                                    <Button variant="secondary" size="sm" onClick={() => handleAddSection(section.id)}>
+                                        <Plus className="mr-2 h-4 w-4" /> Add
+                                    </Button>
+                                )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </CardContent>
               </Card>
             </div>

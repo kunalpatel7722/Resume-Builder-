@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Feather, BookOpen, PenTool, Award, Languages } from 'lucide-react';
+import { Mail, Phone, MapPin, Feather, BookOpen, PenTool, Award, Languages, Trophy, Activity, Link as LinkIcon, Users, Pencil } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -90,6 +90,18 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
               </section>
             )}
             
+            {awards.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Trophy /> Awards</h2>
+                {awards.map((award) => (
+                  <div key={award.id} className="text-center mb-2">
+                     <h3 className="text-xl font-semibold">{award.name || 'Award Name'}</h3>
+                     <p className="text-md italic text-gray-700">{award.description} - {award.date || 'Date'}</p>
+                  </div>
+                ))}
+              </section>
+            )}
+
             {certifications.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Award /> Certifications</h2>
@@ -99,6 +111,17 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
                      <p className="text-md italic text-gray-700">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
                   </div>
                 ))}
+              </section>
+            )}
+
+            {activities.length > 0 && (
+              <section>
+                  <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Activity /> Activities</h2>
+                  <ul className="text-center space-y-1">
+                      {activities.map((activity, index) => (
+                          <li key={index} className="text-gray-700">{activity}</li>
+                      ))}
+                  </ul>
               </section>
             )}
 
@@ -113,6 +136,33 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
               </section>
             )}
         </div>
+
+        {websites.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><LinkIcon /> Portfolio</h2>
+            <div className="text-center space-x-4">
+              {websites.map((site) => (
+                <a key={site.id} href={site.url} className="text-primary hover:underline">{site.label || site.url}</a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {customSections.map(section => (
+          <section key={section.id}>
+            <h2 className="text-2xl font-bold mb-4 text-center tracking-wider flex items-center justify-center gap-2"><Pencil/> {section.title}</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
+        {showReferences && (
+          <section>
+            <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Users /> References</h2>
+            <p className="text-center text-gray-700">Available upon request.</p>
+          </section>
+        )}
         
       </main>
       <footer className="text-center text-xs text-gray-500 mt-8 pt-4 border-t">

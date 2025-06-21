@@ -1,7 +1,7 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
@@ -12,7 +12,7 @@ interface ModernTemplateProps {
 }
 
 export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -32,6 +32,9 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
           {personalInfo.email && <div className="flex items-center gap-1"><Mail size={12} /><span>{personalInfo.email}</span></div>}
           {personalInfo.phone && <div className="flex items-center gap-1"><Phone size={12} /><span>{personalInfo.phone}</span></div>}
           {fullAddress && <div className="flex items-center gap-1"><MapPin size={12} /><span>{fullAddress}</span></div>}
+          {websites.map(site => (
+            <div key={site.id} className="flex items-center gap-1"><LinkIcon size={12} /><a href={site.url}>{site.label || site.url}</a></div>
+          ))}
         </div>
       </header>
 
@@ -86,6 +89,18 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
           </section>
         )}
         
+        {awards.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Trophy size={18}/> Awards</h2>
+            {awards.map((award) => (
+              <div key={award.id} className="mb-2">
+                <h3 className="text-md font-bold text-gray-800">{award.name || 'Award Name'} - <span className="text-sm font-normal text-gray-600">{award.date || 'Date'}</span></h3>
+                <p className="text-sm text-gray-600 italic">{award.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        
         {certifications.length > 0 && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Award size={18}/> Certifications</h2>
@@ -109,8 +124,28 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
            </section>
         )}
         
+        {activities.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Activity size={18}/> Activities</h2>
+            <ul className="list-disc list-inside text-gray-600">
+                {activities.map((activity, index) => (
+                    <li key={index}>{activity}</li>
+                ))}
+            </ul>
+          </section>
+        )}
+
+        {customSections.map(section => (
+          <section key={section.id} className="mb-6">
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Pencil size={18}/>{section.title}</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
         {languages.length > 0 && (
-           <section>
+           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Globe size={18}/> Languages</h2>
             <div className="flex flex-wrap gap-4">
                 {languages.map((lang) => (
@@ -119,6 +154,13 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
                     </div>
                 ))}
             </div>
+           </section>
+        )}
+        
+        {showReferences && (
+           <section>
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Users size={18}/> References</h2>
+            <p className="text-gray-600">Available upon request.</p>
            </section>
         )}
       </main>

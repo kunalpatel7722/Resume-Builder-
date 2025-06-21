@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -54,6 +54,16 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                         <div className="space-y-1 text-xs text-gray-600">
                             {languages.map(lang => (
                                 <p key={lang.id}>{lang.name} ({lang.level})</p>
+                            ))}
+                        </div>
+                    </section>
+                )}
+                 {websites.length > 0 && (
+                    <section>
+                        <h3 className="font-bold text-sm uppercase tracking-wider mb-2">Links</h3>
+                        <div className="space-y-1 text-xs text-gray-600">
+                            {websites.map(site => (
+                                <p key={site.id}><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></p>
                             ))}
                         </div>
                     </section>
@@ -106,7 +116,7 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
               </section>
             )}
             {certifications.length > 0 && (
-                <section>
+                <section className="mb-6">
                     <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Award size={18}/>Certifications</h2>
                     {certifications.map(cert => (
                         <div key={cert.id} className="mb-2">
@@ -114,6 +124,39 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                            <p className="text-sm text-gray-700">{cert.issuer} - {cert.date}</p>
                         </div>
                     ))}
+                </section>
+            )}
+            {awards.length > 0 && (
+                <section className="mb-6">
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Trophy size={18}/>Awards</h2>
+                    {awards.map(award => (
+                        <div key={award.id} className="mb-2">
+                           <h3 className="text-base font-bold text-gray-900">{award.name}</h3>
+                           <p className="text-sm text-gray-700">{award.description} - {award.date}</p>
+                        </div>
+                    ))}
+                </section>
+            )}
+             {activities.length > 0 && (
+                <section className="mb-6">
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Activity size={18}/>Activities</h2>
+                    <ul className="list-disc list-inside text-gray-700">
+                        {activities.map((activity, index) => <li key={index}>{activity}</li>)}
+                    </ul>
+                </section>
+            )}
+            {customSections.map(section => (
+                <section key={section.id} className="mb-6">
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Pencil size={18}/>{section.title}</h2>
+                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                        {section.content}
+                    </ReactMarkdown>
+                </section>
+            ))}
+            {showReferences && (
+                <section>
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Users size={18}/>References</h2>
+                    <p className="text-gray-700">Available upon request.</p>
                 </section>
             )}
         </main>

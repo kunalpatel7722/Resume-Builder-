@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, User, Globe, Languages } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, User, Globe, Languages, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -34,6 +34,9 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     {personalInfo.email && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5 text-primary"/><span>{personalInfo.email}</span></div>}
                     {personalInfo.phone && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5 text-primary"/><span>{personalInfo.phone}</span></div>}
                     {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5 text-primary"/><span>{fullAddress}</span></div>}
+                    {websites.map(site => (
+                        <div key={site.id} className="flex items-start gap-2"><LinkIcon size={14} className="mt-0.5 text-primary"/><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></div>
+                    ))}
                 </div>
             </section>
             
@@ -120,8 +123,26 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               </section>
             )}
             
+            {awards.length > 0 && (
+              <section className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Trophy size={24} className="text-primary"/>Accomplishments</h2>
+                <div className="space-y-5">
+                  {awards.map((award) => (
+                    <div key={award.id} className="relative pl-6">
+                      <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
+                      <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-white"></div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">{award.name || 'Award Name'}</h3>
+                        <p className="text-md font-semibold text-slate-600">{award.description} - {award.date || 'Date'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {certifications.length > 0 && (
-              <section>
+              <section className="mb-8">
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Award size={24} className="text-primary"/>Certifications</h2>
                 <div className="space-y-5">
                   {certifications.map((cert) => (
@@ -135,6 +156,31 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     </div>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {activities.length > 0 && (
+              <section className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Activity size={24} className="text-primary"/>Activities</h2>
+                <ul className="list-disc list-inside text-slate-700">
+                  {activities.map((activity, index) => <li key={index}>{activity}</li>)}
+                </ul>
+              </section>
+            )}
+
+            {customSections.map(section => (
+              <section key={section.id} className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Pencil size={24} className="text-primary"/>{section.title}</h2>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-slate-600">
+                    {section.content}
+                </ReactMarkdown>
+              </section>
+            ))}
+
+            {showReferences && (
+              <section>
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Users size={24} className="text-primary"/>References</h2>
+                <p className="text-slate-600 leading-relaxed text-sm">Available upon request.</p>
               </section>
             )}
         </main>

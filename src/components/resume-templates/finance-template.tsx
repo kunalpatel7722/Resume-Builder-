@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp, Award, Globe, Link as LinkIcon, Trophy, Activity, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -76,6 +76,16 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         </ul>
                     </section>
                 )}
+                {websites.length > 0 && (
+                    <section>
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Links</h3>
+                        <ul className="space-y-1">
+                            {websites.map(site => (
+                                <li key={site.id}><a href={site.url} className="text-primary hover:underline">{site.label || site.url}</a></li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
             </div>
         </aside>
 
@@ -109,8 +119,21 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 </div>
               </section>
             )}
+             {awards.length > 0 && (
+                <section className="mb-6">
+                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Awards</h2>
+                    <div className="space-y-3">
+                        {awards.map((award) => (
+                          <div key={award.id}>
+                            <h3 className="text-base font-bold text-gray-900">{award.name || 'Award Name'} - <span className="text-sm font-semibold text-gray-700">{award.date || 'Date'}</span></h3>
+                            <p className="text-gray-600">{award.description}</p>
+                          </div>
+                        ))}
+                    </div>
+                </section>
+            )}
              {certifications.length > 0 && (
-                <section>
+                <section className="mb-6">
                     <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Certifications</h2>
                     <div className="space-y-3">
                         {certifications.map((cert) => (
@@ -120,6 +143,28 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                           </div>
                         ))}
                     </div>
+                </section>
+            )}
+            {activities.length > 0 && (
+                <section className="mb-6">
+                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Activities</h2>
+                    <ul className="list-disc list-inside text-gray-700">
+                        {activities.map((activity, index) => <li key={index}>{activity}</li>)}
+                    </ul>
+                </section>
+            )}
+            {customSections.map(section => (
+                <section key={section.id} className="mb-6">
+                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">{section.title}</h2>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
+                        {section.content}
+                    </ReactMarkdown>
+                </section>
+            ))}
+            {showReferences && (
+                <section>
+                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">References</h2>
+                    <p className="text-gray-600">Available upon request.</p>
                 </section>
             )}
         </main>

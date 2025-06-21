@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HeartPulse, Award, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HeartPulse, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -88,6 +88,15 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
           </section>
         )}
 
+        {awards.length > 0 && (
+          <section>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Awards</h3>
+            {awards.map(award => (
+              <p key={award.id} className="text-gray-700 text-sm mb-1">{award.name} - {award.date}</p>
+            ))}
+          </section>
+        )}
+
         {skills.length > 0 && (
            <section>
             <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Skills</h3>
@@ -95,11 +104,34 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
            </section>
         )}
 
+        {activities.length > 0 && (
+          <section>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Activities</h3>
+            <p className="text-gray-700 text-sm">{activities.filter(a => a).join(' | ')}</p>
+          </section>
+        )}
+
         {languages.length > 0 && (
            <section>
             <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Languages</h3>
             <p className="text-gray-700 text-sm">{languages.map(lang => `${lang.name} (${lang.level})`).join(' | ')}</p>
            </section>
+        )}
+
+        {customSections.map(section => (
+          <section key={section.id}>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">{section.title}</h3>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
+        {showReferences && (
+          <section>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">References</h3>
+            <p className="text-gray-700 text-sm">Available upon request.</p>
+          </section>
         )}
       </main>
     </div>

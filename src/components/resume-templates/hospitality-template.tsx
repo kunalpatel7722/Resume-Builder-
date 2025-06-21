@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building, Award } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building, Award, Trophy, Activity, Link as LinkIcon, Pencil, Users, Languages } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -94,6 +94,21 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
           </section>
         )}
 
+        {awards.length > 0 && (
+          <section>
+            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">AWARDS</h2>
+            {awards.map((award) => (
+                <div key={award.id} className="flex justify-between items-start">
+                  <div>
+                      <h3 className="text-lg font-semibold">{award.name || 'Award Name'}</h3>
+                      <p className="text-md italic">{award.description}</p>
+                  </div>
+                  <p className="text-sm text-gray-600">{award.date || 'Date'}</p>
+                </div>
+              ))}
+          </section>
+        )}
+
         {skills.length > 0 && (
            <section>
             <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">KEY SKILLS</h2>
@@ -105,6 +120,26 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
            </section>
         )}
 
+        {activities.length > 0 && (
+            <section>
+                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">ACTIVITIES</h2>
+                <div className="columns-2">
+                    {activities.map((activity, index) => (
+                        <p key={index} className="text-gray-700 mb-1">{activity}</p>
+                    ))}
+                </div>
+            </section>
+        )}
+        
+        {customSections.map(section => (
+          <section key={section.id}>
+            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">{section.title}</h2>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-base max-w-none prose-serif text-gray-700">
+                {section.content}
+            </ReactMarkdown>
+          </section>
+        ))}
+
         {languages.length > 0 && (
             <section>
                 <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">LANGUAGES</h2>
@@ -113,6 +148,13 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
                         <p key={lang.id} className="text-gray-700 mb-1">{lang.name} ({lang.level})</p>
                     ))}
                 </div>
+            </section>
+        )}
+        
+        {showReferences && (
+            <section>
+                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">REFERENCES</h2>
+                <p className="text-gray-700">Available upon request.</p>
             </section>
         )}
       </main>
