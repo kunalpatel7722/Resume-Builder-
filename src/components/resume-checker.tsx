@@ -13,6 +13,8 @@ import ImprovementTips from "@/components/improvement-tips";
 import KeywordAnalysis from "@/components/keyword-analysis";
 import ReportSection from "@/components/report-section";
 import OverallScoreDisplay from "./overall-score-display";
+import { cn } from "@/lib/utils";
+import SectionDetailContent from "./section-detail-content";
 
 type AnalysisResult = ResumeAtsCheckOutput;
 
@@ -22,6 +24,8 @@ export default function ResumeChecker() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+  const [activeDetail, setActiveDetail] = useState<AnalysisResult['reportSections'][0] | { title: 'Extracted Resume Text' } | null>(null);
+
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -61,10 +65,14 @@ export default function ResumeChecker() {
     
     setIsLoading(true);
     setResult(null);
+    setActiveDetail(null);
 
     try {
       const scoreOutput = await resumeAtsCheck(scoreInput);
       setResult(scoreOutput);
+      if (scoreOutput.reportSections.length > 0) {
+        setActiveDetail(scoreOutput.reportSections[0]);
+      }
     } catch (error) {
       console.error("Analysis failed:", error);
       toast({
@@ -106,32 +114,63 @@ export default function ResumeChecker() {
             
             <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 lg:items-start">
               {/* Left Column */}
-              <div className="lg:col-span-3 space-y-8">
+              <div className="lg:col-span-3 space-y-4">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
+                
+                {result.keywordAnalysis && (
+                  <KeywordAnalysis data={result.keywordAnalysis} />
+                )}
+
                 <div className="space-y-4">
-                  {result.keywordAnalysis && (
-                    <KeywordAnalysis data={result.keywordAnalysis} />
-                  )}
                   {result.reportSections.map((section, index) => (
-                    <ReportSection key={index} section={section} />
+                    <ReportSection 
+                      key={index} 
+                      section={section}
+                      isActive={activeDetail?.title === section.title}
+                      onClick={() => setActiveDetail(section)}
+                    />
                   ))}
+                  <Card 
+                      className={cn(
+                          "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
+                          activeDetail?.title === 'Extracted Resume Text' && "border-primary shadow-lg ring-2 ring-primary/20"
+                      )}
+                      onClick={() => setActiveDetail({ title: 'Extracted Resume Text' })}
+                  >
+                      <CardHeader className="p-4">
+                          <div className="flex items-center gap-4">
+                              <div className="flex-shrink-0 bg-primary/10 text-primary p-3 rounded-lg">
+                                  <FileText className="h-6 w-6" />
+                              </div>
+                              <div className="flex-1">
+                                  <CardTitle className="text-lg">Extracted Resume Text</CardTitle>
+                                  <CardDescription className="mt-1 text-xs">View the text our AI used for the analysis.</CardDescription>
+                              </div>
+                          </div>
+                      </CardHeader>
+                  </Card>
                 </div>
               </div>
 
               {/* Right Column */}
               <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Extracted Resume Text</CardTitle>
-                        <CardDescription>This is the text our AI used for the analysis.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
-                            {result.extractedText}
-                        </pre>
-                    </CardContent>
-                </Card>
+                 {activeDetail && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{activeDetail.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {activeDetail.title === 'Extracted Resume Text' ? (
+                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
+                                    {result.extractedText}
+                                </pre>
+                            ) : (
+                                'checks' in activeDetail && activeDetail.checks && <SectionDetailContent checks={activeDetail.checks} />
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
               </div>
             </div>
         </div>

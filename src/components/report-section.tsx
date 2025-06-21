@@ -1,7 +1,6 @@
 "use client";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, FileText, Layout, PenSquare, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -11,25 +10,10 @@ interface ReportSectionProps {
     title: string;
     score: number;
     summary: string;
-    checks: {
-      title: string;
-      status: 'pass' | 'fail' | 'warning';
-      summary: string;
-      details: string;
-    }[];
   };
+  onClick: () => void;
+  isActive: boolean;
 }
-
-const getStatusIcon = (status: 'pass' | 'fail' | 'warning') => {
-  switch (status) {
-    case 'pass':
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-    case 'fail':
-      return <XCircle className="h-5 w-5 text-destructive" />;
-    case 'warning':
-      return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-  }
-};
 
 const getSectionIcon = (title: string) => {
     const lowerCaseTitle = title.toLowerCase();
@@ -41,6 +25,12 @@ const getSectionIcon = (title: string) => {
     }
     if (lowerCaseTitle.includes('file')) {
         return <FileText className="h-6 w-6" />;
+    }
+    if (lowerCaseTitle.includes('ats')) {
+        return <FileText className="h-6 w-6" />;
+    }
+    if (lowerCaseTitle.includes('tailoring')) {
+        return <PenSquare className="h-6 w-6" />;
     }
     // Default icons for LinkedIn sections
     if (lowerCaseTitle.includes('headline')) {
@@ -58,51 +48,26 @@ const getSectionIcon = (title: string) => {
     return <PenSquare className="h-6 w-6" />;
 };
 
-const getScoreColor = (score: number) => {
-  if (score >= 80) return "text-green-600";
-  if (score >= 50) return "text-yellow-600";
-  return "text-destructive";
-};
-
-const ReportSection = ({ section }: ReportSectionProps) => {
+const ReportSection = ({ section, onClick, isActive }: ReportSectionProps) => {
   return (
-    <Card className="shadow-sm">
-        <Accordion type="single" collapsible>
-            <AccordionItem value="item-1" className="border-b-0">
-                <AccordionTrigger className="p-6 text-left hover:no-underline">
-                    <div className="flex items-start md:items-center gap-4 w-full">
-                        <div className="flex-shrink-0 bg-primary/10 text-primary p-2 rounded-lg">
-                            {getSectionIcon(section.title)}
-                        </div>
-                        <div className="flex-1">
-                            <CardTitle className="text-xl">{section.title}</CardTitle>
-                            <CardDescription className="mt-1">{section.summary}</CardDescription>
-                        </div>
-                         <div className="hidden md:block">
-                            <span className={cn("text-2xl font-bold", getScoreColor(section.score))}>
-                                {section.score}/100
-                            </span>
-                        </div>
-                    </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                    <div className="px-6 pb-6 pt-0">
-                      <div className="space-y-4 border-t pt-4">
-                        {section.checks.map((check, index) => (
-                          <div key={index}>
-                            <div className="flex items-center gap-3">
-                                {getStatusIcon(check.status)}
-                                <h4 className="font-semibold text-foreground">{check.title}</h4>
-                            </div>
-                            <p className="text-muted-foreground text-sm ml-8">{check.summary}</p>
-                            <p className="text-muted-foreground/80 text-xs ml-8 mt-1">{check.details}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
-        </Accordion>
+    <Card 
+        className={cn(
+            "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
+            isActive && "border-primary shadow-lg ring-2 ring-primary/20"
+        )}
+        onClick={onClick}
+    >
+        <CardHeader className="p-4">
+            <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 bg-primary/10 text-primary p-3 rounded-lg">
+                    {getSectionIcon(section.title)}
+                </div>
+                <div className="flex-1">
+                    <CardTitle className="text-lg">{section.title}</CardTitle>
+                    <CardDescription className="mt-1 text-xs">{section.summary}</CardDescription>
+                </div>
+            </div>
+        </CardHeader>
     </Card>
   );
 };
