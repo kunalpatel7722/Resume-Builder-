@@ -13,7 +13,7 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -71,6 +71,7 @@ const steps = [
   { id: 'career-level', name: 'Career Level' },
   { id: 'target-country', name: 'Target Country' },
   { id: 'template', name: 'Choose Template' },
+  { id: 'select-method', name: 'Start' },
   { id: 'personal', name: 'Personal Info' },
   { id: 'experience', name: 'Experience' },
   { id: 'education', name: 'Education' },
@@ -461,6 +462,33 @@ export default function ResumeBuilder() {
                 </div>
             </div>
           )}
+          {currentStep === 'select-method' && (
+            <div className="space-y-4">
+                <h3 className="text-2xl font-semibold">How would you like to start?</h3>
+                <p className="text-muted-foreground">You can either build a new resume from scratch or upload an existing one.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    <Card 
+                        onClick={() => nextStep()}
+                        className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
+                    >
+                        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                            <FilePlus2 className="h-12 w-12 text-primary" />
+                            <h4 className="text-lg font-semibold">Create a new resume</h4>
+                            <p className="text-sm text-muted-foreground">Build your resume from scratch with our step-by-step resume builder.</p>
+                        </CardContent>
+                    </Card>
+                    <Card 
+                        className="cursor-not-allowed bg-muted/50 border-dashed"
+                    >
+                        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                            <UploadCloud className="h-12 w-12 text-muted-foreground" />
+                            <h4 className="text-lg font-semibold text-muted-foreground">Upload an existing resume</h4>
+                            <p className="text-sm text-muted-foreground">This feature is coming soon. We'll parse your resume and fill in the details automatically.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+          )}
           {currentStep === 'personal' && (
               <div className="space-y-4">
                   <h3 className="text-2xl font-semibold">Personal Information</h3>
@@ -593,7 +621,7 @@ export default function ResumeBuilder() {
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                   Download PDF
               </Button>
-          ) : currentStep !== 'career-level' && currentStep !== 'target-country' ? (
+          ) : currentStep !== 'career-level' && currentStep !== 'target-country' && currentStep !== 'select-method' ? (
               <Button onClick={nextStep}>
                   Next: {nextStepName}
               </Button>
