@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -208,7 +209,7 @@ export default function ProfileAnalyzer() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit}>
-                <Tabs value={activeTab} onValuechange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="pdf"><UploadCloud className="w-4 h-4 mr-2" /> Upload PDF</TabsTrigger>
                     <TabsTrigger value="text"><Keyboard className="w-4 h-4 mr-2" /> Paste Text</TabsTrigger>
