@@ -147,7 +147,6 @@ export default function ResumeBuilder() {
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
   
-  const [jobTitlesForAi, setJobTitlesForAi] = useState<string[]>(['']);
   const [aiSuggestions, setAiSuggestions] = useState<GenerateResumeContentOutput | null>(null);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
   const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
@@ -182,15 +181,10 @@ export default function ResumeBuilder() {
 
   const addExperience = () => {
     setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }]}));
-    setJobTitlesForAi(prev => [...prev, '']);
   };
   
   const removeExperience = (id: number) => {
-    const indexToRemove = resumeData.experience.findIndex(exp => exp.id === id);
     setResumeData(prev => ({ ...prev, experience: prev.experience.filter(exp => exp.id !== id) }));
-    if (indexToRemove !== -1) {
-        setJobTitlesForAi(prev => prev.filter((_, i) => i !== indexToRemove));
-    }
   };
   
   const handleEducationChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
@@ -212,16 +206,10 @@ export default function ResumeBuilder() {
     setResumeData(prev => ({ ...prev, skills: newSkills }));
   };
   
-  const handleJobTitleChange = (index: number, value: string) => {
-    const newJobTitles = [...jobTitlesForAi];
-    newJobTitles[index] = value;
-    setJobTitlesForAi(newJobTitles);
-  };
-
   const handleAiGenerate = async (index: number) => {
-    const jobTitle = jobTitlesForAi[index] || resumeData.experience[index].role;
+    const jobTitle = resumeData.experience[index].role;
     if (!jobTitle) {
-      toast({ title: 'Job title is missing', description: 'Please enter a job title to get AI suggestions.', variant: 'destructive' });
+      toast({ title: 'Role is missing', description: 'Please enter a role for this experience to get AI suggestions.', variant: 'destructive' });
       return;
     }
     setGeneratingIndex(index);
@@ -661,7 +649,13 @@ export default function ResumeBuilder() {
                       </div>
 
                       <div>
-                        <Label>Description</Label>
+                        <div className="flex justify-between items-center mb-1">
+                          <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                           <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                              {generatingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                              Enhance with AI
+                          </Button>
+                        </div>
                         <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
@@ -678,29 +672,10 @@ export default function ResumeBuilder() {
                           />
                       </div>
 
-                      <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader className="p-3">
-                              <CardTitle className="flex items-center gap-2 text-base"><Wand2 size={18}/> Enhance with AI</CardTitle>
-                              <CardDescription className="text-xs">Enter a job title to get AI-powered suggestions.</CardDescription>
-                          </CardHeader>
-                          <CardContent className="p-3 pt-0">
-                              <div className="flex items-center gap-2">
-                                  <Input 
-                                    placeholder={exp.role || "e.g., 'Digital Marketing Manager'"} 
-                                    value={jobTitlesForAi[index]}
-                                    onChange={(e) => handleJobTitleChange(index, e.target.value)}
-                                  />
-                                  <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                                      {generatingIndex === index ? <Loader2 className="animate-spin" /> : 'Get Suggestions'}
-                                  </Button>
-                              </div>
-                          </CardContent>
-                      </Card>
-
                       {aiSuggestions && suggestionsForIndex === index && (
                         <Card className="bg-muted/50">
                           <CardHeader className='p-3'>
-                            <CardTitle className='text-sm'>Suggestions for '{jobTitlesForAi[index] || exp.role}'</CardTitle>
+                            <CardTitle className='text-sm'>Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
                           </CardHeader>
                           <CardContent className='p-3 pt-0'>
                             <p className="text-xs text-muted-foreground mb-2">Click to add a bullet point to the description above.</p>
@@ -748,7 +723,7 @@ export default function ResumeBuilder() {
                   {aiSuggestions && (
                         <Card className="bg-muted/50">
                           <CardHeader className='p-3'>
-                            <CardTitle className='text-sm'>Skill suggestions for '{suggestionsForIndex !== null ? (jobTitlesForAi[suggestionsForIndex] || resumeData.experience[suggestionsForIndex].role) : 'your role'}'</CardTitle>
+                            <CardTitle className='text-sm'>Skill suggestions for '{suggestionsForIndex !== null ? resumeData.experience[suggestionsForIndex].role : 'your role'}'</CardTitle>
                           </CardHeader>
                           <CardContent className='p-3 pt-0'>
                             <p className="text-xs text-muted-foreground mb-2">Click to add a skill.</p>
