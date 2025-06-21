@@ -25,6 +25,16 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -43,24 +53,26 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
           {personalInfo.email && <div className="flex items-center gap-1"><Mail size={12} /><span>{personalInfo.email}</span></div>}
           {personalInfo.phone && <div className="flex items-center gap-1"><Phone size={12} /><span>{personalInfo.phone}</span></div>}
           {fullAddress && <div className="flex items-center gap-1"><MapPin size={12} /><span>{fullAddress}</span></div>}
-          {websites.map(site => (
+          {hasWebsites && websites.map(site => (
             <div key={site.id} className="flex items-center gap-1"><LinkIcon size={12} /><a href={site.url} style={{ color: accentColor }}>{site.label || site.url}</a></div>
           ))}
         </div>
       </header>
 
       <main>
-        {summary && (
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-2">Summary</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-2">Summary</h2>
+          {summary ? (
             <p className="text-gray-600 leading-relaxed">{summary}</p>
-          </section>
-        )}
+          ) : (
+            <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+          )}
+        </section>
 
-        {experience.length > 0 && experience[0]?.role && (
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Briefcase size={18}/> Work Experience</h2>
-            {experience.map((job) => {
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Briefcase size={18}/> Work Experience</h2>
+          {hasExperience ? (
+            experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id} className="mb-4">
@@ -72,18 +84,20 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
                     {job.company || 'Company Name'}{location && ` | ${location}`}
                   </p>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                    {job.description}
+                    {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
                 </div>
               )
-            })}
-          </section>
-        )}
+            })
+          ) : (
+             <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+          )}
+        </section>
 
-        {education.length > 0 && education[0]?.school && (
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><GraduationCap size={18}/> Education</h2>
-            {education.map((edu) => {
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><GraduationCap size={18}/> Education</h2>
+          {hasEducation ? (
+            education.map((edu) => {
               const gradDate = edu.isStillEnrolled 
                 ? 'Enrolled' 
                 : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
@@ -96,11 +110,13 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
                   <p className="text-sm font-semibold text-gray-600 italic">{edu.school || 'School Name'}</p>
                 </div>
               )
-            })}
-          </section>
-        )}
+            })
+          ) : (
+             <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
+          )}
+        </section>
         
-        {awards.length > 0 && (
+        {hasAwards && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Trophy size={18}/> Awards</h2>
             {awards.map((award) => (
@@ -112,7 +128,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
           </section>
         )}
         
-        {certifications.length > 0 && (
+        {hasCertifications && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Award size={18}/> Certifications</h2>
             {certifications.map((cert) => (
@@ -124,7 +140,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
           </section>
         )}
 
-        {skills.length > 0 && (
+        {hasSkills && (
            <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Star size={18}/> Skills</h2>
             <div className="flex flex-wrap gap-2">
@@ -135,7 +151,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
            </section>
         )}
         
-        {activities.length > 0 && (
+        {hasActivities && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Activity size={18}/> Activities</h2>
             <ul className="list-disc list-inside text-gray-600">
@@ -146,7 +162,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
           </section>
         )}
 
-        {customSections.map(section => (
+        {hasCustomSections && customSections.map(section => (
           <section key={section.id} className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Pencil size={18}/>{section.title}</h2>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
@@ -155,7 +171,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor, fon
           </section>
         ))}
 
-        {languages.length > 0 && (
+        {hasLanguages && (
            <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Globe size={18}/> Languages</h2>
             <div className="flex flex-wrap gap-4">

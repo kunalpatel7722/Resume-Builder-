@@ -25,6 +25,16 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -42,22 +52,24 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
             <Feather className="h-8 w-8" style={{ color: accentColor }}/>
         </div>
         <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
-        <p className="text-lg text-gray-600 mt-1">{experience[0]?.role || 'Creative Writer & Editor'}</p>
+        <p className="text-lg text-gray-600 mt-1">{hasExperience ? experience[0]?.role : 'Creative Writer & Editor'}</p>
       </header>
       
       <main className="max-w-3xl mx-auto space-y-8">
-        {summary && (
-          <section>
-            <p className="text-gray-700 leading-relaxed text-center italic">{summary}</p>
-          </section>
-        )}
+        <section>
+            {summary ? (
+              <p className="text-gray-700 leading-relaxed text-center italic">{summary}</p>
+            ) : (
+                <p className="text-gray-400 italic text-sm text-center">Your summary will appear here.</p>
+            )}
+        </section>
         
         <div className="w-1/4 h-px bg-gray-300 mx-auto" />
 
-        {experience.length > 0 && experience[0]?.role && (
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-center tracking-wider flex items-center justify-center gap-2"><BookOpen/> Experience</h2>
-            {experience.map((job) => {
+        <section>
+          <h2 className="text-2xl font-bold mb-4 text-center tracking-wider flex items-center justify-center gap-2"><BookOpen/> Experience</h2>
+          {hasExperience ? (
+            experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id} className="mb-5">
@@ -66,31 +78,35 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
                         <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'}{location && `, ${location}`} &mdash; <span className="text-sm text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</span></p>
                     </div>
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-800">
-                        {job.description}
+                        {job.description || '* Your job description will appear here.'}
                     </ReactMarkdown>
                 </div>
               )
-            })}
-          </section>
-        )}
+            })
+          ) : (
+            <p className="text-gray-400 italic text-sm text-center">Your experience will appear here.</p>
+          )}
+        </section>
         
         <div className="w-1/4 h-px bg-gray-300 mx-auto" />
 
         <div className="grid grid-cols-2 gap-8">
-            {skills.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><PenTool /> Skills</h2>
+            <section>
+                <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><PenTool /> Skills</h2>
+                {hasSkills ? (
                     <ul className="text-center space-y-1">
                         {skills.filter(skill => skill).map((skill, index) => (
                             <li key={index} className="text-gray-700">{skill}</li>
                         ))}
                     </ul>
-                </section>
-            )}
-            {education.length > 0 && education[0]?.school && (
-              <section>
-                <h2 className="text-2xl font-bold mb-3 text-center tracking-wider">Education</h2>
-                {education.map((edu) => {
+                ) : (
+                    <p className="text-gray-400 italic text-sm text-center">Your skills will appear here.</p>
+                )}
+            </section>
+            <section>
+              <h2 className="text-2xl font-bold mb-3 text-center tracking-wider">Education</h2>
+              {hasEducation ? (
+                education.map((edu) => {
                   const gradDate = edu.isStillEnrolled 
                     ? 'Enrolled' 
                     : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
@@ -101,11 +117,13 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
                       <p className="text-sm text-gray-500">{gradDate || 'Date'}</p>
                     </div>
                   )
-                })}
-              </section>
-            )}
+                })
+              ) : (
+                 <p className="text-gray-400 italic text-sm text-center">Your education will appear here.</p>
+              )}
+            </section>
             
-            {awards.length > 0 && (
+            {hasAwards && (
               <section>
                 <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Trophy /> Awards</h2>
                 {awards.map((award) => (
@@ -117,7 +135,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
               </section>
             )}
 
-            {certifications.length > 0 && (
+            {hasCertifications && (
               <section>
                 <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Award /> Certifications</h2>
                 {certifications.map((cert) => (
@@ -129,7 +147,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
               </section>
             )}
 
-            {activities.length > 0 && (
+            {hasActivities && (
               <section>
                   <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Activity /> Activities</h2>
                   <ul className="text-center space-y-1">
@@ -140,7 +158,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
               </section>
             )}
 
-            {languages.length > 0 && (
+            {hasLanguages && (
               <section>
                 <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Languages /> Languages</h2>
                 <ul className="text-center space-y-1">
@@ -152,7 +170,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
             )}
         </div>
 
-        {websites.length > 0 && (
+        {hasWebsites && (
           <section>
             <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><LinkIcon /> Portfolio</h2>
             <div className="text-center space-x-4">
@@ -163,7 +181,7 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
           </section>
         )}
 
-        {customSections.map(section => (
+        {hasCustomSections && customSections.map(section => (
           <section key={section.id}>
             <h2 className="text-2xl font-bold mb-4 text-center tracking-wider flex items-center justify-center gap-2"><Pencil/> {section.title}</h2>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-800">

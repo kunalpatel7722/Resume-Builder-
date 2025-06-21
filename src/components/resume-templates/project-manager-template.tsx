@@ -25,6 +25,16 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -40,7 +50,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
         <aside className="w-1/3 bg-gray-50 p-6 flex flex-col space-y-6">
             <header>
                 <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">{fullName || 'Your Name'}</h1>
-                <h2 className="text-lg font-semibold mt-1" style={{ color: accentColor }}>{experience[0]?.role || 'Project Manager'}</h2>
+                <h2 className="text-lg font-semibold mt-1" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Project Manager'}</h2>
             </header>
             <section>
                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Contact</h3>
@@ -48,25 +58,27 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                     {personalInfo.email && <p className="flex items-center gap-2"><Mail size={14}/> {personalInfo.email}</p>}
                     {personalInfo.phone && <p className="flex items-center gap-2"><Phone size={14}/> {personalInfo.phone}</p>}
                     {fullAddress && <p className="flex items-center gap-2"><MapPin size={14}/> {fullAddress}</p>}
-                    {websites.map(site => (
+                    {hasWebsites && websites.map(site => (
                         <p key={site.id} className="flex items-center gap-2"><LinkIcon size={14}/> <a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></p>
                     ))}
                 </div>
             </section>
-            {skills.length > 0 && (
-                <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Core Competencies</h3>
+            <section>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Core Competencies</h3>
+                {hasSkills ? (
                     <ul className="space-y-1.5 text-xs">
                         {skills.filter(skill => skill).map((skill, index) => (
                             <li key={index} className="flex items-center gap-2"><CheckSquare size={14} style={{ color: accentColor }}/>{skill}</li>
                         ))}
                     </ul>
-                </section>
-            )}
-            {education.length > 0 && education[0]?.school && (
-                <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Education</h3>
-                    {education.map((edu) => {
+                ) : (
+                    <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
+                )}
+            </section>
+            <section>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Education</h3>
+                {hasEducation ? (
+                    education.map((edu) => {
                        const gradDate = edu.isStillEnrolled 
                         ? 'Enrolled' 
                         : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
@@ -77,10 +89,12 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                             <p className="text-gray-500">{gradDate || 'Date'}</p>
                         </div>
                       )
-                    })}
-                </section>
-            )}
-            {languages.length > 0 && (
+                    })
+                ) : (
+                     <p className="text-gray-400 italic text-xs">Your education will appear here.</p>
+                )}
+            </section>
+            {hasLanguages && (
                 <section>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
                     <ul className="space-y-1.5 text-xs">
@@ -90,7 +104,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                     </ul>
                 </section>
             )}
-            {activities.length > 0 && (
+            {hasActivities && (
                 <section>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Activities</h3>
                     <ul className="space-y-1.5 text-xs">
@@ -103,16 +117,18 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
         </aside>
 
         <main className="w-2/3 p-8">
-            {summary && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-2">Career Summary</h2>
+            <section className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-2">Career Summary</h2>
+              {summary ? (
                 <p className="text-gray-600 leading-relaxed text-sm">{summary}</p>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+              )}
+            </section>
 
-            {experience.length > 0 && experience[0]?.role && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3 flex items-center gap-2"><GanttChartSquare size={20}/>Project Experience</h2>
+            <section className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3 flex items-center gap-2"><GanttChartSquare size={20}/>Project Experience</h2>
+              {hasExperience ? (
                 <div className="space-y-4">
                   {experience.map((job) => {
                     const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -124,16 +140,18 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                         </div>
                         <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                            {job.description}
+                            {job.description || '* Your job description will appear here.'}
                         </ReactMarkdown>
                       </div>
                     )
                   })}
                 </div>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+              )}
+            </section>
 
-            {awards.length > 0 && (
+            {hasAwards && (
                 <section className="mb-6">
                     <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3 flex items-center gap-2"><Trophy size={20}/>Awards</h2>
                     <div className="space-y-3">
@@ -147,7 +165,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                 </section>
             )}
 
-            {certifications.length > 0 && (
+            {hasCertifications && (
                 <section className="mb-6">
                     <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3 flex items-center gap-2"><Award size={20}/>Certifications</h2>
                     <div className="space-y-3">
@@ -161,7 +179,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                 </section>
             )}
 
-            {customSections.map(section => (
+            {hasCustomSections && customSections.map(section => (
                 <section key={section.id} className="mb-6">
                     <h2 className="text-xl font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3 flex items-center gap-2"><Pencil size={20}/>{section.title}</h2>
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">

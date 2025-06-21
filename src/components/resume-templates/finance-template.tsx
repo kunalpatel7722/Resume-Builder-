@@ -25,6 +25,16 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -40,7 +50,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
         <aside className="w-1/3 bg-gray-50 p-6 flex flex-col">
             <header className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md" style={{ color: accentColor }}>{experience[0]?.role || 'Finance Analyst'}</h2>
+                <h2 className="text-md" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Finance Analyst'}</h2>
             </header>
             
             <div className="space-y-6">
@@ -53,21 +63,23 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                     </div>
                 </section>
 
-                {skills.length > 0 && (
-                    <section>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Skills</h3>
+                <section>
+                    <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Skills</h3>
+                    {hasSkills ? (
                         <ul className="space-y-1">
                             {skills.filter(skill => skill).map((skill, index) => (
                                 <li key={index} className="text-gray-700">{skill}</li>
                             ))}
                         </ul>
-                    </section>
-                )}
+                    ) : (
+                        <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
+                    )}
+                </section>
 
-                {education.length > 0 && education[0]?.school && (
-                    <section>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Education</h3>
-                        {education.map((edu) => {
+                <section>
+                    <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Education</h3>
+                    {hasEducation ? (
+                        education.map((edu) => {
                           const gradDate = edu.isStillEnrolled 
                             ? 'Enrolled' 
                             : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
@@ -78,10 +90,12 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                                <p className="text-gray-500">{gradDate || 'Date'}</p>
                             </div>
                           )
-                        })}
-                    </section>
-                )}
-                 {languages.length > 0 && (
+                        })
+                    ) : (
+                        <p className="text-gray-400 italic text-xs">Your education will appear here.</p>
+                    )}
+                </section>
+                 {hasLanguages && (
                     <section>
                         <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
                         <ul className="space-y-1">
@@ -91,7 +105,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                         </ul>
                     </section>
                 )}
-                {websites.length > 0 && (
+                {hasWebsites && (
                     <section>
                         <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Links</h3>
                         <ul className="space-y-1">
@@ -105,16 +119,18 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
         </aside>
 
         <main className="w-2/3 p-8">
-            {summary && (
-              <section className="mb-6">
-                <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-2">Career Objective</h2>
+            <section className="mb-6">
+              <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-2">Career Objective</h2>
+              {summary ? (
                 <p className="text-gray-600 leading-relaxed">{summary}</p>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+              )}
+            </section>
 
-            {experience.length > 0 && experience[0]?.role && (
-              <section className="mb-6">
-                <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Professional Experience</h2>
+            <section className="mb-6">
+              <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Professional Experience</h2>
+              {hasExperience ? (
                 <div className="space-y-4">
                   {experience.map((job) => {
                     const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -126,15 +142,17 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                         </div>
                         <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                            {job.description}
+                            {job.description || '* Your job description will appear here.'}
                         </ReactMarkdown>
                       </div>
                     )
                   })}
                 </div>
-              </section>
-            )}
-             {awards.length > 0 && (
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+              )}
+            </section>
+             {hasAwards && (
                 <section className="mb-6">
                     <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Awards</h2>
                     <div className="space-y-3">
@@ -147,7 +165,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                     </div>
                 </section>
             )}
-             {certifications.length > 0 && (
+             {hasCertifications && (
                 <section className="mb-6">
                     <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Certifications</h2>
                     <div className="space-y-3">
@@ -160,7 +178,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                     </div>
                 </section>
             )}
-            {activities.length > 0 && (
+            {hasActivities && (
                 <section className="mb-6">
                     <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Activities</h2>
                     <ul className="list-disc list-inside text-gray-700">
@@ -168,7 +186,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                     </ul>
                 </section>
             )}
-            {customSections.map(section => (
+            {hasCustomSections && customSections.map(section => (
                 <section key={section.id} className="mb-6">
                     <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">{section.title}</h2>
                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">

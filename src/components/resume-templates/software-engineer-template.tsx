@@ -25,6 +25,15 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -40,33 +49,35 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
       <header className="flex justify-between items-center mb-6">
         <div>
             <h1 className="text-4xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
-            <h2 className="text-lg font-mono" style={{ color: accentColor }}>{experience[0]?.role || 'Software Engineer'}</h2>
+            <h2 className="text-lg font-mono" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Software Engineer'}</h2>
         </div>
         <div className="text-xs text-right space-y-1">
             <p className="flex items-center justify-end gap-2"><Mail size={14}/> {personalInfo.email}</p>
             <p className="flex items-center justify-end gap-2"><Phone size={14}/> {personalInfo.phone}</p>
             {fullAddress && <p className="flex items-center justify-end gap-2"><MapPin size={14}/> {fullAddress}</p>}
-            {websites.map(site => (
+            {hasWebsites && websites.map(site => (
                 <p key={site.id} className="flex items-center justify-end gap-2"><LinkIcon size={14}/> <a href={site.url} style={{ color: accentColor }}>{site.label || site.url}</a></p>
             ))}
         </div>
       </header>
       
       <main className="space-y-6">
-        {skills.length > 0 && (
-           <section>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Skills</h3>
+        <section>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Skills</h3>
+          {hasSkills ? (
             <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {skills.filter(skill => skill).map((skill, index) => (
                     <span key={index} className="text-sm text-gray-700 font-mono">{skill}</span>
                 ))}
             </div>
-           </section>
-        )}
+          ) : (
+            <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>
+          )}
+        </section>
         
-        {experience.length > 0 && experience[0]?.role && (
-          <section>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Experience</h3>
+        <section>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Experience</h3>
+          {hasExperience ? (
             <div className="space-y-5">
               {experience.map((job) => {
                 const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -79,41 +90,45 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
                     <div className="col-span-3">
                       <h4 className="font-bold text-md text-gray-800">{job.role || 'Job Title'}</h4>
                       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
-                          {job.description}
+                          {job.description || '* Your job description will appear here.'}
                       </ReactMarkdown>
                     </div>
                   </div>
                 )
               })}
             </div>
-          </section>
-        )}
+          ) : (
+             <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+          )}
+        </section>
 
-        {education.length > 0 && education[0]?.school && (
-          <section>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Education</h3>
-             <div className="space-y-2">
-                {education.map((edu) => {
-                  const gradDate = edu.isStillEnrolled 
-                    ? 'Enrolled' 
-                    : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-                  return (
-                    <div key={edu.id} className="grid grid-cols-4 gap-4">
-                        <div className="col-span-1 text-xs text-gray-600">
-                             <p className="font-semibold">{edu.school || 'University'}</p>
-                             <p>{gradDate || 'Date'}</p>
-                        </div>
-                        <div className="col-span-3">
-                           <p className="font-semibold text-md text-gray-800">{edu.degree || 'Degree'}</p>
-                        </div>
-                    </div>
-                  )
-                })}
-             </div>
-          </section>
-        )}
+        <section>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Education</h3>
+          {hasEducation ? (
+            <div className="space-y-2">
+              {education.map((edu) => {
+                const gradDate = edu.isStillEnrolled 
+                  ? 'Enrolled' 
+                  : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                return (
+                  <div key={edu.id} className="grid grid-cols-4 gap-4">
+                      <div className="col-span-1 text-xs text-gray-600">
+                           <p className="font-semibold">{edu.school || 'University'}</p>
+                           <p>{gradDate || 'Date'}</p>
+                      </div>
+                      <div className="col-span-3">
+                         <p className="font-semibold text-md text-gray-800">{edu.degree || 'Degree'}</p>
+                      </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
+          )}
+        </section>
         
-        {awards.length > 0 && (
+        {hasAwards && (
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Awards</h3>
             <div className="space-y-2">
@@ -132,7 +147,7 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
           </section>
         )}
 
-        {certifications.length > 0 && (
+        {hasCertifications && (
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Certifications</h3>
             <div className="space-y-2">
@@ -151,7 +166,7 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
           </section>
         )}
 
-        {customSections.map(section => (
+        {hasCustomSections && customSections.map(section => (
           <section key={section.id}>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">{section.title}</h3>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
@@ -160,7 +175,7 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
           </section>
         ))}
 
-        {languages.length > 0 && (
+        {hasLanguages && (
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
             <div className="flex flex-wrap gap-x-4 gap-y-1">

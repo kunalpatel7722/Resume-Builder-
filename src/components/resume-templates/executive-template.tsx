@@ -31,6 +31,16 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -47,7 +57,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
         <aside className="w-1/3 bg-slate-100 p-8 flex flex-col space-y-8">
             <div>
                 <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight leading-none">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md font-semibold mt-2" style={{ color: accentColor }}>{experience[0]?.role || 'Professional Title'}</h2>
+                <h2 className="text-md font-semibold mt-2" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Professional Title'}</h2>
             </div>
             
             <section>
@@ -56,15 +66,15 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
                     {personalInfo.email && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.email}</span></div>}
                     {personalInfo.phone && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.phone}</span></div>}
                     {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{fullAddress}</span></div>}
-                    {websites.map(site => (
+                    {hasWebsites && websites.map(site => (
                         <div key={site.id} className="flex items-start gap-2"><LinkIcon size={14} className="mt-0.5" style={{ color: accentColor }}/><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></div>
                     ))}
                 </div>
             </section>
             
-            {education.length > 0 && education[0]?.school && (
-                <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Education</h3>
+            <section>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Education</h3>
+                {hasEducation ? (
                     <div className="space-y-3">
                         {education.map((edu) => {
                           const gradDate = edu.isStillEnrolled 
@@ -79,12 +89,14 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
                           )
                         })}
                     </div>
-                </section>
-            )}
+                ) : (
+                    <p className="text-gray-400 italic text-xs">Your education will appear here.</p>
+                )}
+            </section>
 
-            {skills.length > 0 && (
-                <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Skills</h3>
+            <section>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Skills</h3>
+                {hasSkills ? (
                     <ul className="space-y-1.5 text-slate-700">
                         {skills.filter(skill => skill).map((skill, index) => (
                             <li key={index} className="flex items-center gap-2">
@@ -92,10 +104,12 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
                             </li>
                         ))}
                     </ul>
-                </section>
-            )}
+                ) : (
+                    <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
+                )}
+            </section>
 
-            {languages.length > 0 && (
+            {hasLanguages && (
                 <section>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Languages</h3>
                     <ul className="space-y-1.5 text-slate-700">
@@ -111,16 +125,18 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
         </aside>
 
         <main className="w-2/3 p-8 bg-white">
-            {summary && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-3", headingClass)}><User size={24} style={{ color: accentColor }}/> Profile</h2>
+            <section className="mb-8">
+              <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-3", headingClass)}><User size={24} style={{ color: accentColor }}/> Profile</h2>
+              {summary ? (
                 <p className="text-slate-600 leading-relaxed text-sm">{summary}</p>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+              )}
+            </section>
 
-            {experience.length > 0 && experience[0]?.role && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Briefcase size={24} style={{ color: accentColor }}/>Experience</h2>
+            <section className="mb-8">
+              <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Briefcase size={24} style={{ color: accentColor }}/>Experience</h2>
+              {hasExperience ? (
                 <div className="space-y-5">
                   {experience.map((job) => {
                     const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -135,17 +151,19 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
                           </div>
                           <p className="text-md font-semibold text-slate-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-slate-600">
-                              {job.description}
+                              {job.description || '* Your job description will appear here.'}
                           </ReactMarkdown>
                         </div>
                       </div>
                     )
                   })}
                 </div>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+              )}
+            </section>
             
-            {awards.length > 0 && (
+            {hasAwards && (
               <section className="mb-8">
                 <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Trophy size={24} style={{ color: accentColor }}/>Accomplishments</h2>
                 <div className="space-y-5">
@@ -163,7 +181,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
               </section>
             )}
 
-            {certifications.length > 0 && (
+            {hasCertifications && (
               <section className="mb-8">
                 <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Award size={24} style={{ color: accentColor }}/>Certifications</h2>
                 <div className="space-y-5">
@@ -181,7 +199,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
               </section>
             )}
 
-            {activities.length > 0 && (
+            {hasActivities && (
               <section className="mb-8">
                 <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Activity size={24} style={{ color: accentColor }}/>Activities</h2>
                 <ul className="list-disc list-inside text-slate-700">
@@ -190,7 +208,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
               </section>
             )}
 
-            {customSections.map(section => (
+            {hasCustomSections && customSections.map(section => (
               <section key={section.id} className="mb-8">
                 <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Pencil size={24} style={{ color: accentColor }}/>{section.title}</h2>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-slate-600">

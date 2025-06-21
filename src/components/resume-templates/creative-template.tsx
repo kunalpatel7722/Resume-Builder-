@@ -31,6 +31,16 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -62,18 +72,20 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                     </div>
                 </section>
 
-                {skills.length > 0 && (
-                    <section>
-                        <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><Star size={16} />Skills</h2>
+                <section>
+                    <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><Star size={16} />Skills</h2>
+                    {hasSkills ? (
                         <ul className="flex flex-wrap gap-1.5">
                             {skills.filter(skill => skill).map((skill, index) => (
                                 <li key={index} className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: `${accentColor}1A`, color: accentColor }}>{skill}</li>
                             ))}
                         </ul>
-                    </section>
-                )}
+                    ) : (
+                        <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
+                    )}
+                </section>
                 
-                {activities.length > 0 && (
+                {hasActivities && (
                     <section>
                         <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><Activity size={16} />Activities</h2>
                         <ul className="space-y-1 text-xs">
@@ -84,7 +96,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                     </section>
                 )}
 
-                {languages.length > 0 && (
+                {hasLanguages && (
                     <section>
                         <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><Globe size={16} />Languages</h2>
                         <ul className="space-y-1 text-xs">
@@ -95,7 +107,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                     </section>
                 )}
 
-                {websites.length > 0 && (
+                {hasWebsites && (
                     <section>
                         <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><LinkIcon size={16} />Links</h2>
                         <ul className="space-y-1 text-xs">
@@ -110,16 +122,18 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
         </aside>
 
         <main className="w-2/3 p-8">
-            {summary && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold uppercase tracking-wide mb-3", headingClass)} style={{ color: accentColor }}>Summary</h2>
+            <section className="mb-8">
+              <h2 className={cn("font-bold uppercase tracking-wide mb-3", headingClass)} style={{ color: accentColor }}>Summary</h2>
+              {summary ? (
                 <p className="text-gray-600 leading-relaxed pl-4" style={{ borderLeft: `4px solid ${accentColor}33` }}>{summary}</p>
-              </section>
-            )}
+              ) : (
+                 <p className="text-gray-400 italic text-sm pl-4" style={{ borderLeft: `4px solid ${accentColor}33` }}>Your summary will appear here.</p>
+              )}
+            </section>
 
-            {experience.length > 0 && experience[0]?.role && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><Briefcase size={20}/>Work Experience</h2>
+            <section className="mb-8">
+              <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><Briefcase size={20}/>Work Experience</h2>
+              {hasExperience ? (
                 <div className="space-y-4">
                   {experience.map((job) => {
                     const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -133,39 +147,43 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                         </div>
                         <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                            {job.description}
+                            {job.description || '* Your job description will appear here.'}
                         </ReactMarkdown>
                       </div>
                     )
                   })}
                 </div>
-              </section>
-            )}
+              ) : (
+                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+              )}
+            </section>
 
-            {education.length > 0 && education[0]?.school && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><GraduationCap size={20}/>Education</h2>
-                 <div className="space-y-2">
-                    {education.map((edu) => {
-                       const gradDate = edu.isStillEnrolled 
-                        ? 'Enrolled' 
-                        : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-                      return (
-                        <div key={edu.id} className="mb-2">
-                           <div className="flex justify-between items-baseline">
-                              <h3 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</h3>
-                              <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-600 italic">{edu.school || 'School Name'}{edu.location && `, ${edu.location}`}</p>
+            <section className="mb-8">
+              <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><GraduationCap size={20}/>Education</h2>
+              {hasEducation ? (
+                <div className="space-y-2">
+                  {education.map((edu) => {
+                     const gradDate = edu.isStillEnrolled 
+                      ? 'Enrolled' 
+                      : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                    return (
+                      <div key={edu.id} className="mb-2">
+                         <div className="flex justify-between items-baseline">
+                            <h3 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</h3>
+                            <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
                         </div>
-                      )
-                    })}
-                 </div>
-              </section>
-            )}
+                        <p className="text-sm font-semibold text-gray-600 italic">{edu.school || 'School Name'}{edu.location && `, ${edu.location}`}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                 <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
+              )}
+            </section>
             
-            {awards.length > 0 && (
-                <section>
+            {hasAwards && (
+                <section className="mb-8">
                     <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><Trophy size={20}/>Awards</h2>
                     <div className="space-y-2">
                         {awards.map((award) => (
@@ -178,8 +196,8 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                 </section>
             )}
 
-            {certifications.length > 0 && (
-                <section>
+            {hasCertifications && (
+                <section className="mb-8">
                     <h2 className={cn("font-bold uppercase tracking-wide mb-4 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><Award size={20}/>Certifications</h2>
                     <div className="space-y-2">
                         {certifications.map((cert) => (
@@ -192,7 +210,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                 </section>
             )}
             
-            {customSections.map(section => (
+            {hasCustomSections && customSections.map(section => (
               <section key={section.id} className="mb-8">
                 <h2 className={cn("font-bold uppercase tracking-wide mb-3 flex items-center gap-2", headingClass)} style={{ color: accentColor }}><Pencil size={20}/>{section.title}</h2>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">

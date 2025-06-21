@@ -24,6 +24,16 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -37,28 +47,30 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
       <header className="text-center mb-6">
         <h1 className="text-4xl font-bold tracking-widest uppercase">{fullName || 'Your Name'}</h1>
         <div className="text-xs text-gray-600 mt-2">
-          <span>{fullAddress}</span>
-          {fullAddress && (personalInfo.phone || personalInfo.email) ? <span className="mx-2">|</span> : ''}
-          <span>{personalInfo.phone}</span>
-          {personalInfo.phone && personalInfo.email ? <span className="mx-2">|</span> : ''}
-          <span>{personalInfo.email}</span>
+          <span>{fullAddress || 'Address'}</span>
+          {(fullAddress && (personalInfo.phone || personalInfo.email)) ? <span className="mx-2">|</span> : ''}
+          <span>{personalInfo.phone || 'Phone'}</span>
+          {(personalInfo.phone && personalInfo.email) ? <span className="mx-2">|</span> : ''}
+          <span>{personalInfo.email || 'Email'}</span>
         </div>
       </header>
 
       <hr className="border-gray-400 mb-6" />
 
       <main>
-        {summary && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Summary</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Summary</h2>
+          {summary ? (
             <p className="text-gray-700 leading-relaxed text-justify">{summary}</p>
-          </section>
-        )}
+          ) : (
+            <p className="text-gray-400 italic text-sm text-center">Your summary will appear here.</p>
+          )}
+        </section>
 
-        {experience.length > 0 && experience[0]?.role && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Experience</h2>
-            {experience.map((job) => {
+        <section className="mb-6">
+          <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Experience</h2>
+          {hasExperience ? (
+            experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id} className="mb-4">
@@ -68,18 +80,20 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                   </div>
                   <p className="text-sm font-medium italic text-gray-800">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-700">
-                      {job.description}
+                      {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
                 </div>
               )
-            })}
-          </section>
-        )}
+            })
+          ) : (
+             <p className="text-gray-400 italic text-sm text-center">Your experience will appear here.</p>
+          )}
+        </section>
 
-        {education.length > 0 && education[0]?.school && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Education</h2>
-            {education.map((edu) => {
+        <section className="mb-6">
+          <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Education</h2>
+          {hasEducation ? (
+            education.map((edu) => {
                const gradDate = edu.isStillEnrolled 
                 ? 'Enrolled' 
                 : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
@@ -92,11 +106,13 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
                   <p className="text-sm font-medium italic text-gray-800">{edu.school || 'School Name'}{edu.location && `, ${edu.location}`}</p>
                 </div>
               )
-            })}
-          </section>
-        )}
+            })
+          ) : (
+            <p className="text-gray-400 italic text-sm text-center">Your education will appear here.</p>
+          )}
+        </section>
         
-        {awards.length > 0 && (
+        {hasAwards && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Awards & Accomplishments</h2>
             {awards.map((award) => (
@@ -108,7 +124,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
           </section>
         )}
         
-        {certifications.length > 0 && (
+        {hasCertifications && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Certifications</h2>
             {certifications.map((cert) => (
@@ -120,21 +136,21 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
           </section>
         )}
 
-        {skills.length > 0 && (
+        {hasSkills && (
            <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Skills</h2>
             <p className="text-gray-700 text-sm text-center">{skills.filter(skill => skill).join(' • ')}</p>
            </section>
         )}
 
-        {activities.length > 0 && (
+        {hasActivities && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Activities</h2>
             <p className="text-gray-700 text-sm text-center">{activities.filter(a => a).join(' • ')}</p>
           </section>
         )}
         
-        {websites.length > 0 && (
+        {hasWebsites && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Links</h2>
             <div className="text-center">
@@ -145,7 +161,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
           </section>
         )}
 
-        {customSections.map(section => (
+        {hasCustomSections && customSections.map(section => (
           <section key={section.id} className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">{section.title}</h2>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-700">
@@ -154,7 +170,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
           </section>
         ))}
 
-        {languages.length > 0 && (
+        {hasLanguages && (
           <section>
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Languages</h2>
             <p className="text-gray-700 text-sm text-center">

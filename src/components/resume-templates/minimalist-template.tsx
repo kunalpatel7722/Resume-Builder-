@@ -24,6 +24,16 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
+  const hasExperience = experience.some(e => e.role || e.company || e.description);
+  const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
+  const hasSkills = skills.some(s => s);
+  const hasLanguages = languages.some(l => l.name);
+  const hasCertifications = certifications.some(c => c.name);
+  const hasActivities = activities.some(a => a);
+  const hasAwards = awards.some(a => a.name);
+  const hasWebsites = websites.some(w => w.url);
+  const hasCustomSections = customSections.some(c => c.title || c.content);
+
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return 'Dates';
     const start = format(startDate, 'MMM yyyy');
@@ -39,24 +49,26 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
       <header className="text-left mb-10">
         <h1 className="text-5xl font-thin tracking-widest uppercase">{fullName || 'Your Name'}</h1>
         <div className="text-xs text-gray-500 mt-3 space-x-4">
-          <span>{fullAddress}</span>
-          <span>{personalInfo.phone}</span>
-          <span>{personalInfo.email}</span>
+          <span>{fullAddress || 'Address'}</span>
+          <span>{personalInfo.phone || 'Phone'}</span>
+          <span>{personalInfo.email || 'Email'}</span>
         </div>
       </header>
       
       <div className="w-full h-px bg-gray-200 mb-10" />
 
       <main className="space-y-10">
-        {summary && (
-          <section>
-            <p className="text-gray-600 leading-7">{summary}</p>
-          </section>
-        )}
+        <section>
+            {summary ? (
+                <p className="text-gray-600 leading-7">{summary}</p>
+            ) : (
+                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+            )}
+        </section>
 
-        {experience.length > 0 && experience[0]?.role && (
-          <section>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Experience</h2>
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Experience</h2>
+          {hasExperience ? (
             <div className="space-y-6">
                 {experience.map((job) => {
                   const location = [job.city, job.state].filter(Boolean).join(', ');
@@ -68,18 +80,20 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
                         </div>
                         <p className="text-md text-gray-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
-                          {job.description}
+                          {job.description || '* Your job description will appear here.'}
                         </ReactMarkdown>
                     </div>
                   )
                 })}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
+          )}
+        </section>
 
-        {education.length > 0 && education[0]?.school && (
-          <section>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Education</h2>
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Education</h2>
+          {hasEducation ? (
             <div className="space-y-4">
             {education.map((edu) => {
               const gradDate = edu.isStillEnrolled 
@@ -96,10 +110,12 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
               )
             })}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
+          )}
+        </section>
 
-        {awards.length > 0 && (
+        {hasAwards && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Awards</h2>
             <div className="space-y-4">
@@ -116,7 +132,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
           </section>
         )}
 
-        {certifications.length > 0 && (
+        {hasCertifications && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Certifications</h2>
             <div className="space-y-4">
@@ -133,21 +149,21 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
           </section>
         )}
 
-        {skills.length > 0 && (
+        {hasSkills && (
            <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Skills</h2>
             <p className="text-gray-600 leading-6">{skills.filter(skill => skill).join(', ')}</p>
            </section>
         )}
 
-        {activities.length > 0 && (
+        {hasActivities && (
             <section>
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Activities</h2>
                 <p className="text-gray-600 leading-6">{activities.filter(a => a).join(', ')}</p>
             </section>
         )}
 
-        {websites.length > 0 && (
+        {hasWebsites && (
             <section>
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Links</h2>
                  <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -158,7 +174,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
             </section>
         )}
         
-        {customSections.map(section => (
+        {hasCustomSections && customSections.map(section => (
           <section key={section.id}>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">{section.title}</h2>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
@@ -167,7 +183,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor,
           </section>
         ))}
 
-        {languages.length > 0 && (
+        {hasLanguages && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Languages</h2>
             <p className="text-gray-600 leading-6">
