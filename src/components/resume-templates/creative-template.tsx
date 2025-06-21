@@ -56,8 +56,8 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor, f
                 <section>
                     <h2 className="text-md font-semibold uppercase tracking-wider pb-1 mb-3 flex items-center gap-2" style={{ borderBottom: `2px solid ${accentColor}` }}><Mail size={16} />Contact</h2>
                     <div className="space-y-2 text-xs">
-                        {personalInfo.email && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.email}</span></div>}
-                        {personalInfo.phone && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.phone}</span></div>}
+                        {personalInfo.email && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.email}</span></div>}
+                        {personalInfo.phone && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.phone}</span></div>}
                         {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{fullAddress}</span></div>}
                     </div>
                 </section>

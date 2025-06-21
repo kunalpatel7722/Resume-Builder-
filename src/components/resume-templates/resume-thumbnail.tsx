@@ -96,7 +96,7 @@ const ExecutiveThumbnail: React.FC = () => (
     <div className="flex h-full bg-white">
         <div className="w-1/3 bg-slate-100 p-2 space-y-4">
             <div className="h-3 w-full bg-gray-500 rounded-sm" />
-            <div className="h-1.5 w-2/3 bg-primary rounded-sm" />
+            <div className="h-1.5 w-2/3 bg-blue-500 rounded-sm" />
             <div className="space-y-1 mt-4">
                  <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
                  <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
@@ -131,7 +131,7 @@ const TechnicalThumbnail: React.FC = () => (
     <div className="flex h-full bg-white">
         <div className="w-1/3 bg-gray-800 p-2 space-y-3">
             <div className="h-2.5 w-full bg-gray-300 rounded-sm" />
-            <div className="h-1.5 w-2/3 bg-primary rounded-sm" />
+            <div className="h-1.5 w-2/3 bg-blue-500 rounded-sm" />
             <div className="border-b border-gray-600 my-1" />
             <div className="space-y-1 mt-2">
                 <div className="h-1.5 w-full bg-gray-500 rounded-sm" />
@@ -170,8 +170,8 @@ const SalesThumbnail: React.FC = () => (
     <div className="p-2 bg-white h-full flex gap-2">
         <div className="w-2/3 space-y-2">
             <div className="h-4 w-full bg-gray-400 rounded-sm" />
-            <div className="h-2 w-2/3 bg-primary rounded-sm" />
-            <div className="border-b border-primary my-1" />
+            <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
+            <div className="border-b border-blue-500 my-1" />
             <div className="h-2 w-1/3 bg-gray-400 rounded-sm" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
             <div className="h-1.5 w-5/6 bg-gray-300 rounded-sm" />
@@ -191,14 +191,14 @@ const SalesThumbnail: React.FC = () => (
 
 const MarketingThumbnail: React.FC = () => (
     <div className="flex h-full bg-white">
-        <div className="w-1/3 bg-primary/10 p-2 space-y-2">
-            <div className="h-3 w-full bg-primary rounded-sm" />
+        <div className="w-1/3 bg-blue-500/10 p-2 space-y-2">
+            <div className="h-3 w-full bg-blue-500 rounded-sm" />
             <div className="h-2 w-2/3 bg-gray-400 rounded-sm" />
             <div className="h-2 w-1/2 bg-gray-400 rounded-sm mt-4" />
             <div className="flex flex-wrap gap-1">
-                <div className="h-2 w-1/4 bg-primary/20 rounded-full" />
-                <div className="h-2 w-1/3 bg-primary/20 rounded-full" />
-                <div className="h-2 w-1/4 bg-primary/20 rounded-full" />
+                <div className="h-2 w-1/4 bg-blue-500/20 rounded-full" />
+                <div className="h-2 w-1/3 bg-blue-500/20 rounded-full" />
+                <div className="h-2 w-1/4 bg-blue-500/20 rounded-full" />
             </div>
         </div>
         <div className="w-2/3 p-2 space-y-2">
@@ -214,12 +214,12 @@ const MarketingThumbnail: React.FC = () => (
 const HealthcareThumbnail: React.FC = () => (
     <div className="p-2 space-y-1 bg-white h-full">
         <div className="h-4 w-1/2 mx-auto bg-gray-400 rounded-sm" />
-        <div className="h-2 w-1/3 mx-auto bg-primary rounded-sm" />
+        <div className="h-2 w-1/3 mx-auto bg-blue-500 rounded-sm" />
         <div className="h-1.5 w-3/4 mx-auto bg-gray-300 rounded-sm" />
         <div className="border-b border-gray-300 my-2" />
-        <div className="h-2 w-1/4 bg-primary rounded-sm" />
+        <div className="h-2 w-1/4 bg-blue-500 rounded-sm" />
         <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
-        <div className="h-2 w-1/4 bg-primary rounded-sm mt-2" />
+        <div className="h-2 w-1/4 bg-blue-500 rounded-sm mt-2" />
         <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
     </div>
 );
@@ -239,7 +239,7 @@ const FinanceThumbnail: React.FC = () => (
     <div className="flex h-full bg-white">
         <div className="w-1/3 bg-gray-100 p-2 space-y-3">
             <div className="h-3 w-full bg-gray-400 rounded-sm" />
-            <div className="h-2 w-2/3 bg-primary rounded-sm" />
+            <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
             <div className="h-2 w-1/3 bg-gray-400 rounded-sm mt-4" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
@@ -270,7 +270,7 @@ const SoftwareEngineerThumbnail: React.FC = () => (
         <div className="flex justify-between">
             <div className="w-1/2 space-y-1">
                 <div className="h-4 w-full bg-gray-400 rounded-sm" />
-                <div className="h-2 w-2/3 bg-primary rounded-sm" />
+                <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
             </div>
             <div className="w-1/3 h-4 bg-gray-300 rounded-sm" />
         </div>
@@ -284,7 +284,7 @@ const SoftwareEngineerThumbnail: React.FC = () => (
 const GraphicDesignerThumbnail: React.FC = () => (
     <div className="flex h-full bg-white">
         <div className="w-1/3 bg-gray-100 p-2 flex flex-col items-center">
-            <div className="h-8 w-8 rounded-full bg-primary" />
+            <div className="h-8 w-8 rounded-full bg-blue-500" />
             <div className="h-3 w-full bg-gray-400 rounded-sm mt-1" />
             <div className="h-2 w-2/3 bg-gray-300 rounded-sm" />
             <div className="h-2 w-1/3 bg-gray-400 rounded-sm mt-4" />
@@ -292,7 +292,7 @@ const GraphicDesignerThumbnail: React.FC = () => (
         </div>
         <div className="w-2/3 p-2 space-y-2">
             <div className="h-3 w-full bg-gray-300 rounded-sm" />
-            <div className="h-2.5 w-1/2 bg-primary rounded-sm mt-4 border-l-2 border-primary pl-1" />
+            <div className="h-2.5 w-1/2 bg-blue-500 rounded-sm mt-4 border-l-2 border-blue-500 pl-1" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
         </div>
     </div>
@@ -303,11 +303,11 @@ const CustomerServiceThumbnail: React.FC = () => (
         <div className="flex justify-between items-start">
             <div className="w-2/3 space-y-1">
                 <div className="h-3 w-full bg-gray-400 rounded-sm" />
-                <div className="h-2 w-2/3 bg-primary rounded-sm" />
+                <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
             </div>
-            <div className="w-8 h-8 rounded-full bg-primary/20" />
+            <div className="w-8 h-8 rounded-full bg-blue-500/20" />
         </div>
-        <div className="border-b border-primary my-2" />
+        <div className="border-b border-blue-500 my-2" />
         <div className="flex gap-2 flex-grow">
             <div className="w-2/3 space-y-2">
                 <div className="h-2 w-1/3 bg-gray-400 rounded-sm" />
@@ -325,12 +325,12 @@ const CustomerServiceThumbnail: React.FC = () => (
 
 const ItProfessionalThumbnail: React.FC = () => (
     <div className="p-2 bg-white h-full space-y-2 font-mono">
-        <div className="h-3 w-2/3 bg-primary rounded-sm" />
+        <div className="h-3 w-2/3 bg-blue-500 rounded-sm" />
         <div className="h-2 w-1/2 bg-gray-400 rounded-sm" />
         <div className="h-4 w-full bg-gray-200 rounded-sm" />
-        <div className="h-2 w-1/3 bg-primary rounded-sm mt-2" />
+        <div className="h-2 w-1/3 bg-blue-500 rounded-sm mt-2" />
         <div className="h-6 w-full bg-gray-200 rounded-sm" />
-        <div className="h-2 w-1/3 bg-primary rounded-sm mt-2" />
+        <div className="h-2 w-1/3 bg-blue-500 rounded-sm mt-2" />
         <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
     </div>
 );
@@ -339,7 +339,7 @@ const ProjectManagerThumbnail: React.FC = () => (
      <div className="flex h-full bg-white">
         <div className="w-1/3 bg-gray-100 p-2 space-y-3">
             <div className="h-3 w-full bg-gray-400 rounded-sm" />
-            <div className="h-2 w-2/3 bg-primary rounded-sm" />
+            <div className="h-2 w-2/3 bg-blue-500 rounded-sm" />
             <div className="h-2 w-1/3 bg-gray-400 rounded-sm mt-4" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
         </div>
@@ -354,7 +354,7 @@ const ProjectManagerThumbnail: React.FC = () => (
 
 const CreativeWriterThumbnail: React.FC = () => (
     <div className="p-2 bg-white h-full flex flex-col items-center font-serif">
-        <div className="h-6 w-6 rounded-full bg-primary/20" />
+        <div className="h-6 w-6 rounded-full bg-blue-500/20" />
         <div className="h-3 w-2/3 bg-gray-400 rounded-sm mt-1" />
         <div className="h-2 w-1/2 bg-gray-300 rounded-sm" />
         <div className="h-1.5 w-full bg-gray-300 rounded-sm mt-4" />
