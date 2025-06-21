@@ -23,7 +23,7 @@ const LinkedInProfileImprovementTipsOutputSchema = z.object({
   improvementTips: z.array(
     z.object({
       tip: z.string().describe('A specific, actionable tip to improve the LinkedIn profile.'),
-      resourceLink: z.string().url().describe('A link to a resource that helps implement the tip.'),
+      resourceLink: z.string().describe('A link to a resource that helps implement the tip.'),
     })
   ).describe('An array of improvement tips with resource links.'),
 });
