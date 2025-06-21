@@ -169,6 +169,7 @@ export default function ResumeBuilder() {
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
   const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
   const [editorFocus, setEditorFocus] = useState<{ id: string; start: number; end: number } | null>(null);
+  const [generatingSkills, setGeneratingSkills] = useState(false);
 
   useEffect(() => {
     if (editorFocus) {
@@ -180,6 +181,31 @@ export default function ResumeBuilder() {
       setEditorFocus(null);
     }
   }, [editorFocus, resumeData.experience]);
+
+  useEffect(() => {
+    const fetchSkillSuggestions = async () => {
+      if (currentStep === 'skills' && !aiSuggestions && resumeData.experience.length > 0) {
+        const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
+
+        if (lastExperienceWithRole) {
+          setGeneratingSkills(true);
+          try {
+            const result = await generateResumeContent({ jobTitle: lastExperienceWithRole.role });
+            setAiSuggestions(result);
+            const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
+            setSuggestionsForIndex(experienceIndex);
+          } catch (error) {
+            console.error(error);
+            toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
+          } finally {
+            setGeneratingSkills(false);
+          }
+        }
+      }
+    };
+
+    fetchSkillSuggestions();
+  }, [currentStep, resumeData.experience, aiSuggestions, toast]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -810,18 +836,23 @@ export default function ResumeBuilder() {
            {currentStep === 'skills' && (
               <div className="space-y-4">
                   <h3 className="text-2xl font-semibold">What skills would you like to highlight?</h3>
-                  <p className="text-muted-foreground">Start with a few of the most important skills. We’ll suggest more for you to choose from based on your experience.</p>
+                  <p className="text-muted-foreground">We’ve chosen the following skills based on your job title to get you started.</p>
                   <Textarea 
                       placeholder="e.g., React, Project Management, SEO, Public Speaking"
                       value={resumeData.skills.join(', ')}
                       onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
                   />
-                  {aiSuggestions && (
+                  {generatingSkills ? (
+                    <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/50 rounded-lg">
+                        <Loader2 className="animate-spin h-5 w-5" />
+                        <span>Loading AI skill suggestions based on your experience...</span>
+                    </div>
+                  ) : aiSuggestions && (
                         <Card className="bg-muted/50">
                           <CardHeader className='p-3'>
                             <CardTitle className='text-sm flex items-center gap-2'>
                               <Wand2 className="h-4 w-4 text-primary" />
-                              <span>Top skills for a {suggestionsForIndex !== null ? resumeData.experience[suggestionsForIndex].role : 'role'}</span>
+                              <span>Top skills for a {suggestionsForIndex !== null && resumeData.experience[suggestionsForIndex] ? resumeData.experience[suggestionsForIndex].role : 'role'}</span>
                             </CardTitle>
                           </CardHeader>
                           <CardContent className='p-3 pt-0'>
@@ -883,3 +914,4 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+ 
