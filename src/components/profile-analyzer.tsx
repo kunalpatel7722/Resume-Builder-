@@ -1,17 +1,20 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
 import ImprovementTips from "@/components/improvement-tips";
 import { cn } from "@/lib/utils";
+import ScoreBreakdownChart from "@/components/score-breakdown-chart";
 
 type AnalysisResult = {
   score: number;
@@ -203,8 +206,9 @@ export default function ProfileAnalyzer() {
                 <p className="text-muted-foreground">Here's a detailed breakdown of your LinkedIn profile analysis.</p>
             </div>
 
-            <div id="overview" data-section-id="overview" className="scroll-mt-20">
+            <div id="overview" data-section-id="overview" className="scroll-mt-20 space-y-6">
               <ImprovementTips tips={result.improvementTips} />
+              <ScoreBreakdownChart data={result.scoreBreakdown} />
             </div>
 
             {result.scoreBreakdown.map((category) => (
@@ -278,9 +282,13 @@ export default function ProfileAnalyzer() {
           <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><UploadCloud /> Upload Your Profile PDF</CardTitle>
-              <CardDescription>
-                To get started, go to your LinkedIn profile, click the "More" button, select "Save to PDF," and upload the file below.
-              </CardDescription>
+              <Alert variant="default" className="mt-4">
+                <FileText className="h-4 w-4" />
+                <AlertTitle>How to get your PDF</AlertTitle>
+                <AlertDescription>
+                  Go to your LinkedIn profile, click the "More" button, and select "Save to PDF".
+                </AlertDescription>
+              </Alert>
             </CardHeader>
             <CardContent>
               <div>

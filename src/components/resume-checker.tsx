@@ -15,6 +15,7 @@ import ScoreDisplay from "@/components/score-display";
 import ImprovementTips from "@/components/improvement-tips";
 import KeywordAnalysis from "@/components/keyword-analysis";
 import { cn } from "@/lib/utils";
+import ScoreBreakdownChart from "@/components/score-breakdown-chart";
 
 type AnalysisResult = ResumeAtsCheckOutput;
 
@@ -196,8 +197,9 @@ export default function ResumeChecker() {
                 <p className="text-muted-foreground">Here's a detailed breakdown of your resume's match for the job.</p>
             </div>
 
-            <div id="overview" data-section-id="overview" className="scroll-mt-20">
+            <div id="overview" data-section-id="overview" className="scroll-mt-20 space-y-6">
                 <ImprovementTips tips={result.improvementTips} />
+                <ScoreBreakdownChart data={result.scoreBreakdown} />
             </div>
 
             {result.keywordAnalysis && (
@@ -230,7 +232,7 @@ export default function ResumeChecker() {
                         <div>
                             <p className="font-medium text-sm text-foreground">{check.check}</p>
                             <p className="text-xs text-muted-foreground">{check.details}</p>
-                        </div>
+                          </div>
                         </div>
                     ))}
                     </div>
