@@ -43,9 +43,9 @@ const ScoreBreakdown = ({ breakdown }: ScoreBreakdownProps) => {
                 {category.checks.map((check, checkIndex) => (
                   <div key={checkIndex} className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
                     {check.passed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-chart-2 mt-0.5 shrink-0" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                      <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
                     )}
                     <div>
                       <p className="font-medium text-sm text-foreground">{check.check}</p>

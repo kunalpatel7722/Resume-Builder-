@@ -21,17 +21,17 @@ export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInput
 const ScoreCategorySchema = z.object({
   title: z.string().describe("The title of the category, e.g., 'Headline' or 'Experience Section'."),
   score: z.number().describe("The score for this category (out of 100)."),
-  feedback: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved."),
+  feedback: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved. Always start by highlighting the positive aspects before suggesting improvements."),
   checks: z.array(z.object({
     check: z.string().describe("A specific check performed within this category, e.g., 'Is your headline between 10-20 words long?'"),
     passed: z.boolean().describe("Whether the profile passed this specific check."),
-    details: z.string().describe("A short explanation of why this check passed or failed and how to improve it."),
+    details: z.string().describe("A short, encouraging explanation of why this check passed, or a constructive explanation of why it failed and how to improve it."),
   })).describe("A list of specific checks and their results for this category."),
 });
 
 const LinkedinProfileScoreOutputSchema = z.object({
   overallScore: z.number().describe("The overall score for the LinkedIn profile, from 0 to 100."),
-  summaryFeedback: z.string().describe("A high-level summary of the profile's strengths and weaknesses."),
+  summaryFeedback: z.string().describe("A high-level summary of the profile's strengths and weaknesses, starting with the strengths."),
   scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories."),
   extractedText: z.string().describe("The full text extracted from the provided LinkedIn profile data that was used for the analysis."),
 });
@@ -47,19 +47,19 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve. While your scoring is strict, your feedback must be constructive and always acknowledge what the user has done well before moving on to critiques.
 
 **CRITICAL SCORING GUIDELINES:**
 - **Calibrate Harshly:** Do not be generous with your scoring. Your scoring must be calibrated against the highest professional standards. A typical, unoptimized profile should receive a score between 20 and 40. A score above 85 should be reserved for only the most exceptional, perfectly optimized profiles that meet every single criterion flawlessly.
 - **No Partial Credit:** For a check to 'pass', it must be executed perfectly, not just attempted. For example, if a headline has keywords but they are not the *most* impactful, the check should fail. If achievements are listed but are not quantified with strong metrics, the check fails.
-- **Weighted Importance:** The headline, summary, and experience sections are the most important. A profile with a weak core section (like Experience) cannot achieve a high overall score, no matter how good the other sections are.
+- **Positive Reinforcement:** For passed checks, your 'details' should be encouraging and explain *why* it's a good practice. For overall feedback in each category and in the final summary, always start with the positives.
 
 Profile Data:
 {{#if pdfProfileData}}{{media url=pdfProfileData}}{{/if}}{{#if textProfileData}}{{{textProfileData}}}{{/if}}
 
 1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. If it was text, return that text. This is the source material.
 
-2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical and provide concrete examples for improvement. **Score very harshly.** For a check to 'pass', it must be executed perfectly, not just attempted.
+2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical in your scoring, but balanced and constructive in your feedback. For a check to 'pass', it must be executed perfectly.
 
     **Categories to Analyze:**
 
@@ -98,7 +98,7 @@ Profile Data:
 
 3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The overall score should be a weighted average reflecting the importance of each section, and then calibrated downwards to fit the harsh scoring model. An average profile should score below 50.
 
-4.  **Provide High-Level Summary**: Write a brief, encouraging but direct summary of the profile's key strengths and the top 3 most critical areas for improvement to have the biggest impact.
+4.  **Provide High-Level Summary**: Write a brief summary of the profile's key strengths and the top 3 most critical areas for improvement. **Start with the strengths first.**
 
 5.  **Format Output**: Return a single JSON object that strictly adheres to the provided output schema. Ensure all fields are populated correctly. The 'overallScore' should be the final calculated score. The 'scoreBreakdown' should be an array of objects, one for each category listed above.
 `,
