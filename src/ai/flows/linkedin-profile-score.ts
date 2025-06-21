@@ -12,7 +12,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const LinkedinProfileScoreInputSchema = z.object({
-  profileData: z.string().describe("The LinkedIn profile data, either as a PDF data URI or as raw text."),
+  pdfProfileData: z.string().optional().describe("The LinkedIn profile data as a PDF data URI."),
+  textProfileData: z.string().optional().describe("The LinkedIn profile data as raw text."),
 });
 
 export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInputSchema>;
@@ -46,12 +47,12 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile based on the provided data. The input may be from a PDF (as a data URI) or raw text.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile based on the provided data. The input may be from a PDF or raw text.
 
 Profile Data:
-{{{profileData}}}
+{{#if pdfProfileData}}{{media url=pdfProfileData}}{{/if}}{{#if textProfileData}}{{{textProfileData}}}{{/if}}
 
-1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the original, unedited 'Profile Data' in the 'extractedText' field of the output. This is the source material.
+1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. If it was text, return that text. This is the source material.
 
 2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be critical and provide concrete examples for improvement.
 

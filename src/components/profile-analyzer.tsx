@@ -11,7 +11,7 @@ import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft } 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
-import { linkedinProfileScore, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
+import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
 import ScoreBreakdown from "./score-breakdown";
 
@@ -58,15 +58,16 @@ export default function ProfileAnalyzer() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let profileData: string | null = null;
     
+    let scoreInput: LinkedinProfileScoreInput = {};
+
     if (activeTab === 'pdf' && file) {
-      profileData = await fileToDataURL(file);
+      scoreInput.pdfProfileData = await fileToDataURL(file);
     } else if (activeTab === 'text' && pastedText) {
-      profileData = pastedText;
+      scoreInput.textProfileData = pastedText;
     }
 
-    if (!profileData) {
+    if (!scoreInput.pdfProfileData && !scoreInput.textProfileData) {
       toast({
         title: "No Input Provided",
         description: "Please upload a PDF or paste your profile text to analyze.",
@@ -79,7 +80,7 @@ export default function ProfileAnalyzer() {
     setResult(null);
 
     try {
-      const scoreOutput = await linkedinProfileScore({ profileData });
+      const scoreOutput = await linkedinProfileScore(scoreInput);
 
       setResult({
         score: scoreOutput.overallScore,
