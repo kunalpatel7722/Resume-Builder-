@@ -612,7 +612,7 @@ export default function ResumeBuilder() {
                             <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                             <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                               <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
@@ -663,14 +663,13 @@ export default function ResumeBuilder() {
                   <p className="text-muted-foreground">Pick from our ready-to-use phrases or write your own and get AI writing help.</p>
 
                   <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                    <div className="flex justify-end items-center mb-1">
                         <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
                           {generatingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                           Enhance with AI
                       </Button>
                     </div>
-                    <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
+                    <div className="flex items-center gap-2 border border-input rounded-t-md p-1 bg-muted/50">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'underline')}><Underline size={16}/></Button>
@@ -689,7 +688,7 @@ export default function ResumeBuilder() {
                   {aiSuggestions && suggestionsForIndex === index && (
                     <Card className="bg-muted/50">
                       <CardHeader className='p-3'>
-                        <CardTitle className='text-sm'>Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
+                        <CardTitle className='text-sm'>AI Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
                       </CardHeader>
                       <CardContent className='p-3 pt-0'>
                         <p className="text-xs text-muted-foreground mb-2">Click to add a bullet point to the description above.</p>
