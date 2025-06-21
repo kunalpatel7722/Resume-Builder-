@@ -40,20 +40,23 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Experience</h3>
             <div className="space-y-5">
-              {experience.map((job) => (
-                <div key={job.id} className="grid grid-cols-4 gap-4">
-                  <div className="col-span-1 text-xs text-gray-600">
-                    <p className="font-semibold">{job.company || 'Company Name'}</p>
-                    <p>{job.dates || 'Dates'}</p>
+              {experience.map((job) => {
+                const location = [job.city, job.state].filter(Boolean).join(', ');
+                return (
+                  <div key={job.id} className="grid grid-cols-4 gap-4">
+                    <div className="col-span-1 text-xs text-gray-600">
+                      <p className="font-semibold">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                      <p>{job.dates || 'Dates'}</p>
+                    </div>
+                    <div className="col-span-3">
+                      <h4 className="font-bold text-md text-gray-800">{job.role || 'Job Title'}</h4>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
+                          {job.description}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                  <div className="col-span-3">
-                    <h4 className="font-bold text-md text-gray-800">{job.role || 'Job Title'}</h4>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
-                        {job.description}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
         )}

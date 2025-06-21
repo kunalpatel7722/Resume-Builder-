@@ -35,18 +35,21 @@ export const SalesTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
           {experience.length > 0 && experience[0]?.role && (
             <section>
               <h3 className="text-md font-bold text-gray-800 uppercase tracking-wider mb-3 flex items-center gap-2"><Briefcase size={16} /> Sales Experience</h3>
-              {experience.map((job) => (
-                <div key={job.id} className="mb-4">
-                  <div className="flex justify-between items-baseline">
-                    <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
-                    <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+              {experience.map((job) => {
+                const location = [job.city, job.state].filter(Boolean).join(', ');
+                return (
+                  <div key={job.id} className="mb-4">
+                    <div className="flex justify-between items-baseline">
+                      <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
+                      <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-primary">{job.company || 'Company Name'}{location && ` | ${location}`}</p>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                        {job.description}
+                    </ReactMarkdown>
                   </div>
-                  <p className="text-sm font-semibold text-primary">{job.company || 'Company Name'}</p>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
-                      {job.description}
-                  </ReactMarkdown>
-                </div>
-              ))}
+                )
+              })}
             </section>
           )}
         </div>

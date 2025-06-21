@@ -37,18 +37,21 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
         {experience.length > 0 && experience[0]?.role && (
           <section>
             <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-3">Clinical Experience</h3>
-            {experience.map((job) => (
-              <div key={job.id} className="mb-4">
-                <div className="flex justify-between items-baseline">
-                  <h4 className="text-md font-semibold text-gray-800">{job.role || 'Job Title'}</h4>
-                  <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+            {experience.map((job) => {
+              const location = [job.city, job.state].filter(Boolean).join(', ');
+              return (
+                <div key={job.id} className="mb-4">
+                  <div className="flex justify-between items-baseline">
+                    <h4 className="text-md font-semibold text-gray-800">{job.role || 'Job Title'}</h4>
+                    <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                  </div>
+                  <p className="text-sm font-medium text-gray-600">{job.company || 'Company Name'}{location && ` | ${location}`}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
+                      {job.description}
+                  </ReactMarkdown>
                 </div>
-                <p className="text-sm font-medium text-gray-600">{job.company || 'Company Name'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
-                    {job.description}
-                </ReactMarkdown>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

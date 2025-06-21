@@ -32,17 +32,20 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
         {experience.length > 0 && experience[0]?.role && (
           <section>
             <h2 className="text-2xl font-bold mb-4 text-center tracking-wider flex items-center justify-center gap-2"><BookOpen/> Experience</h2>
-            {experience.map((job) => (
-            <div key={job.id} className="mb-5">
-                <div className="text-center mb-1">
-                    <h3 className="text-xl font-semibold">{job.role || 'Job Title'}</h3>
-                    <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'} &mdash; <span className="text-sm text-gray-500">{job.dates || 'Dates'}</span></p>
+            {experience.map((job) => {
+              const location = [job.city, job.state].filter(Boolean).join(', ');
+              return (
+                <div key={job.id} className="mb-5">
+                    <div className="text-center mb-1">
+                        <h3 className="text-xl font-semibold">{job.role || 'Job Title'}</h3>
+                        <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'}{location && `, ${location}`} &mdash; <span className="text-sm text-gray-500">{job.dates || 'Dates'}</span></p>
+                    </div>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                        {job.description}
+                    </ReactMarkdown>
                 </div>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
-                    {job.description}
-                </ReactMarkdown>
-            </div>
-            ))}
+              )
+            })}
           </section>
         )}
         

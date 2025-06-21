@@ -55,6 +55,8 @@ export interface ResumeData {
     role: string;
     dates: string;
     description: string;
+    city: string;
+    state: string;
   }[];
   education: {
     id: number;
@@ -69,7 +71,7 @@ export interface ResumeData {
 const initialResumeData: ResumeData = {
   personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
   summary: '',
-  experience: [{ id: Date.now(), company: '', role: '', dates: '', description: '' }],
+  experience: [{ id: Date.now(), company: '', role: '', dates: '', description: '', city: '', state: '' }],
   education: [{ id: Date.now(), school: '', degree: '', dates: '' }],
   skills: [],
   targetCountry: '',
@@ -176,7 +178,7 @@ export default function ResumeBuilder() {
   };
 
   const addExperience = () => {
-    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', dates: '', description: '' }]}));
+    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', dates: '', description: '', city: '', state: '' }]}));
     setJobTitlesForAi(prev => [...prev, '']);
   };
   
@@ -602,16 +604,23 @@ export default function ResumeBuilder() {
           )}
           {currentStep === 'experience' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Work Experience</h3>
+                <h3 className="text-2xl font-semibold">Great! Let's work on your experience</h3>
+                <p className="text-muted-foreground">Start with your most recent job and work backward.</p>
                 
                 {resumeData.experience.map((exp, index) => (
                   <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative">
                       <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><Label>Role</Label><Input name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e)} /></div>
-                          <div><Label>Company</Label><Input name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e)} /></div>
-                          <div><Label>Dates (e.g., 2020 - Present)</Label><Input name="dates" value={exp.dates} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                      
+                      <div className="space-y-4">
+                          <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                          <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e)} /></div>
+                          </div>
+                          <div><Label htmlFor={`dates-${exp.id}`}>Dates (e.g., 2020 - Present)</Label><Input id={`dates-${exp.id}`} name="dates" value={exp.dates} onChange={(e) => handleExperienceChange(index, e)} /></div>
                       </div>
+
                       <div>
                         <Label>Description</Label>
                         <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
@@ -668,7 +677,7 @@ export default function ResumeBuilder() {
                       )}
                   </div>
                 ))}
-                <Button variant="outline" onClick={addExperience}><Plus className="mr-2" />Add Experience</Button>
+                <Button variant="outline" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
               </div>
           )}
            {currentStep === 'education' && (

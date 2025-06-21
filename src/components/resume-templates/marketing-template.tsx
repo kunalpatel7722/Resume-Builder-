@@ -50,18 +50,21 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               <section>
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Briefcase size={18}/> Professional Experience</h3>
                 <div className="space-y-4">
-                  {experience.map((job) => (
-                    <div key={job.id}>
-                      <div className="flex justify-between items-baseline">
-                        <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
-                        <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                  {experience.map((job) => {
+                    const location = [job.city, job.state].filter(Boolean).join(', ');
+                    return (
+                      <div key={job.id}>
+                        <div className="flex justify-between items-baseline">
+                          <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
+                          <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                            {job.description}
+                        </ReactMarkdown>
                       </div>
-                      <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}</p>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
-                          {job.description}
-                      </ReactMarkdown>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}

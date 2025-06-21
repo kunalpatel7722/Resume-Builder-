@@ -35,17 +35,20 @@ export const ItProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data })
           <section>
             <h3 className="text-md font-bold text-primary flex items-center gap-2 mb-3"><Briefcase size={16}/> EXPERIENCE.log</h3>
             <div className="space-y-4">
-              {experience.map((job) => (
-                <div key={job.id}>
-                  <div className="flex justify-between items-baseline">
-                    <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'} @ {job.company || 'Company'}</h4>
-                    <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+              {experience.map((job) => {
+                const location = [job.city, job.state].filter(Boolean).join(', ');
+                return (
+                  <div key={job.id}>
+                    <div className="flex justify-between items-baseline">
+                      <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'} @ {job.company || 'Company'}{location && ` - ${location}`}</h4>
+                      <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                    </div>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-code text-gray-600">
+                        {job.description}
+                    </ReactMarkdown>
                   </div>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-code text-gray-600">
-                      {job.description}
-                  </ReactMarkdown>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
         )}

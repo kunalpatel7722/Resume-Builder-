@@ -52,16 +52,19 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
               <section className="mb-6">
                 <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Briefcase size={18}/>Experience</h2>
                 <div className="space-y-4 relative border-l-2 border-primary/20 pl-6">
-                  {experience.map((job) => (
-                    <div key={job.id} className="relative">
-                       <div className="absolute -left-[30px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-gray-100"></div>
-                      <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
-                      <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'} / <span className="text-xs font-normal text-gray-500">{job.dates || 'Dates'}</span></p>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
-                          {job.description}
-                      </ReactMarkdown>
-                    </div>
-                  ))}
+                  {experience.map((job) => {
+                    const location = [job.city, job.state].filter(Boolean).join(', ');
+                    return (
+                      <div key={job.id} className="relative">
+                         <div className="absolute -left-[30px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-gray-100"></div>
+                        <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
+                        <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'} / {location && `${location} / `}<span className="text-xs font-normal text-gray-500">{job.dates || 'Dates'}</span></p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                            {job.description}
+                        </ReactMarkdown>
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
             )}

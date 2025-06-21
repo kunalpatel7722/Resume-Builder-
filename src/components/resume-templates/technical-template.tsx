@@ -68,18 +68,21 @@ export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Briefcase size={18}/>Experience</h2>
                 <div className="space-y-4">
-                  {experience.map((job) => (
-                    <div key={job.id}>
-                      <div className="flex justify-between items-baseline">
-                        <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
-                        <p className="text-xs text-gray-500 font-medium">{job.dates || 'Dates'}</p>
+                  {experience.map((job) => {
+                    const location = [job.city, job.state].filter(Boolean).join(', ');
+                    return (
+                      <div key={job.id}>
+                        <div className="flex justify-between items-baseline">
+                          <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
+                          <p className="text-xs text-gray-500 font-medium">{job.dates || 'Dates'}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600 prose-code:font-mono">
+                            {job.description}
+                        </ReactMarkdown>
                       </div>
-                      <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}</p>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600 prose-code:font-mono">
-                          {job.description}
-                      </ReactMarkdown>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}

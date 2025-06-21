@@ -35,18 +35,23 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
         {experience.length > 0 && experience[0]?.role && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Briefcase size={18}/> Work Experience</h2>
-            {experience.map((job) => (
-              <div key={job.id} className="mb-4">
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h3>
-                  <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+            {experience.map((job) => {
+              const location = [job.city, job.state].filter(Boolean).join(', ');
+              return (
+                <div key={job.id} className="mb-4">
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h3>
+                    <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 italic">
+                    {job.company || 'Company Name'}{location && ` | ${location}`}
+                  </p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                    {job.description}
+                  </ReactMarkdown>
                 </div>
-                <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
-                  {job.description}
-                </ReactMarkdown>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

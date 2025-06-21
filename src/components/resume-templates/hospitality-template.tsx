@@ -31,18 +31,21 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
         {experience.length > 0 && experience[0]?.role && (
           <section>
             <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-3">EXPERIENCE</h2>
-            {experience.map((job) => (
-            <div key={job.id} className="mb-4">
-                <div className="flex justify-between items-baseline">
-                    <h3 className="text-lg font-semibold">{job.company || 'Hotel / Restaurant Name'}</h3>
-                    <p className="text-sm text-gray-600">{job.dates || 'Dates'}</p>
+            {experience.map((job) => {
+              const location = [job.city, job.state].filter(Boolean).join(', ');
+              return (
+                <div key={job.id} className="mb-4">
+                    <div className="flex justify-between items-baseline">
+                        <h3 className="text-lg font-semibold">{job.company || 'Hotel / Restaurant Name'}{location && `, ${location}`}</h3>
+                        <p className="text-sm text-gray-600">{job.dates || 'Dates'}</p>
+                    </div>
+                    <p className="text-md italic">{job.role || 'Job Title'}</p>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-base max-w-none prose-serif text-gray-700">
+                      {job.description}
+                    </ReactMarkdown>
                 </div>
-                <p className="text-md italic">{job.role || 'Job Title'}</p>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-base max-w-none prose-serif text-gray-700">
-                  {job.description}
-                </ReactMarkdown>
-            </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

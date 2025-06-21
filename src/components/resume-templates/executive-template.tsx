@@ -68,22 +68,25 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               <section>
                 <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-4"><Briefcase size={24} className="text-primary"/>Experience</h2>
                 <div className="space-y-5">
-                  {experience.map((job) => (
-                    <div key={job.id} className="relative pl-6">
-                       <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
-                       <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-white"></div>
-                      <div>
-                        <div className="flex justify-between items-baseline">
-                          <h3 className="text-lg font-bold text-slate-900">{job.role || 'Job Title'}</h3>
-                          <p className="text-xs text-slate-500 font-medium">{job.dates || 'Dates'}</p>
+                  {experience.map((job) => {
+                    const location = [job.city, job.state].filter(Boolean).join(', ');
+                    return (
+                      <div key={job.id} className="relative pl-6">
+                         <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
+                         <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-white"></div>
+                        <div>
+                          <div className="flex justify-between items-baseline">
+                            <h3 className="text-lg font-bold text-slate-900">{job.role || 'Job Title'}</h3>
+                            <p className="text-xs text-slate-500 font-medium">{job.dates || 'Dates'}</p>
+                          </div>
+                          <p className="text-md font-semibold text-slate-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-slate-600">
+                              {job.description}
+                          </ReactMarkdown>
                         </div>
-                        <p className="text-md font-semibold text-slate-600">{job.company || 'Company Name'}</p>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-slate-600">
-                            {job.description}
-                        </ReactMarkdown>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}

@@ -33,20 +33,23 @@ export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
           <section>
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Experience</h2>
             <div className="space-y-5">
-                {experience.map((job) => (
-                <div key={job.id}>
-                    <div className="flex justify-between items-baseline">
-                        <div>
-                           <h3 className="text-md font-semibold text-gray-800">{job.role || 'Job Title'}</h3>
-                           <p className="text-sm text-gray-600">{job.company || 'Company Name'}</p>
+                {experience.map((job) => {
+                  const location = [job.city, job.state].filter(Boolean).join(', ');
+                  return (
+                    <div key={job.id}>
+                        <div className="flex justify-between items-baseline">
+                            <div>
+                               <h3 className="text-md font-semibold text-gray-800">{job.role || 'Job Title'}</h3>
+                               <p className="text-sm text-gray-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                            </div>
+                            <p className="text-xs text-gray-500 font-medium">{job.dates || 'Dates'}</p>
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">{job.dates || 'Dates'}</p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
+                            {job.description}
+                        </ReactMarkdown>
                     </div>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-700">
-                        {job.description}
-                    </ReactMarkdown>
-                </div>
-                ))}
+                  )
+                })}
             </div>
           </section>
         )}

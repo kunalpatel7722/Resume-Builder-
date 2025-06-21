@@ -55,20 +55,23 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
               <section className="mb-8">
                 <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-4 flex items-center gap-2"><Briefcase size={20}/>Work Experience</h2>
                 <div className="space-y-4">
-                  {experience.map((job) => (
-                    <div key={job.id} className="relative pl-5">
-                      <div className="absolute left-0 top-1 h-full w-0.5 bg-gray-200"></div>
-                      <div className="absolute left-[-4px] top-1 h-3 w-3 rounded-full bg-primary ring-2 ring-white"></div>
-                      <div className="flex justify-between items-baseline">
-                        <h3 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h3>
-                        <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                  {experience.map((job) => {
+                    const location = [job.city, job.state].filter(Boolean).join(', ');
+                    return (
+                      <div key={job.id} className="relative pl-5">
+                        <div className="absolute left-0 top-1 h-full w-0.5 bg-gray-200"></div>
+                        <div className="absolute left-[-4px] top-1 h-3 w-3 rounded-full bg-primary ring-2 ring-white"></div>
+                        <div className="flex justify-between items-baseline">
+                          <h3 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h3>
+                          <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                            {job.description}
+                        </ReactMarkdown>
                       </div>
-                      <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}</p>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
-                          {job.description}
-                      </ReactMarkdown>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </section>
             )}
