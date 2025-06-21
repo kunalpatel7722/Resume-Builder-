@@ -1,10 +1,8 @@
-
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, ArrowLeft, CheckCircle2, XCircle, Search } from "lucide-react";
@@ -132,7 +130,7 @@ export default function ResumeChecker() {
         <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <h3 className="text-2xl font-bold text-foreground">Scanning Resume...</h3>
-          <p className="text-muted-foreground">The AI is checking your resume against the job description. This may take a moment.</p>
+          <p className="text-muted-foreground">The AI is checking your resume. This may take a moment.</p>
         </div>
       </div>
     );
@@ -141,7 +139,9 @@ export default function ResumeChecker() {
   if (result) {
     const navLinks = [
       { id: 'overview', title: 'Overview' },
+      ...(result.keywordAnalysis ? [{ id: 'keyword-analysis', title: 'Keyword Match' }] : []),
       ...result.scoreBreakdown.map(cat => ({ id: toKebabCase(cat.title), title: cat.title })),
+      { id: 'extracted-text', title: 'Extracted Text' },
     ];
     return (
        <div className="min-h-screen bg-background">
@@ -190,79 +190,70 @@ export default function ResumeChecker() {
             </div>
           </aside>
 
-          <main className="lg:col-span-8 xl:col-span-9">
-             <div className="mb-6">
+          <main className="lg:col-span-8 xl:col-span-9 space-y-6">
+             <div className="mb-2">
                 <h1 className="text-3xl font-bold text-foreground">ATS Resume Scan Results</h1>
                 <p className="text-muted-foreground">Here's a detailed breakdown of your resume's match for the job.</p>
             </div>
-             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className={cn("grid w-full mb-4", result.keywordAnalysis ? "grid-cols-3" : "grid-cols-2")}>
-                  <TabsTrigger value="overview"><BarChart className="mr-2"/>Overview</TabsTrigger>
-                  {result.keywordAnalysis && (
-                    <TabsTrigger value="keyword-analysis"><Search className="mr-2" />Keyword Analysis</TabsTrigger>
-                  )}
-                  <TabsTrigger value="extracted-text"><FileText className="mr-2"/>Extracted Text</TabsTrigger>
-                </TabsList>
-                <TabsContent value="overview">
-                    <div className="space-y-6">
-                      <div id="overview" data-section-id="overview" className="scroll-mt-20">
-                        <ImprovementTips tips={result.improvementTips} />
-                      </div>
-                       {result.scoreBreakdown.map((category) => (
-                        <div key={category.title} id={toKebabCase(category.title)} data-section-id={toKebabCase(category.title)} className="scroll-mt-20">
-                          <Card className="shadow-sm">
-                            <CardHeader>
-                              <CardTitle className="flex items-center justify-between text-xl">
-                                <span>{category.title}</span>
-                                <ScoreBadge score={category.score} />
-                              </CardTitle>
-                              <CardDescription>
-                                {category.feedback}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                {category.checks.map((check, checkIndex) => (
-                                  <div key={checkIndex} className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
-                                    {check.passed ? (
-                                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-                                    ) : (
-                                      <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
-                                    )}
-                                    <div>
-                                      <p className="font-medium text-sm text-foreground">{check.check}</p>
-                                      <p className="text-xs text-muted-foreground">{check.details}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </CardContent>
-                          </Card>
+
+            <div id="overview" data-section-id="overview" className="scroll-mt-20">
+                <ImprovementTips tips={result.improvementTips} />
+            </div>
+
+            {result.keywordAnalysis && (
+                <div id="keyword-analysis" data-section-id="keyword-analysis" className="scroll-mt-20">
+                    <KeywordAnalysis data={result.keywordAnalysis} />
+                </div>
+            )}
+
+            {result.scoreBreakdown.map((category) => (
+            <div key={category.title} id={toKebabCase(category.title)} data-section-id={toKebabCase(category.title)} className="scroll-mt-20">
+                <Card className="shadow-sm">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-xl">
+                    <span>{category.title}</span>
+                    <ScoreBadge score={category.score} />
+                    </CardTitle>
+                    <CardDescription>
+                    {category.feedback}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-3">
+                    {category.checks.map((check, checkIndex) => (
+                        <div key={checkIndex} className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
+                        {check.passed ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                        ) : (
+                            <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+                        )}
+                        <div>
+                            <p className="font-medium text-sm text-foreground">{check.check}</p>
+                            <p className="text-xs text-muted-foreground">{check.details}</p>
                         </div>
-                      ))}
+                        </div>
+                    ))}
                     </div>
-                </TabsContent>
-                {result.keywordAnalysis && (
-                  <TabsContent value="keyword-analysis">
-                      <KeywordAnalysis data={result.keywordAnalysis} />
-                  </TabsContent>
-                )}
-                <TabsContent value="extracted-text">
-                  <Card className="shadow-sm h-full">
-                    <CardHeader>
-                      <CardTitle>Extracted Resume Text</CardTitle>
-                      <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="h-[calc(100vh-18rem)] rounded-md border p-4 bg-muted/50">
-                        <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
-                          {result.extractedText}
-                        </pre>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+                </CardContent>
+                </Card>
+            </div>
+            ))}
+            
+            <div id="extracted-text" data-section-id="extracted-text" className="scroll-mt-20">
+                <Card className="shadow-sm h-full">
+                <CardHeader>
+                    <CardTitle>Extracted Resume Text</CardTitle>
+                    <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-[calc(100vh-18rem)] rounded-md border p-4 bg-muted/50">
+                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
+                        {result.extractedText}
+                    </pre>
+                    </ScrollArea>
+                </CardContent>
+                </Card>
+            </div>
           </main>
         </div>
       </div>
@@ -333,5 +324,3 @@ export default function ResumeChecker() {
     </div>
   );
 }
-
-    
