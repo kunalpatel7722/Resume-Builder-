@@ -104,13 +104,9 @@ export default function ResumeChecker() {
       toast({ title: "No Resume Provided", description: "Please upload your resume PDF.", variant: "destructive" });
       return;
     }
-    if (!jobDescription.trim()) {
-      toast({ title: "No Job Description", description: "Please paste the job description.", variant: "destructive" });
-      return;
-    }
     
     const resumePdfData = await fileToDataURL(file);
-    const scoreInput: ResumeAtsCheckInput = { resumePdfData, jobDescription };
+    const scoreInput: ResumeAtsCheckInput = { resumePdfData, jobDescription: jobDescription.trim() };
     
     setIsLoading(true);
     setResult(null);
@@ -200,9 +196,11 @@ export default function ResumeChecker() {
                 <p className="text-muted-foreground">Here's a detailed breakdown of your resume's match for the job.</p>
             </div>
              <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsList className={cn("grid w-full mb-4", result.keywordAnalysis ? "grid-cols-3" : "grid-cols-2")}>
                   <TabsTrigger value="overview"><BarChart className="mr-2"/>Overview</TabsTrigger>
-                  <TabsTrigger value="keyword-analysis"><Search className="mr-2" />Keyword Analysis</TabsTrigger>
+                  {result.keywordAnalysis && (
+                    <TabsTrigger value="keyword-analysis"><Search className="mr-2" />Keyword Analysis</TabsTrigger>
+                  )}
                   <TabsTrigger value="extracted-text"><FileText className="mr-2"/>Extracted Text</TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview">
@@ -244,9 +242,11 @@ export default function ResumeChecker() {
                       ))}
                     </div>
                 </TabsContent>
-                <TabsContent value="keyword-analysis">
-                    <KeywordAnalysis data={result.keywordAnalysis} />
-                </TabsContent>
+                {result.keywordAnalysis && (
+                  <TabsContent value="keyword-analysis">
+                      <KeywordAnalysis data={result.keywordAnalysis} />
+                  </TabsContent>
+                )}
                 <TabsContent value="extracted-text">
                   <Card className="shadow-sm h-full">
                     <CardHeader>
@@ -279,7 +279,7 @@ export default function ResumeChecker() {
             ATS Resume Checker
           </h1>
           <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-            Upload your resume and the job description to see how well you match. Get an instant analysis of your resume's ATS-friendliness and keyword optimization.
+            Upload your resume and (optionally) a job description to see how well you match. Get an instant analysis of your resume's ATS-friendliness and keyword optimization.
           </p>
         </header>
 
@@ -309,7 +309,7 @@ export default function ResumeChecker() {
                   <CardHeader>
                       <CardTitle className="flex items-center gap-2"><Search /> Job Description</CardTitle>
                       <CardDescription>
-                          Paste the full job description here.
+                          Paste the full job description here (optional).
                       </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -325,7 +325,7 @@ export default function ResumeChecker() {
                   </CardContent>
               </Card>
           </div>
-          <Button type="submit" className="w-full mt-8 text-lg py-6">
+          <Button type="submit" className="w-full mt-8 text-lg py-6" disabled={!file}>
             <BarChart className="mr-2" />Analyze Resume
           </Button>
         </form>
