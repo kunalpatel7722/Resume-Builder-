@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/flows/generate-resume-content';
+import { suggestJobTitles, type SuggestJobTitlesOutput } from '@/ai/flows/suggest-job-titles';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -171,6 +172,20 @@ export default function ResumeBuilder() {
   const [editorFocus, setEditorFocus] = useState<{ id: string; start: number; end: number } | null>(null);
   const [generatingSkills, setGeneratingSkills] = useState(false);
   const [suggestionsForRole, setSuggestionsForRole] = useState<string | null>(null);
+  
+  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([]);
+  const [suggestionsLoadingFor, setSuggestionsLoadingFor] = useState<number | null>(null);
+  const [activeSuggestionBox, setActiveSuggestionBox] = useState<number | null>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // This is the cleanup function for the component unmount
+    return () => {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+    };
+  }, []);
 
   useEffect(() => {
     if (editorFocus) {
@@ -190,32 +205,27 @@ export default function ResumeBuilder() {
         return;
       }
   
-      // Find the most recent job experience that has a role title.
       const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
       const latestRole = lastExperienceWithRole?.role;
   
-      // If there's no role, we can't get suggestions.
       if (!latestRole) {
         setAiSuggestions(null);
         setSuggestionsForRole(null);
         return;
       }
       
-      // If we already have suggestions for the current role, don't re-fetch.
       if (latestRole === suggestionsForRole) {
         return;
       }
   
-      // If we are here, we need to fetch new suggestions.
       setGeneratingSkills(true);
-      setAiSuggestions(null); // Clear old suggestions to show a loader.
+      setAiSuggestions(null); 
       
       try {
         const result = await generateResumeContent({ jobTitle: latestRole });
         setAiSuggestions(result);
-        setSuggestionsForRole(latestRole); // Mark that we have suggestions for this role.
+        setSuggestionsForRole(latestRole); 
         
-        // Associate suggestions with the experience entry they were generated from.
         if (lastExperienceWithRole) {
           const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
           setSuggestionsForIndex(experienceIndex);
@@ -223,8 +233,8 @@ export default function ResumeBuilder() {
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setAiSuggestions(null); // Clear suggestions on error.
-        setSuggestionsForRole(null); // Allow a re-fetch on the next visit.
+        setAiSuggestions(null);
+        setSuggestionsForRole(null); 
       } finally {
         setGeneratingSkills(false);
       }
@@ -242,11 +252,53 @@ export default function ResumeBuilder() {
   const handleSummaryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setResumeData(prev => ({...prev, summary: e.target.value}));
   };
+
+  const fetchJobTitleSuggestions = async (query: string, index: number) => {
+    try {
+        const result = await suggestJobTitles({ query });
+        setJobTitleSuggestions(result.titles);
+    } catch (error) {
+        console.error("Failed to fetch job title suggestions:", error);
+        setJobTitleSuggestions([]);
+    } finally {
+        setSuggestionsLoadingFor(null);
+    }
+  };
   
   const handleExperienceChange = (index: number, name: string, value: any) => {
     const newExperience = [...resumeData.experience];
     (newExperience[index] as any)[name] = value;
     setResumeData(prev => ({ ...prev, experience: newExperience }));
+
+    if (name === 'role') {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        if (value.length < 3) {
+            setJobTitleSuggestions([]);
+            setActiveSuggestionBox(null);
+            return;
+        }
+        
+        setActiveSuggestionBox(index);
+        setJobTitleSuggestions([]); 
+        setSuggestionsLoadingFor(index); 
+
+        debounceTimeoutRef.current = setTimeout(() => {
+            fetchJobTitleSuggestions(value, index);
+        }, 300);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string, index: number) => {
+    if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+    }
+    const newExperience = [...resumeData.experience];
+    newExperience[index].role = suggestion;
+    setResumeData(prev => ({ ...prev, experience: newExperience }));
+    setJobTitleSuggestions([]);
+    setActiveSuggestionBox(null);
   };
 
   const addExperience = () => {
@@ -688,7 +740,47 @@ export default function ResumeBuilder() {
                       
                       <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><Label htmlFor={`role-${exp.id}`}>Job Title</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                            <div className="relative">
+                                <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
+                                <Input 
+                                    id={`role-${exp.id}`} 
+                                    name="role" 
+                                    value={exp.role} 
+                                    onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)}
+                                    onBlur={() => setTimeout(() => setActiveSuggestionBox(null), 150)}
+                                    autoComplete="off"
+                                />
+                                {activeSuggestionBox === index && (
+                                    <Card className="absolute top-full z-10 w-full mt-1 shadow-lg">
+                                        <CardContent className="p-2 max-h-60 overflow-y-auto">
+                                            {suggestionsLoadingFor === index ? (
+                                                <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Loading suggestions...
+                                                </div>
+                                            ) : jobTitleSuggestions.length > 0 ? (
+                                                <ul className="space-y-1">
+                                                    {jobTitleSuggestions.map((suggestion, sIndex) => (
+                                                        <li key={sIndex}>
+                                                            <button
+                                                                type="button"
+                                                                className="w-full text-left p-2 rounded-md hover:bg-muted text-sm"
+                                                                onMouseDown={() => handleSuggestionClick(suggestion, index)}
+                                                            >
+                                                                {suggestion}
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                                    No suggestions found.
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
                             <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
