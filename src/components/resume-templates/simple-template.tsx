@@ -68,15 +68,20 @@ export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
           <section>
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Education</h2>
             <div className="space-y-4">
-            {education.map((edu) => (
-              <div key={edu.id} className="flex justify-between items-baseline">
-                <div>
-                    <h3 className="text-md font-semibold text-gray-800">{edu.degree || 'Degree'}</h3>
-                    <p className="text-sm text-gray-600">{edu.school || 'School Name'}</p>
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="flex justify-between items-baseline">
+                  <div>
+                      <h3 className="text-md font-semibold text-gray-800">{edu.degree || 'Degree'}</h3>
+                      <p className="text-sm text-gray-600">{edu.school || 'School Name'}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium">{gradDate || 'Date'}</p>
                 </div>
-                <p className="text-xs text-gray-500 font-medium">{edu.dates || 'Dates'}</p>
-              </div>
-            ))}
+              )
+            })}
             </div>
           </section>
         )}

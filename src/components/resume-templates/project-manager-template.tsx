@@ -48,13 +48,18 @@ export const ProjectManagerTemplate: React.FC<{ data: ResumeData }> = ({ data })
             {education.length > 0 && education[0]?.school && (
                 <section>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Education</h3>
-                    {education.map((edu) => (
+                    {education.map((edu) => {
+                       const gradDate = edu.isStillEnrolled 
+                        ? 'Enrolled' 
+                        : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                      return (
                         <div key={edu.id} className="text-xs">
                             <h4 className="font-bold">{edu.school || 'School Name'}</h4>
                             <p className="text-gray-700">{edu.degree || 'Degree'}</p>
-                            <p className="text-gray-500">{edu.dates || 'Dates'}</p>
+                            <p className="text-gray-500">{gradDate || 'Date'}</p>
                         </div>
-                    ))}
+                      )
+                    })}
                 </section>
             )}
         </aside>

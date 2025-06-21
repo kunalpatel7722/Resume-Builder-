@@ -66,15 +66,20 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
         {education.length > 0 && education[0]?.school && (
           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Education</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="mb-2">
-                 <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-semibold">{edu.degree || 'Degree'}</h3>
-                    <p className="text-xs text-gray-600 font-medium">{edu.dates || 'Dates'}</p>
+            {education.map((edu) => {
+               const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="mb-2">
+                   <div className="flex justify-between items-baseline">
+                      <h3 className="text-md font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</h3>
+                      <p className="text-xs text-gray-600 font-medium">{gradDate || 'Date'}</p>
+                  </div>
+                  <p className="text-sm font-medium italic text-gray-800">{edu.school || 'School Name'}{edu.location && `, ${edu.location}`}</p>
                 </div>
-                <p className="text-sm font-medium italic text-gray-800">{edu.school || 'School Name'}</p>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

@@ -75,17 +75,22 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
           <section>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Education</h3>
              <div className="space-y-2">
-                {education.map((edu) => (
+                {education.map((edu) => {
+                  const gradDate = edu.isStillEnrolled 
+                    ? 'Enrolled' 
+                    : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                  return (
                     <div key={edu.id} className="grid grid-cols-4 gap-4">
                         <div className="col-span-1 text-xs text-gray-600">
                              <p className="font-semibold">{edu.school || 'University'}</p>
-                             <p>{edu.dates || 'Dates'}</p>
+                             <p>{gradDate || 'Date'}</p>
                         </div>
                         <div className="col-span-3">
                            <p className="font-semibold text-md text-gray-800">{edu.degree || 'Degree'}</p>
                         </div>
                     </div>
-                ))}
+                  )
+                })}
              </div>
           </section>
         )}

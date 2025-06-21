@@ -41,13 +41,18 @@ export const ExecutiveTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 <section>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Education</h3>
                     <div className="space-y-3">
-                        {education.map((edu) => (
-                          <div key={edu.id}>
-                             <h4 className="font-bold text-slate-800">{edu.school || 'School Name'}</h4>
-                             <p className="text-slate-600">{edu.degree || 'Degree'}</p>
-                             <p className="text-xs text-slate-500">{edu.dates || 'Dates'}</p>
-                          </div>
-                        ))}
+                        {education.map((edu) => {
+                          const gradDate = edu.isStillEnrolled 
+                            ? 'Enrolled' 
+                            : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                          return (
+                            <div key={edu.id}>
+                               <h4 className="font-bold text-slate-800">{edu.school || 'School Name'}</h4>
+                               <p className="text-slate-600">{edu.degree || 'Degree'}</p>
+                               <p className="text-xs text-slate-500">{gradDate || 'Date'}</p>
+                            </div>
+                          )
+                        })}
                     </div>
                 </section>
             )}

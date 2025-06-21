@@ -75,13 +75,18 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
             {education.length > 0 && education[0]?.school && (
               <section>
                 <h2 className="text-2xl font-bold mb-3 text-center tracking-wider">Education</h2>
-                {education.map((edu) => (
-                  <div key={edu.id} className="text-center">
-                    <h3 className="text-xl font-semibold">{edu.school || 'University'}</h3>
-                    <p className="text-md italic text-gray-700">{edu.degree || 'Degree'}</p>
-                    <p className="text-sm text-gray-500">{edu.dates || 'Dates'}</p>
-                  </div>
-                ))}
+                {education.map((edu) => {
+                  const gradDate = edu.isStillEnrolled 
+                    ? 'Enrolled' 
+                    : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                  return (
+                    <div key={edu.id} className="text-center">
+                      <h3 className="text-xl font-semibold">{edu.school || 'University'}{edu.location && `, ${edu.location}`}</h3>
+                      <p className="text-md italic text-gray-700">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
+                      <p className="text-sm text-gray-500">{gradDate || 'Date'}</p>
+                    </div>
+                  )
+                })}
               </section>
             )}
         </div>

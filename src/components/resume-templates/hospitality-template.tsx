@@ -62,15 +62,20 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
         {education.length > 0 && education[0]?.school && (
           <section>
             <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">EDUCATION</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="flex justify-between items-start">
-                <div>
-                    <h3 className="text-lg font-semibold">{edu.school || 'University Name'}</h3>
-                    <p className="text-md italic">{edu.degree || 'Degree'}</p>
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="flex justify-between items-start">
+                  <div>
+                      <h3 className="text-lg font-semibold">{edu.school || 'University Name'}</h3>
+                      <p className="text-md italic">{edu.degree || 'Degree'}</p>
+                  </div>
+                  <p className="text-sm text-gray-600">{gradDate || 'Date'}</p>
                 </div>
-                <p className="text-sm text-gray-600">{edu.dates || 'Dates'}</p>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

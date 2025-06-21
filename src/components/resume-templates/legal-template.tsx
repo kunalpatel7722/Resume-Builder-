@@ -67,15 +67,20 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
         {education.length > 0 && education[0]?.school && (
           <section>
             <h2 className="text-lg font-bold tracking-widest text-center mb-3">EDUCATION</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="mb-2">
-                 <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-bold">{edu.school || 'Law School Name'}</h3>
-                    <p className="text-sm font-medium">{edu.dates || 'Dates'}</p>
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="mb-2">
+                   <div className="flex justify-between items-baseline">
+                      <h3 className="text-md font-bold">{edu.school || 'Law School Name'}</h3>
+                      <p className="text-sm font-medium">{gradDate || 'Date'}</p>
+                  </div>
+                  <p className="text-md italic">{edu.degree || 'Juris Doctor'}</p>
                 </div>
-                <p className="text-md italic">{edu.degree || 'Juris Doctor'}</p>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
         

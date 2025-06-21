@@ -78,12 +78,17 @@ export const ItProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data })
             {education.length > 0 && education[0]?.school && (
                 <section>
                 <h3 className="text-md font-bold text-primary flex items-center gap-2 mb-3"><GraduationCap size={16}/> EDUCATION.cfg</h3>
-                {education.map((edu) => (
+                {education.map((edu) => {
+                  const gradDate = edu.isStillEnrolled 
+                    ? 'Enrolled' 
+                    : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                  return (
                     <div key={edu.id} className="mb-2">
-                    <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
-                    <p className="text-sm text-gray-600">{edu.school || 'School Name'} ({edu.dates || 'Dates'})</p>
+                      <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
+                      <p className="text-sm text-gray-600">{edu.school || 'School Name'} ({gradDate || 'Date'})</p>
                     </div>
-                ))}
+                  )
+                })}
                 </section>
             )}
         </div>

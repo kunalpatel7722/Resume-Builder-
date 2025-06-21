@@ -68,12 +68,17 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
         {education.length > 0 && education[0]?.school && (
           <section>
             <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-3">Education & Certifications</h3>
-            {education.map((edu) => (
-              <div key={edu.id} className="mb-2">
-                 <h4 className="text-md font-semibold">{edu.degree || 'Degree'}</h4>
-                 <p className="text-sm text-gray-600">{edu.school || 'School Name'} | {edu.dates || 'Dates'}</p>
-              </div>
-            ))}
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="mb-2">
+                   <h4 className="text-md font-semibold">{edu.degree || 'Degree'}</h4>
+                   <p className="text-sm text-gray-600">{edu.school || 'School Name'} | {gradDate || 'Date'}</p>
+                </div>
+              )
+            })}
           </section>
         )}
 

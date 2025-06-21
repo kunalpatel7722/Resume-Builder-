@@ -82,12 +82,17 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
              {education.length > 0 && education[0]?.school && (
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><GraduationCap size={18}/>Education</h2>
-                 {education.map((edu) => (
-                   <div key={edu.id}>
-                     <h3 className="text-base font-bold text-gray-900">{edu.school || 'University'}</h3>
-                     <p className="text-sm text-gray-700">{edu.degree || 'Degree'} - {edu.dates || 'Dates'}</p>
-                   </div>
-                 ))}
+                 {education.map((edu) => {
+                    const gradDate = edu.isStillEnrolled 
+                        ? 'Enrolled' 
+                        : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                   return (
+                     <div key={edu.id}>
+                       <h3 className="text-base font-bold text-gray-900">{edu.school || 'University'}</h3>
+                       <p className="text-sm text-gray-700">{edu.degree || 'Degree'} - {gradDate || 'Date'}</p>
+                     </div>
+                   )
+                 })}
               </section>
             )}
         </main>

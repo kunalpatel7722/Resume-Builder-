@@ -41,6 +41,7 @@ import { Checkbox } from './ui/checkbox';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 
 export interface ResumeData {
@@ -69,8 +70,12 @@ export interface ResumeData {
   education: {
     id: number;
     school: string;
+    location: string;
     degree: string;
-    dates: string;
+    fieldOfStudy: string;
+    graduationMonth: string;
+    graduationYear: string;
+    isStillEnrolled: boolean;
   }[];
   skills: string[];
   targetCountry: string;
@@ -80,7 +85,7 @@ const initialResumeData: ResumeData = {
   personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
   summary: '',
   experience: [{ id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }],
-  education: [{ id: Date.now(), school: '', degree: '', dates: '' }],
+  education: [{ id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }],
   skills: [],
   targetCountry: '',
 };
@@ -141,6 +146,14 @@ const countries = [
   { name: 'Other', icon: '🌍' },
 ];
 
+const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 70 }, (_, i) => (currentYear + 5 - i).toString());
+
 
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
@@ -192,15 +205,15 @@ export default function ResumeBuilder() {
     setResumeData(prev => ({ ...prev, experience: prev.experience.filter(exp => exp.id !== id) }));
   };
   
-  const handleEducationChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleEducationChange = (index: number, name: string, value: any) => {
     const newEducation = [...resumeData.education];
-    newEducation[index] = { ...newEducation[index], [name]: value };
+    (newEducation[index] as any)[name] = value;
     setResumeData(prev => ({ ...prev, education: newEducation }));
   };
 
+
   const addEducation = () => {
-    setResumeData(prev => ({ ...prev, education: [...prev.education, { id: Date.now(), school: '', degree: '', dates: '' }]}));
+    setResumeData(prev => ({ ...prev, education: [...prev.education, { id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }]}));
   };
 
   const removeEducation = (id: number) => {
@@ -613,8 +626,8 @@ export default function ResumeBuilder() {
           )}
           {currentStep === 'experience' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Tell us about your work experience</h3>
-                <p className="text-muted-foreground">Start with your most recent job and work backward.</p>
+                <h3 className="text-2xl font-semibold">Tell us about your most recent job</h3>
+                <p className="text-muted-foreground">We’ll start with your most recent job and go back from there.</p>
                 
                 {resumeData.experience.map((exp, index) => (
                   <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative">
@@ -622,8 +635,8 @@ export default function ResumeBuilder() {
                       
                       <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><Label htmlFor={`role-${exp.id}`}>Role</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                             <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                            <div><Label htmlFor={`role-${exp.id}`}>Job Title</Label><Input id={`role-${exp.id}`} name="role" value={exp.role} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
@@ -672,7 +685,7 @@ export default function ResumeBuilder() {
             <div className="space-y-6">
               {resumeData.experience.map((exp, index) => (
                 <div key={exp.id} className="space-y-4 p-4 border rounded-lg">
-                  <h3 className="text-xl font-semibold">Next, write about what you did as a {exp.role || '...'}</h3>
+                   <h3 className="text-xl font-semibold">Next, write about what you did as a {exp.role || '...'}</h3>
                   <p className="text-muted-foreground">Pick from our ready-to-use phrases or write your own and get AI writing help.</p>
 
                   <div>
@@ -691,20 +704,18 @@ export default function ResumeBuilder() {
                         placeholder="Use the toolbar to add formatting."
                       />
                   </div>
-                  <Card className="bg-muted/50">
+                   <Card className="bg-muted/50">
                     <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Wand2 className="h-5 w-5 text-primary" />
-                        Enhance with AI
-                      </CardTitle>
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <Wand2 className="h-5 w-5 text-primary" />
+                             Enhance with AI
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
-                      <div className="flex items-center gap-2">
                          <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
                               {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                               Get Suggestions
                           </Button>
-                      </div>
                     </CardContent>
                   </Card>
 
@@ -740,17 +751,56 @@ export default function ResumeBuilder() {
                           <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
                           <div className="space-y-4">
                               <div>
-                                  <Label htmlFor={`school-${edu.id}`}>School/University</Label>
-                                  <Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e)} />
+                                  <Label htmlFor={`school-${edu.id}`}>School Name</Label>
+                                  <Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
+                              </div>
+                               <div>
+                                  <Label htmlFor={`location-${edu.id}`}>School Location</Label>
+                                  <Input id={`location-${edu.id}`} name="location" value={edu.location} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
                               </div>
                               <div>
-                                  <Label htmlFor={`degree-${edu.id}`}>Degree/Field of Study</Label>
-                                  <Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e)} />
+                                  <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
+                                  <Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
+                              </div>
+                               <div>
+                                  <Label htmlFor={`fieldOfStudy-${edu.id}`}>Field of Study</Label>
+                                  <Input id={`fieldOfStudy-${edu.id}`} name="fieldOfStudy" value={edu.fieldOfStudy} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
                               </div>
                               <div>
-                                  <Label htmlFor={`dates-${edu.id}`}>Dates (e.g., 2016 - 2020)</Label>
-                                  <Input id={`dates-${edu.id}`} name="dates" value={edu.dates} onChange={(e) => handleEducationChange(index, e)} />
+                                <Label>Graduation Date</Label>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <Select 
+                                    onValueChange={(value) => handleEducationChange(index, 'graduationMonth', value)} 
+                                    value={edu.graduationMonth}
+                                    disabled={edu.isStillEnrolled}
+                                    >
+                                    <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                                    <SelectContent>
+                                      {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                   <Select 
+                                     onValueChange={(value) => handleEducationChange(index, 'graduationYear', value)} 
+                                     value={edu.graduationYear}
+                                     disabled={edu.isStillEnrolled}
+                                     >
+                                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                                    <SelectContent>
+                                      {years.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id={`stillEnrolled-${edu.id}`}
+                                  checked={edu.isStillEnrolled}
+                                  onCheckedChange={(checked) => handleEducationChange(index, 'isStillEnrolled', checked === true)}
+                                />
+                                <Label htmlFor={`stillEnrolled-${edu.id}`} className="font-normal">
+                                    I am still enrolled
+                                </Label>
+                             </div>
                           </div>
                       </div>
                   ))}

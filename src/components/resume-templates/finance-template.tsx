@@ -52,13 +52,18 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 {education.length > 0 && education[0]?.school && (
                     <section>
                         <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Education</h3>
-                        {education.map((edu) => (
-                          <div key={edu.id} className="text-gray-700">
-                             <h4 className="font-semibold">{edu.school || 'University Name'}</h4>
-                             <p>{edu.degree || 'Degree'}</p>
-                             <p className="text-gray-500">{edu.dates || 'Dates'}</p>
-                          </div>
-                        ))}
+                        {education.map((edu) => {
+                          const gradDate = edu.isStillEnrolled 
+                            ? 'Enrolled' 
+                            : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                          return (
+                            <div key={edu.id} className="text-gray-700">
+                               <h4 className="font-semibold">{edu.school || 'University Name'}</h4>
+                               <p>{edu.degree || 'Degree'}</p>
+                               <p className="text-gray-500">{gradDate || 'Date'}</p>
+                            </div>
+                          )
+                        })}
                     </section>
                 )}
             </div>

@@ -81,13 +81,18 @@ export const CustomerServiceTemplate: React.FC<{ data: ResumeData }> = ({ data }
            {education.length > 0 && education[0]?.school && (
             <section>
               <h3 className="text-md font-bold uppercase tracking-wider text-gray-700 mb-3">Education</h3>
-              {education.map((edu) => (
-                <div key={edu.id} className="mb-2">
-                   <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
-                   <p className="text-sm font-semibold text-primary">{edu.school || 'School Name'}</p>
-                   <p className="text-xs text-gray-500">{edu.dates || 'Dates'}</p>
-                </div>
-              ))}
+              {education.map((edu) => {
+                const gradDate = edu.isStillEnrolled 
+                    ? 'Enrolled' 
+                    : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+                return (
+                  <div key={edu.id} className="mb-2">
+                     <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
+                     <p className="text-sm font-semibold text-primary">{edu.school || 'School Name'}</p>
+                     <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
+                  </div>
+                )
+              })}
             </section>
           )}
         </aside>

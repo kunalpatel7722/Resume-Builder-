@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star } from 'lucide-react';
@@ -68,15 +69,20 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
         {education.length > 0 && education[0]?.school && (
           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><GraduationCap size={18}/> Education</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="mb-2">
-                 <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h3>
-                    <p className="text-xs text-gray-500">{edu.dates || 'Dates'}</p>
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id} className="mb-2">
+                   <div className="flex justify-between items-baseline">
+                      <h3 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h3>
+                      <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 italic">{edu.school || 'School Name'}</p>
                 </div>
-                <p className="text-sm font-semibold text-gray-600 italic">{edu.school || 'School Name'}</p>
-              </div>
-            ))}
+              )
+            })}
           </section>
         )}
 

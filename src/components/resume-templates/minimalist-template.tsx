@@ -66,15 +66,20 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Education</h2>
             <div className="space-y-4">
-            {education.map((edu) => (
-              <div key={edu.id}>
-                 <div className="flex justify-between items-baseline">
-                    <h3 className="text-lg font-normal">{edu.degree || 'Degree'}</h3>
-                    <p className="text-xs text-gray-500">{edu.dates || 'Dates'}</p>
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled 
+                ? 'Enrolled' 
+                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+              return (
+                <div key={edu.id}>
+                   <div className="flex justify-between items-baseline">
+                      <h3 className="text-lg font-normal">{edu.degree || 'Degree'} in {edu.fieldOfStudy}</h3>
+                      <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
+                  </div>
+                  <p className="text-md text-gray-600">{edu.school || 'School Name'}</p>
                 </div>
-                <p className="text-md text-gray-600">{edu.school || 'School Name'}</p>
-              </div>
-            ))}
+              )
+            })}
             </div>
           </section>
         )}
