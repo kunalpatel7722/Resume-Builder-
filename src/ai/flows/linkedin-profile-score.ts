@@ -37,7 +37,7 @@ const LinkedinProfileScoreOutputSchema = z.object({
   overallScore: z.number().describe("The overall score for the LinkedIn profile, from 0 to 100."),
   summaryFeedback: z.string().describe("A high-level summary of the profile's strengths and weaknesses, starting with the strengths."),
   scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories."),
-  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions based on the analysis. These should be concrete and actionable, directly addressing the biggest weaknesses found in the profile."),
+  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions designed to directly improve the user's score. These should be concrete, actionable, and address the biggest weaknesses found in the analysis."),
   extractedText: z.string().describe("The full text extracted from the provided LinkedIn profile data that was used for the analysis."),
 });
 
@@ -107,7 +107,7 @@ Profile Data:
 
 4.  **Provide High-Level Summary**: Write a brief summary of the profile's key strengths and the top 3 most critical areas for improvement. **Start with the strengths first.**
 
-5.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three most critical areas for improvement. For each, generate a personalized, actionable suggestion. These tips should be highly specific to the user's profile content and address the most significant gaps you've found. They must not be generic advice. Return these in the 'aiSuggestions' field.
+5.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three areas where an improvement would have the **most significant positive impact on the overall score**. For each, generate a personalized, actionable suggestion. These tips must be highly specific to the user's profile content, explain *why* the change is important for their score, and give a concrete example of how to apply it. Return these in the 'aiSuggestions' field.
 
 6.  **Format Output**: Return a single JSON object that strictly adheres to the provided output schema. Ensure all fields are populated correctly. The 'overallScore' should be the final calculated score. The 'scoreBreakdown' should be an array of objects, one for each category listed above.
 `,

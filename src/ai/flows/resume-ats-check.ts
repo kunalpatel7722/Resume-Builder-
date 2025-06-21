@@ -39,7 +39,7 @@ const ResumeAtsCheckOutputSchema = z.object({
   overallScore: z.number().describe("The overall score for the resume, from 0 to 100."),
   summaryFeedback: z.string().describe("A high-level summary of the resume's strengths and weaknesses, starting with the strengths."),
   scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories relevant to the analysis."),
-  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions."),
+  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions designed to directly improve the user's score. These should be concrete, actionable, and address the biggest weaknesses found in the analysis."),
   extractedText: z.string().describe("The full text extracted from the provided resume PDF that was used for the analysis."),
   keywordAnalysis: z.object({
       foundKeywords: z.array(z.string()).describe("List of important keywords from the job description that were found in the resume."),
@@ -105,7 +105,7 @@ Job Description:
 
 5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Start with the strengths.
 
-6.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three most critical areas for improvement that will have the biggest impact on the score. Generate personalized, actionable AI suggestions and return them in the 'aiSuggestions' field.
+6.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three areas where an improvement would have the **most significant positive impact on the overall score**. For each, generate a personalized, actionable AI suggestion. These tips must be highly specific to the user's resume, explain *why* the change is important for their score, and give a concrete example of how to apply it (referencing the job description if available). Return these in the 'aiSuggestions' field.
 
 7.  **Format Output**: Return a single JSON object that strictly adheres to the output schema. Ensure all fields are populated correctly.
 `,
