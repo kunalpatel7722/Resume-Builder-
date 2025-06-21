@@ -20,6 +20,8 @@ import { CreativeTemplate } from './resume-templates/creative-template';
 import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 import { ProfessionalTemplate } from './resume-templates/professional-template';
 import { MinimalistTemplate } from './resume-templates/minimalist-template';
+import { ExecutiveTemplate } from './resume-templates/executive-template';
+import { SimpleTemplate } from './resume-templates/simple-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -73,6 +75,8 @@ const templates = [
   { id: 'creative', name: 'Creative' },
   { id: 'professional', name: 'Professional' },
   { id: 'minimalist', name: 'Minimalist' },
+  { id: 'executive', name: 'Executive' },
+  { id: 'simple', name: 'Simple' },
 ];
 
 const careerLevels = [
@@ -287,6 +291,16 @@ export default function ResumeBuilder() {
   const currentStepIndex = steps.findIndex(s => s.id === currentStep);
   const nextStepName = currentStepIndex < steps.length - 1 ? steps[currentStepIndex + 1].name : '';
 
+  const templateComponents = {
+    modern: <ModernTemplate data={resumeData} />,
+    classic: <ClassicTemplate data={resumeData} />,
+    creative: <CreativeTemplate data={resumeData} />,
+    professional: <ProfessionalTemplate data={resumeData} />,
+    minimalist: <MinimalistTemplate data={resumeData} />,
+    executive: <ExecutiveTemplate data={resumeData} />,
+    simple: <SimpleTemplate data={resumeData} />,
+  };
+
   return (
     <div className="lg:grid lg:grid-cols-12 h-[calc(100vh-4rem)] bg-background">
       
@@ -410,7 +424,7 @@ export default function ResumeBuilder() {
                                 selectedTemplate === template.id ? "border-primary shadow-lg" : "border-transparent hover:border-primary/50"
                             )}
                         >
-                            <ResumeThumbnail templateId={template.id as 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist'} />
+                            <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
                             <p className="text-center text-sm font-medium mt-2">{template.name}</p>
                         </div>
                     ))}
@@ -564,15 +578,7 @@ export default function ResumeBuilder() {
           ref={previewRef} 
           className="w-full max-w-2xl aspect-[1/1.414] bg-white transform scale-95 origin-top shadow-xl ring-1 ring-black/5"
         >
-          {
-            {
-              modern: <ModernTemplate data={resumeData} />,
-              classic: <ClassicTemplate data={resumeData} />,
-              creative: <CreativeTemplate data={resumeData} />,
-              professional: <ProfessionalTemplate data={resumeData} />,
-              minimalist: <MinimalistTemplate data={resumeData} />,
-            }[selectedTemplate as 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist']
-          }
+          {templateComponents[selectedTemplate as keyof typeof templateComponents]}
         </div>
       </aside>
     </div>

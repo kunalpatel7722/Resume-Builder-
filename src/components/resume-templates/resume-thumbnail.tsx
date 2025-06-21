@@ -2,7 +2,7 @@
 import React from 'react';
 
 interface ResumeThumbnailProps {
-  templateId: 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist';
+  templateId: 'modern' | 'classic' | 'creative' | 'professional' | 'minimalist' | 'executive' | 'simple';
 }
 
 const ModernThumbnail: React.FC = () => (
@@ -92,15 +92,57 @@ const MinimalistThumbnail: React.FC = () => (
     </div>
 );
 
+const ExecutiveThumbnail: React.FC = () => (
+    <div className="flex h-full bg-white">
+        <div className="w-1/3 bg-blue-900 p-2 space-y-4">
+            <div className="h-8 w-8 mx-auto rounded-full bg-gray-100" />
+            <div className="h-2.5 w-full bg-gray-100 rounded-sm" />
+            <div className="h-1.5 w-2/3 mx-auto bg-blue-300 rounded-sm" />
+            <div className="space-y-1 mt-4">
+                 <div className="h-1.5 w-full bg-blue-300 rounded-sm" />
+                 <div className="h-1.5 w-full bg-blue-300 rounded-sm" />
+                 <div className="h-1.5 w-full bg-blue-300 rounded-sm" />
+            </div>
+        </div>
+        <div className="w-2/3 p-2 space-y-2">
+            <div className="h-4 w-1/2 bg-gray-500 rounded-sm"/>
+            <div className="h-1.5 w-3/4 bg-gray-400 rounded-sm" />
+            <div className="h-2.5 w-1/3 bg-gray-500 rounded-sm border-b border-gray-300 pb-1 mt-4"/>
+            <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+            <div className="h-1.5 w-5/6 bg-gray-300 rounded-sm" />
+        </div>
+    </div>
+);
+
+const SimpleThumbnail: React.FC = () => (
+    <div className="p-2 space-y-2 bg-white h-full">
+        <div className="h-4 w-1/2 bg-gray-400 rounded-sm" />
+        <div className="h-1.5 w-3/4 bg-gray-300 rounded-sm" />
+        <div className="border-b border-gray-300 my-1" />
+        <div className="h-2 w-1/4 bg-gray-400 rounded-sm" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+        <div className="h-2 w-1/4 bg-gray-400 rounded-sm mt-2" />
+        <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
+        <div className="h-1.5 w-5/6 bg-gray-300 rounded-sm" />
+    </div>
+);
+
 
 export const ResumeThumbnail: React.FC<ResumeThumbnailProps> = ({ templateId }) => {
+    const templates = {
+        modern: <ModernThumbnail />,
+        classic: <ClassicThumbnail />,
+        creative: <CreativeThumbnail />,
+        professional: <ProfessionalThumbnail />,
+        minimalist: <MinimalistThumbnail />,
+        executive: <ExecutiveThumbnail />,
+        simple: <SimpleThumbnail />,
+    };
+
     return (
         <div className="w-full aspect-[1/1.414] overflow-hidden rounded-md bg-muted border border-gray-300">
-            {templateId === 'modern' && <ModernThumbnail />}
-            {templateId === 'classic' && <ClassicThumbnail />}
-            {templateId === 'creative' && <CreativeThumbnail />}
-            {templateId === 'professional' && <ProfessionalThumbnail />}
-            {templateId === 'minimalist' && <MinimalistThumbnail />}
+            {templates[templateId]}
         </div>
     );
 };
