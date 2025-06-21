@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, ChangeEvent } from 'react';
@@ -12,7 +13,7 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ResumeData {
@@ -37,6 +38,7 @@ export interface ResumeData {
     dates: string;
   }[];
   skills: string[];
+  targetCountry: string;
 }
 
 const initialResumeData: ResumeData = {
@@ -45,10 +47,12 @@ const initialResumeData: ResumeData = {
   experience: [{ id: 1, company: '', role: '', dates: '', description: '' }],
   education: [{ id: 1, school: '', degree: '', dates: '' }],
   skills: [],
+  targetCountry: '',
 };
 
 const steps = [
   { id: 'career-level', name: 'Career Level' },
+  { id: 'target-country', name: 'Target Country' },
   { id: 'personal', name: 'Personal Info' },
   { id: 'experience', name: 'Experience' },
   { id: 'education', name: 'Education' },
@@ -64,6 +68,15 @@ const careerLevels = [
   { title: '5-10 years', icon: Building },
   { title: '10+ years', icon: Trophy },
   { title: 'Student / Intern', icon: GraduationCap },
+];
+
+const countries = [
+  { name: 'United States', icon: '🇺🇸' },
+  { name: 'United Kingdom', icon: '🇬🇧' },
+  { name: 'Canada', icon: '🇨🇦' },
+  { name: 'Australia', icon: '🇦🇺' },
+  { name: 'Germany', icon: '🇩🇪' },
+  { name: 'Other', icon: '🌍' },
 ];
 
 
@@ -171,6 +184,12 @@ export default function ResumeBuilder() {
     setCareerLevel(level);
     nextStep();
   };
+
+  const handleCountrySelect = (country: string) => {
+    setResumeData(prev => ({ ...prev, targetCountry: country }));
+    nextStep();
+  };
+
 
   const handleDownloadPdf = async () => {
     const element = previewRef.current;
@@ -342,6 +361,26 @@ export default function ResumeBuilder() {
                 </div>
             </div>
           )}
+          {currentStep === 'target-country' && (
+            <div className="space-y-4">
+                <h3 className="text-2xl font-semibold">Where are you applying for jobs?</h3>
+                <p className="text-muted-foreground">This helps us format your resume correctly for the region.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    {countries.map((country) => (
+                        <Card 
+                            key={country.name}
+                            onClick={() => handleCountrySelect(country.name)}
+                            className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
+                        >
+                            <CardContent className="p-6 flex items-center gap-4">
+                                <span className="text-2xl">{country.icon}</span>
+                                <span className="text-lg font-medium">{country.name}</span>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+          )}
           {currentStep === 'personal' && (
               <div className="space-y-4">
                   <h3 className="text-2xl font-semibold">Personal Information</h3>
@@ -474,7 +513,7 @@ export default function ResumeBuilder() {
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                   Download PDF
               </Button>
-          ) : currentStep !== 'career-level' ? (
+          ) : currentStep !== 'career-level' && currentStep !== 'target-country' ? (
               <Button onClick={nextStep}>
                   Next: {nextStepName}
               </Button>
@@ -495,3 +534,6 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+
+
+    
