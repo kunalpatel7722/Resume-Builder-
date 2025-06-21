@@ -129,15 +129,6 @@ export default function ProfileAnalyzer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
             <div className="sticky top-6 flex flex-col gap-6">
-                <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <Button variant="outline" onClick={() => setResult(null)} className="w-full">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Analyze Another Profile
-                      </Button>
-                    </CardContent>
-                </Card>
-              
                 <ScoreDisplay score={result.score} />
 
                 <Card className="shadow-sm">
@@ -147,6 +138,15 @@ export default function ProfileAnalyzer() {
                   <CardContent>
                     <p className="text-sm text-muted-foreground">{result.summaryFeedback}</p>
                   </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <Button variant="outline" onClick={() => setResult(null)} className="w-full">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Analyze Another Profile
+                      </Button>
+                    </CardContent>
                 </Card>
             </div>
           </aside>
