@@ -320,6 +320,7 @@ export default function ResumeChecker() {
                           className="h-48"
                           value={jobDescription}
                           onChange={(e) => setJobDescription(e.target.value)}
+                          suppressHydrationWarning
                       />
                   </CardContent>
               </Card>
@@ -332,3 +333,5 @@ export default function ResumeChecker() {
     </div>
   );
 }
+
+    
