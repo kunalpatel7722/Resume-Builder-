@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import ReportSection from "@/components/report-section";
 import OverallScoreDisplay from "./overall-score-display";
 import { cn } from "@/lib/utils";
 import SectionDetailContent from "./section-detail-content";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type AnalysisResult = LinkedinProfileScoreOutput;
 
@@ -21,6 +22,17 @@ export default function ProfileAnalyzer() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
   const [activeDetail, setActiveDetail] = useState<AnalysisResult['reportSections'][0] | { title: 'Extracted Profile Text' } | null>(null);
+  const detailContentRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  const handleSectionClick = (section: AnalysisResult['reportSections'][0] | { title: 'Extracted Profile Text' }) => {
+    setActiveDetail(section);
+    if (isMobile) {
+      setTimeout(() => {
+        detailContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +129,7 @@ export default function ProfileAnalyzer() {
                       key={index} 
                       section={section}
                       isActive={activeDetail?.title === section.title}
-                      onClick={() => setActiveDetail(section)}
+                      onClick={() => handleSectionClick(section)}
                     />
                   ))}
                    <Card 
@@ -125,7 +137,7 @@ export default function ProfileAnalyzer() {
                           "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
                           activeDetail?.title === 'Extracted Profile Text' && "border-primary shadow-lg ring-2 ring-primary/20"
                       )}
-                      onClick={() => setActiveDetail({ title: 'Extracted Profile Text' })}
+                      onClick={() => handleSectionClick({ title: 'Extracted Profile Text' })}
                   >
                       <CardHeader className="p-4">
                           <div className="flex items-center gap-4">
@@ -142,7 +154,7 @@ export default function ProfileAnalyzer() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
+              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, ArrowLeft, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { resumeAtsCheck, type ResumeAtsCheckInput, type ResumeAtsCheckOutput } from "@/ai/flows/resume-ats-check";
 import ImprovementTips from "@/components/improvement-tips";
@@ -25,7 +26,17 @@ export default function ResumeChecker() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
   const [activeDetail, setActiveDetail] = useState<AnalysisResult['reportSections'][0] | { title: 'Extracted Resume Text' } | null>(null);
+  const detailContentRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
+  const handleSectionClick = (section: AnalysisResult['reportSections'][0] | { title: 'Extracted Resume Text' }) => {
+    setActiveDetail(section);
+    if (isMobile) {
+      setTimeout(() => {
+        detailContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -100,7 +111,7 @@ export default function ResumeChecker() {
   if (result) {
     return (
        <div className="min-h-screen bg-muted/40">
-        <div className="max-w-6xl mx-auto p-4 md:p-8">
+        <div className="max-w-7xl mx-auto p-4 md:p-8">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">ATS Resume Scan Results</h1>
@@ -127,7 +138,7 @@ export default function ResumeChecker() {
                       key={index} 
                       section={section}
                       isActive={activeDetail?.title === section.title}
-                      onClick={() => setActiveDetail(section)}
+                      onClick={() => handleSectionClick(section)}
                     />
                   ))}
                   <Card 
@@ -135,7 +146,7 @@ export default function ResumeChecker() {
                           "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
                           activeDetail?.title === 'Extracted Resume Text' && "border-primary shadow-lg ring-2 ring-primary/20"
                       )}
-                      onClick={() => setActiveDetail({ title: 'Extracted Resume Text' })}
+                      onClick={() => handleSectionClick({ title: 'Extracted Resume Text' })}
                   >
                       <CardHeader className="p-4">
                           <div className="flex items-center gap-4">
@@ -153,7 +164,7 @@ export default function ResumeChecker() {
               </div>
 
               {/* Right Column */}
-              <div className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
+              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>
