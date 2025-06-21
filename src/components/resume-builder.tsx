@@ -157,6 +157,24 @@ const years = Array.from({ length: 70 }, (_, i) => (currentYear + 5 - i).toStrin
 
 const fullWidthSteps = ['career-level', 'target-country', 'template', 'select-method'];
 
+const degreeLevels = [
+  "High School Diploma",
+  "GED",
+  "Associate of Arts",
+  "Associate of Science",
+  "Associate of Applied Science",
+  "Bachelor of Arts",
+  "Bachelor of Science",
+  "Bachelor of Business Administration",
+  "Master of Arts",
+  "Master of Science",
+  "Master of Business Administration (MBA)",
+  "Juris Doctor (JD)",
+  "Doctor of Medicine (MD)",
+  "Doctor of Philosophy (PhD)",
+  "Other",
+];
+
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
@@ -216,7 +234,7 @@ export default function ResumeBuilder() {
         return;
       }
       
-      if (latestRole === suggestionsForRole && aiSuggestions !== null) {
+      if (latestRole === suggestionsForRole) {
         return;
       }
   
@@ -227,11 +245,6 @@ export default function ResumeBuilder() {
         const result = await generateResumeContent({ jobTitle: latestRole });
         setAiSuggestions(result);
         setSuggestionsForRole(latestRole); 
-        
-        if (lastExperienceWithRole) {
-          const experienceIndex = resumeData.experience.findIndex(exp => exp.id === lastExperienceWithRole.id);
-          setSuggestionsForIndex(experienceIndex);
-        }
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
@@ -243,7 +256,7 @@ export default function ResumeBuilder() {
     };
   
     fetchSkillSuggestions();
-  }, [currentStep, resumeData.experience, suggestionsForRole, aiSuggestions, generatingSkills, toast]);
+  }, [currentStep, resumeData.experience, suggestionsForRole, generatingSkills, toast]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -921,7 +934,18 @@ export default function ResumeBuilder() {
                               </div>
                               <div>
                                   <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
-                                  <Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
+                                  <Select 
+                                      onValueChange={(value) => handleEducationChange(index, 'degree', value)} 
+                                      value={edu.degree}>
+                                    <SelectTrigger id={`degree-${edu.id}`}>
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {degreeLevels.map(level => (
+                                            <SelectItem key={level} value={level}>{level}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
                               </div>
                                <div>
                                   <Label htmlFor={`fieldOfStudy-${edu.id}`}>Field of Study</Label>
