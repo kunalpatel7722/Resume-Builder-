@@ -1,21 +1,22 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft } from "lucide-react";
+import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
-import ScoreBreakdown from "./score-breakdown";
 import ImprovementTips from "@/components/improvement-tips";
+import { cn } from "@/lib/utils";
+
 
 type AnalysisResult = {
   score: number;
@@ -25,6 +26,31 @@ type AnalysisResult = {
   extractedText: string;
 };
 
+const getScoreStyle = (score: number): React.CSSProperties => {
+  if (score >= 80) { // Great
+    return { backgroundColor: 'hsl(var(--chart-2))', color: 'hsl(var(--primary-foreground))' };
+  }
+  if (score >= 70) { // Good
+    return { backgroundColor: 'hsl(var(--chart-4))', color: 'hsl(var(--foreground))' };
+  }
+  if (score >= 50) { // Medium
+    return { backgroundColor: 'hsl(var(--chart-1))', color: 'hsl(var(--primary-foreground))' };
+  }
+  // Low
+  return { backgroundColor: 'hsl(var(--destructive))', color: 'hsl(var(--destructive-foreground))' };
+};
+
+const ScoreBadge = ({ score }: { score: number }) => {
+  return (
+    <div
+      className="flex items-center justify-center w-12 h-7 rounded-md font-bold text-sm"
+      style={getScoreStyle(score)}
+    >
+      {score}
+    </div>
+  );
+};
+
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
@@ -32,6 +58,47 @@ export default function ProfileAnalyzer() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+
+  const [activeSection, setActiveSection] = useState("overview");
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const toKebabCase = (str: string) => str.toLowerCase().replace(/\s/g, '-').replace(/[&']/g, '');
+
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // The observer will handle setting the active section
+  };
+
+  useEffect(() => {
+    if (!result) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+            return;
+          }
+        }
+      },
+      {
+        rootMargin: "-25% 0px -75% 0px",
+        threshold: 0,
+      }
+    );
+
+    const elementsToObserve = document.querySelectorAll('[data-section-id]');
+    elementsToObserve.forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => {
+      elementsToObserve.forEach((el) => {
+        observer.unobserve(el);
+      });
+    };
+  }, [result]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -124,9 +191,13 @@ export default function ProfileAnalyzer() {
   }
 
   if (result) {
+    const navLinks = [
+      { id: 'overview', title: 'Overview' },
+      ...result.scoreBreakdown.map(cat => ({ id: toKebabCase(cat.title), title: cat.title })),
+    ];
     return (
        <div className="min-h-screen bg-background">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 max-w-[100rem] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
             <div className="sticky top-6 flex flex-col gap-6">
                 <ScoreDisplay score={result.score} />
@@ -137,6 +208,26 @@ export default function ProfileAnalyzer() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">{result.summaryFeedback}</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="shadow-sm">
+                  <CardContent className="p-2">
+                    <nav className="space-y-1">
+                      {navLinks.map(link => (
+                        <a 
+                            key={link.id}
+                            href={`#${link.id}`}
+                            onClick={(e) => handleScrollTo(e, link.id)}
+                            className={cn(
+                                "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                                activeSection === link.id && "bg-muted font-semibold text-foreground"
+                            )}
+                        >
+                            {link.title}
+                        </a>
+                      ))}
+                    </nav>
                   </CardContent>
                 </Card>
 
@@ -163,18 +254,41 @@ export default function ProfileAnalyzer() {
                 </TabsList>
                 <TabsContent value="overview">
                     <div className="space-y-6">
-                      <ImprovementTips tips={result.improvementTips} />
-                      <Card className="shadow-sm">
-                        <CardHeader>
-                          <CardTitle>Detailed Analysis</CardTitle>
-                          <CardDescription>
-                            Each section of your profile has been scored. Click on a section to see detailed checks and feedback.
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ScoreBreakdown breakdown={result.scoreBreakdown} />
-                        </CardContent>
-                      </Card>
+                      <div id="overview" data-section-id="overview" className="scroll-mt-20">
+                        <ImprovementTips tips={result.improvementTips} />
+                      </div>
+                       {result.scoreBreakdown.map((category) => (
+                        <div key={category.title} id={toKebabCase(category.title)} data-section-id={toKebabCase(category.title)} className="scroll-mt-20">
+                          <Card className="shadow-sm">
+                            <CardHeader>
+                              <CardTitle className="flex items-center justify-between text-xl">
+                                <span>{category.title}</span>
+                                <ScoreBadge score={category.score} />
+                              </CardTitle>
+                              <CardDescription>
+                                {category.feedback}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {category.checks.map((check, checkIndex) => (
+                                  <div key={checkIndex} className="flex items-start gap-3 p-3 bg-muted/50 rounded-md">
+                                    {check.passed ? (
+                                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                                    ) : (
+                                      <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+                                    )}
+                                    <div>
+                                      <p className="font-medium text-sm text-foreground">{check.check}</p>
+                                      <p className="text-xs text-muted-foreground">{check.details}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      ))}
                     </div>
                 </TabsContent>
                 <TabsContent value="extracted-text">
