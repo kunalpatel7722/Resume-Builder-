@@ -147,17 +147,25 @@ const linkedinProfileScoreFlow = ai.defineFlow(
         }
 
         const { output } = await linkedinProfileScorePrompt(promptInput);
-        return output!;
+        if (!output) {
+          throw new Error('AI model returned an empty response.');
+        }
+        return output;
       } catch (error) {
         console.error(`Attempt ${i + 1} failed for linkedinProfileScoreFlow:`, error);
         if (i === maxRetries - 1) {
-          throw new Error('Could not analyze the profile. The URL may be inaccessible or the AI may be temporarily unavailable. Please try again.');
+          let finalMessage = 'Could not analyze the profile after multiple attempts. The AI may be temporarily unavailable.';
+          if (input.profileUrl) {
+            finalMessage = 'Could not analyze the profile from the provided URL. It may be private, protected (like LinkedIn), or temporarily inaccessible. Please try uploading a PDF instead, which is more reliable.';
+          }
+          throw new Error(finalMessage);
         }
         const delay = Math.pow(2, i) * 1000; // 1s, 2s
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    // This should be unreachable
-    throw new Error('Flow failed after all retries.');
+    // This part is unreachable if the loop always returns or throws.
+    // Throwing an error here to satisfy TypeScript's requirement for a return value on all paths.
+    throw new Error('An unexpected error occurred in the analysis flow.');
   }
 );
