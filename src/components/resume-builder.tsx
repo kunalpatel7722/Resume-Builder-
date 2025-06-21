@@ -12,7 +12,7 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ResumeData {
@@ -48,6 +48,7 @@ const initialResumeData: ResumeData = {
 };
 
 const steps = [
+  { id: 'career-level', name: 'Career Level' },
   { id: 'personal', name: 'Personal Info' },
   { id: 'experience', name: 'Experience' },
   { id: 'education', name: 'Education' },
@@ -56,10 +57,21 @@ const steps = [
   { id: 'finalize', name: 'Finalize' },
 ];
 
+const careerLevels = [
+  { title: 'No Experience', icon: Baby },
+  { title: 'Less than 3 years', icon: ChevronsUp },
+  { title: '3-5 years', icon: Briefcase },
+  { title: '5-10 years', icon: Building },
+  { title: '10+ years', icon: Trophy },
+  { title: 'Student / Intern', icon: GraduationCap },
+];
+
+
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
-  const [currentStep, setCurrentStep] = useState('personal');
+  const [currentStep, setCurrentStep] = useState('career-level');
+  const [careerLevel, setCareerLevel] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
@@ -153,6 +165,11 @@ export default function ResumeBuilder() {
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].id);
     }
+  };
+
+  const handleCareerLevelSelect = (level: string) => {
+    setCareerLevel(level);
+    nextStep();
   };
 
   const handleDownloadPdf = async () => {
@@ -255,6 +272,7 @@ export default function ResumeBuilder() {
                   "w-full flex items-center text-left p-3 rounded-lg transition-colors",
                   isActive ? "bg-primary/10 text-primary font-semibold" : isCompleted ? "text-muted-foreground" : "hover:bg-muted"
                 )}
+                disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
               >
                 <div className={cn(
                   "w-7 h-7 rounded-full flex items-center justify-center mr-4 border-2 flex-shrink-0",
@@ -288,7 +306,9 @@ export default function ResumeBuilder() {
                           <div className="flex flex-col items-center text-center w-16">
                              <button onClick={() => setCurrentStep(step.id)} className={cn("w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors text-xs", 
                                   isActive ? 'bg-primary text-primary-foreground' : isCompleted ? 'bg-green-500 text-white' : 'bg-card border'
-                             )}>
+                             )}
+                             disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
+                             >
                                   {isCompleted ? <FileCheck2 size={14}/> : index + 1}
                              </button>
                              <p className={cn("mt-2 text-center text-xs", isActive && "font-bold text-primary")}>{step.name}</p>
@@ -302,6 +322,26 @@ export default function ResumeBuilder() {
 
         {/* Form Content */}
         <div className="max-w-xl mx-auto lg:mx-0 min-h-[50vh]">
+          {currentStep === 'career-level' && (
+            <div className="space-y-4">
+                <h3 className="text-2xl font-semibold">What's your career level?</h3>
+                <p className="text-muted-foreground">This helps us tailor suggestions for you.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    {careerLevels.map((level) => (
+                        <Card 
+                            key={level.title}
+                            onClick={() => handleCareerLevelSelect(level.title)}
+                            className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
+                        >
+                            <CardContent className="p-6 flex items-center gap-4">
+                                <level.icon className="h-8 w-8 text-primary" />
+                                <span className="text-lg font-medium">{level.title}</span>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+          )}
           {currentStep === 'personal' && (
               <div className="space-y-4">
                   <h3 className="text-2xl font-semibold">Personal Information</h3>
@@ -428,17 +468,17 @@ export default function ResumeBuilder() {
         
         {/* Footer with Next/Prev buttons */}
         <div className="mt-8 pt-6 border-t flex justify-between max-w-xl mx-auto lg:mx-0">
-          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'personal'}>Back</Button>
+          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Back</Button>
           {currentStep === 'finalize' ? (
               <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                   Download PDF
               </Button>
-          ) : (
+          ) : currentStep !== 'career-level' ? (
               <Button onClick={nextStep}>
                   Next: {nextStepName}
               </Button>
-          )}
+          ) : null}
          </div>
 
       </main>
