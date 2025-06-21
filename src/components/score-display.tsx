@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 interface ScoreDisplayProps {
   score: number;
@@ -34,13 +34,16 @@ const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
     // Animate score count up
     let start = 0;
     const end = Math.round(score);
-    if (start === end) return;
+    if (start === end) {
+      setDisplayScore(end);
+      return;
+    }
     
-    const incrementTime = (animationDuration / end);
+    const incrementTime = (animationDuration / end) || 1;
     const timer = setInterval(() => {
       start += 1;
       setDisplayScore(start);
-      if (start === end) {
+      if (start >= end) {
         clearInterval(timer);
         setDisplayScore(end);
       }
@@ -56,12 +59,12 @@ const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
   }, [score, circumference]);
 
   return (
-    <Card>
-        <CardHeader className="items-center pb-2">
+    <div>
+        <CardHeader className="items-center p-0 pb-2">
             <CardTitle>Profile Score</CardTitle>
             <CardDescription>{getScoreMessage()}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center">
+        <CardContent className="flex flex-col items-center justify-center p-0 pt-4">
             <div className="relative w-48 h-48">
                 <svg className="w-full h-full" viewBox="0 0 120 120">
                 <circle
@@ -91,7 +94,7 @@ const ScoreDisplay = ({ score }: ScoreDisplayProps) => {
                 </div>
             </div>
         </CardContent>
-    </Card>
+    </div>
   );
 };
 

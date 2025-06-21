@@ -9,15 +9,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Link as LinkIcon, Loader2, BarChart, FileText, Wand2 } from "lucide-react";
 
-import { linkedinProfileScore } from "@/ai/flows/linkedin-profile-score";
+import { linkedinProfileScore, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import { getLinkedInProfileImprovementTips, type LinkedInProfileImprovementTipsOutput } from "@/ai/flows/linkedin-profile-improvement-tips";
 import ScoreDisplay from "@/components/score-display";
 import ImprovementTips from "@/components/improvement-tips";
+import ScoreBreakdown from "./score-breakdown";
 
 type ImprovementTip = LinkedInProfileImprovementTipsOutput['improvementTips'][0];
+
 type AnalysisResult = {
   score: number;
   tips: ImprovementTip[];
+  scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
 };
 
 export default function ProfileAnalyzer() {
@@ -96,6 +99,7 @@ export default function ProfileAnalyzer() {
       setResult({
         score: scoreOutput.score,
         tips: tipsOutput.improvementTips,
+        scoreBreakdown: scoreOutput.scoreBreakdown,
       });
 
     } catch (error) {
@@ -181,6 +185,7 @@ export default function ProfileAnalyzer() {
           {!isLoading && result && (
             <Card className="shadow-lg h-full p-6 space-y-6">
               <ScoreDisplay score={result.score} />
+              <ScoreBreakdown breakdown={result.scoreBreakdown} />
               <ImprovementTips tips={result.tips} />
             </Card>
           )}
