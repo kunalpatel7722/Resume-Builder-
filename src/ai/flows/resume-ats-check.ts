@@ -19,27 +19,28 @@ const ResumeAtsCheckInputSchema = z.object({
 
 export type ResumeAtsCheckInput = z.infer<typeof ResumeAtsCheckInputSchema>;
 
-const ScoreCategorySchema = z.object({
-  title: z.string().describe("The title of the category, e.g., 'Keyword Match' or 'Work Experience'."),
-  score: z.number().describe("The score for this category (out of 100)."),
-  feedback: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved."),
-  checks: z.array(z.object({
-    check: z.string().describe("A specific check performed within this category."),
-    passed: z.boolean().describe("Whether the resume passed this specific check."),
-    details: z.string().describe("A short, encouraging explanation of why this check passed, or a constructive explanation of why it failed and how to improve it."),
-  })).describe("A list of specific checks and their results for this category."),
+const CheckSchema = z.object({
+  title: z.string().describe("The title of the specific check performed."),
+  status: z.enum(['pass', 'fail', 'warning']).describe("The status of the check: 'pass', 'fail', or 'warning'."),
+  summary: z.string().describe("A one-sentence summary of the check's result."),
+  details: z.string().describe("A detailed, actionable paragraph explaining how to improve, or what was done well. Provide concrete examples."),
 });
 
-const AiSuggestionSchema = z.object({
-  title: z.string().describe("A short, catchy title for the AI suggestion."),
-  description: z.string().describe("A detailed, actionable paragraph explaining the AI-powered suggestion with examples."),
+const ScoreCategorySchema = z.object({
+  title: z.string().describe("The title of the category, e.g., 'Content' or 'Format'."),
+  score: z.number().describe("The score for this category (out of 100)."),
+  summary: z.string().describe("Overall feedback for this category, summarizing what's good and what can be improved."),
+  checks: z.array(CheckSchema).describe("A list of specific checks and their results for this category."),
 });
 
 const ResumeAtsCheckOutputSchema = z.object({
   overallScore: z.number().describe("The overall score for the resume, from 0 to 100."),
-  summaryFeedback: z.string().describe("A high-level summary of the resume's strengths and weaknesses, starting with the strengths."),
-  scoreBreakdown: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories relevant to the analysis."),
-  aiSuggestions: z.array(AiSuggestionSchema).describe("A list of the top 3 most impactful, personalized AI suggestions designed to directly improve the user's score. These should be concrete, actionable, and address the biggest weaknesses found in the analysis."),
+  overallSummary: z.string().describe("A high-level summary of the resume's strengths and weaknesses, starting with the strengths."),
+  reportSections: z.array(ScoreCategorySchema).describe("A detailed breakdown of the score across multiple categories relevant to the analysis."),
+  aiSuggestions: z.array(z.object({
+    title: z.string().describe("A short, catchy title for the AI suggestion."),
+    description: z.string().describe("A detailed, actionable paragraph explaining the AI-powered suggestion with examples."),
+  })).describe("A list of the top 3 most impactful, personalized AI suggestions designed to directly improve the user's score. These should be concrete, actionable, and address the biggest weaknesses found in the analysis."),
   extractedText: z.string().describe("The full text extracted from the provided resume PDF that was used for the analysis."),
   keywordAnalysis: z.object({
       foundKeywords: z.array(z.string()).describe("List of important keywords from the job description that were found in the resume."),
@@ -58,12 +59,12 @@ const resumeAtsCheckPrompt = ai.definePrompt({
   name: 'resumeAtsCheckPrompt',
   input: {schema: ResumeAtsCheckInputSchema},
   output: {schema: ResumeAtsCheckOutputSchema},
-  prompt: `You are a world-class resume checker AI, inspired by the detailed, section-by-section analysis of tools like Enhancv. Your goal is to provide encouraging, yet critical and actionable feedback to help users land their dream job.
+  prompt: `You are a world-class resume checker AI, inspired by the detailed, section-by-section analysis of tools like MyPerfectResume and Enhancv. Your goal is to provide encouraging, yet critical and actionable feedback to help users land their dream job.
 
 **SCORING PHILOSOPHY:**
 - **Encouraging yet Critical:** Scores should be motivating. An average resume might score 50-65, a strong one 70-85. The goal is to show potential and a clear path to a 90+ score.
-- **No Partial Credit:** A check must be executed perfectly to 'pass'. For example, if a resume has *some* metrics but not enough, the check fails.
-- **Constructive Feedback:** For passed checks, your 'details' should explain *why* it's good. For failed checks, explain the problem and give clear, actionable advice. Always start overall feedback with positives.
+- **Clear Status:** For each check, assign a 'pass', 'fail', or 'warning' status. 'pass' for perfect execution, 'fail' for missing or poorly executed items, and 'warning' for items that are present but could be significantly improved.
+- **Constructive Feedback:** For passed checks, your 'details' should explain *why* it's good. For failed checks, explain the problem and give clear, actionable advice with examples.
 
 Resume Data (as PDF):
 {{media url=resumePdfData}}
@@ -83,64 +84,61 @@ Job Description:
     *   Scan the resume for these keywords.
     *   Populate the 'keywordAnalysis' object with 'foundKeywords' and 'missingKeywords'. If no job description is provided, this field MUST be omitted from the output.
 
-3.  **Analyze and Score (ATS-Focused)**: Perform a detailed analysis and generate a score for each category below, focusing on how well the resume is optimized for an Applicant Tracking System (ATS) based on the provided job description. The scoring must be heavily influenced by the keyword match.
+3.  **Analyze and Score (ATS-Focused)**: Perform a detailed analysis and generate a score for each category below, focusing on how well the resume is optimized for an Applicant Tracking System (ATS) based on the provided job description. The scoring must be heavily influenced by the keyword match. Structure the entire analysis into 'reportSections'.
 
-    **Categories to Analyze (ATS Scan):**
+    **Report Sections to Generate (ATS Scan):**
     *   **Content (Weight: 35%)**: Analyzes the quality of language and achievements.
         *   Checks:
-            *   Quantifying Impact: Are there at least 3-5 measurable achievements with metrics (%, $, #) across the resume?
-            *   Active Voice: Does each bullet point start with a strong, varied action verb (e.g., 'Orchestrated', 'Accelerated')?
-            *   Buzzwords & Cliches: Does the resume avoid vague buzzwords ('team player', 'hard worker') and focus on concrete skills?
-            *   Repetition: Does it avoid repeating the same action verbs and phrases excessively?
+            *   Quantifying Impact: (pass/fail/warning) Are there at least 3-5 measurable achievements with metrics (%, $, #)?
+            *   Active Voice: (pass/fail/warning) Does each bullet point start with a strong, varied action verb?
+            *   Buzzwords & Cliches: (pass/fail) Does the resume avoid vague buzzwords ('team player') and focus on concrete skills?
     *   **Tailoring (Weight: 25%)**: Assesses how well the resume is tailored to the job description.
         *   Checks:
-            *   Hard Skills Match: Does the resume contain a high percentage of the hard skills identified in the job description?
-            *   Soft Skills Match: Does the resume reflect the soft skills (e.g., 'communication', 'leadership') mentioned in the job description?
-            *   Keyword Density: Are keywords from the job description naturally integrated throughout the experience section, not just listed in a skills section?
+            *   Hard Skills Match: (pass/fail/warning) Does the resume contain a high percentage of the hard skills from the job description?
+            *   Soft Skills Match: (pass/fail/warning) Does the resume reflect the soft skills (e.g., 'communication', 'leadership') from the job description?
+            *   Keyword Integration: (pass/fail) Are keywords naturally integrated, not just in a list?
     *   **Format & Sections (Weight: 25%)**: Evaluates the visual presentation, structure, and clarity.
         *   Checks:
-            *   Resume Length: Is the resume an appropriate length (ideally 1 page for <10 years experience, max 2 pages for more)?
-            *   Spelling & Grammar: Is the resume free of typos and grammatical errors? A single error should fail this check.
-            *   Essential Sections: Does the resume include all essential sections: Contact Info, Work Experience, Education, and Skills?
-            *   Contact Information: Is the contact information complete (Name, Phone, Email, LinkedIn URL) and professional?
-            *   Readability: Is the layout clean, with consistent formatting, readable font (10-12pt), and good use of white space? Avoids long paragraphs.
+            *   Resume Length: (pass/fail) Is the resume an appropriate length (ideally 1 page)?
+            *   Spelling & Grammar: (fail/pass) Is the resume free of typos and grammatical errors? (A single error should fail this check).
+            *   Essential Sections: (pass/fail) Does it include Contact Info, Work Experience, Education, and Skills?
+            *   Contact Information: (pass/fail/warning) Is contact info complete and professional?
+            *   Readability: (pass/fail/warning) Is the layout clean, with consistent formatting and good use of white space?
     *   **ATS Compatibility (Weight: 15%)**: Checks technical elements for parsability.
         *   Checks:
-            *   ATS Parse Rate: Is the design simple, avoiding columns, images, graphics, or complex tables that can confuse an ATS?
-            *   Standard Headers: Does it use standard, recognizable section headers (e.g., "Work Experience", "Education")?
-            *   File Format: Note the importance of using PDF format for universal compatibility.
+            *   ATS Design: (pass/fail) Is the design simple, avoiding columns, images, or graphics?
+            *   Standard Headers: (pass/fail) Does it use standard section headers?
+            *   File Format: (pass) Note the importance of using PDF format.
 
 {{else}}
-2.  **Analyze and Score (General Review)**: Perform a detailed analysis and generate a score for each category below, focusing on general resume best practices.
+2.  **Analyze and Score (General Review)**: Perform a detailed analysis for a general-purpose resume. Structure the entire analysis into 'reportSections'.
 
-    **Categories to Analyze (General Review):**
+    **Report Sections to Generate (General Review):**
     *   **Content (Weight: 40%)**: Analyzes the quality of language and achievements.
         *   Checks:
-            *   Quantifying Impact: Are there at least 3-5 measurable achievements with metrics (%, $, #) across the resume?
-            *   Active Voice: Does each bullet point start with a strong, varied action verb?
-            *   Buzzwords & Cliches: Does the resume avoid vague buzzwords and focus on concrete skills?
-            *   Spelling & Grammar: Is the resume free of typos and grammatical errors?
+            *   Quantifying Impact: (pass/fail/warning) Are there at least 3-5 measurable achievements with metrics?
+            *   Active Voice: (pass/fail/warning) Does each bullet point start with a strong action verb?
+            *   Spelling & Grammar: (fail/pass) Is the resume free of typos?
     *   **Format & Sections (Weight: 40%)**: Evaluates the visual presentation, structure, and clarity.
         *   Checks:
-            *   Resume Length: Is the resume an appropriate length (ideally 1 page)?
-            *   Essential Sections: Does the resume include all essential sections: Contact Info, Work Experience, Education, and Skills?
-            *   Contact Information: Is the contact information complete and professional (professional email address)?
-            *   Readability: Is the layout clean, with consistent formatting, readable font (10-12pt), and good use of white space?
+            *   Resume Length: (pass/fail) Is the resume an appropriate length?
+            *   Essential Sections: (pass/fail) Does the resume include essential sections?
+            *   Contact Information: (pass/fail/warning) Is the contact info complete and professional?
+            *   Readability: (pass/fail/warning) Is the layout clean and easy to read?
     *   **ATS Compatibility (Weight: 20%)**: Checks technical elements for parsability.
         *   Checks:
-            *   ATS Parse Rate: Is the design simple, avoiding columns, images, or complex tables?
-            *   Standard Headers: Does it use standard, recognizable section headers?
-            *   File Format: Note the importance of using PDF format.
+            *   ATS Design: (pass/fail) Is the design simple and parsable?
+            *   Standard Headers: (pass/fail) Does it use standard section headers?
     
-    **IMPORTANT**: Since no job description was provided, you MUST NOT generate the 'keywordAnalysis' field in the output. Your analysis should be general and not tailored to a specific role.
+    **IMPORTANT**: Since no job description was provided, you MUST NOT generate the 'keywordAnalysis' field in the output.
 
 {{/if}}
 
-4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights for the relevant analysis type (ATS or General).
+4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights.
 
-5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Start with the strengths.
+5.  **Provide High-Level Summary**: Write a brief, encouraging 'overallSummary' of the resume's key strengths and top areas for improvement.
 
-6.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three areas where an improvement would have the **most significant positive impact on the overall score**. For each, generate a personalized, actionable AI suggestion. These tips must be highly specific to the user's resume, explain *why* the change is important for their score, and give a concrete example of how to apply it (referencing the job description if available). Return these in the 'aiSuggestions' field.
+6.  **Generate Top 3 AI Suggestions**: Based on your analysis, identify the three areas where an improvement would have the **most significant positive impact on the overall score**. Generate personalized, actionable AI suggestions for the 'aiSuggestions' field.
 
 7.  **Format Output**: Return a single JSON object that strictly adheres to the output schema. Ensure all fields are populated correctly.
 `,

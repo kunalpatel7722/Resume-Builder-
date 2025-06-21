@@ -1,61 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { UploadCloud, Loader2, BarChart, FileText, Briefcase, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
-import ScoreDisplay from "@/components/score-display";
 import ImprovementTips from "@/components/improvement-tips";
-import { cn } from "@/lib/utils";
-import ScoreBreakdownChart from "@/components/score-breakdown-chart";
-import CategoryScoreIndicator from "@/components/category-score-indicator";
+import ReportSection from "@/components/report-section";
+import OverallScoreDisplay from "./overall-score-display";
 
-type AnalysisResult = {
-  score: number;
-  summaryFeedback: string;
-  scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
-  aiSuggestions: LinkedinProfileScoreOutput['aiSuggestions'];
-  extractedText: string;
-};
+type AnalysisResult = LinkedinProfileScoreOutput;
 
 export default function ProfileAnalyzer() {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState("overview");
-
-  const toKebabCase = (str: string) => str.toLowerCase().replace(/\s/g, '-').replace(/[&']/g, '');
-
-  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  useEffect(() => {
-    if (!result) return;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-25% 0px -75% 0px", threshold: 0 }
-    );
-
-    const elementsToObserve = document.querySelectorAll('[data-section-id]');
-    elementsToObserve.forEach((el) => observer.observe(el));
-    return () => elementsToObserve.forEach((el) => observer.unobserve(el));
-  }, [result]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -98,13 +60,7 @@ export default function ProfileAnalyzer() {
 
     try {
       const scoreOutput = await linkedinProfileScore(scoreInput);
-      setResult({
-        score: scoreOutput.overallScore,
-        summaryFeedback: scoreOutput.summaryFeedback,
-        scoreBreakdown: scoreOutput.scoreBreakdown,
-        aiSuggestions: scoreOutput.aiSuggestions,
-        extractedText: scoreOutput.extractedText,
-      });
+      setResult(scoreOutput);
     } catch (error) {
       console.error("Analysis failed:", error);
       toast({
@@ -130,108 +86,42 @@ export default function ProfileAnalyzer() {
   }
 
   if (result) {
-    const navLinks = [
-      { id: 'overview', title: 'Overview' },
-      ...result.scoreBreakdown.map(cat => ({ id: toKebabCase(cat.title), title: cat.title })),
-      { id: 'extracted-text', title: 'Extracted Text' },
-    ];
     return (
-       <div className="min-h-screen bg-background">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
-          <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
-                <ScoreDisplay score={result.score} />
-                <Separator/>
-                <div className="flex flex-col gap-4 pr-4">
-                    <div>
-                        <h3 className="font-bold text-foreground">Summary</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{result.summaryFeedback}</p>
-                    </div>
-                    <nav className="space-y-1">
-                        <p className="font-bold text-foreground mb-1">Content</p>
-                        {navLinks.map(link => (
-                            <a 
-                                key={link.id}
-                                href={`#${link.id}`}
-                                onClick={(e) => handleScrollTo(e, link.id)}
-                                className={cn(
-                                    "block rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-foreground",
-                                    activeSection === link.id ? "font-semibold text-primary" : "text-muted-foreground"
-                                )}
-                            >
-                                {link.title}
-                            </a>
-                        ))}
-                    </nav>
-                </div>
-                <Separator/>
-                <Button variant="outline" onClick={() => { setResult(null); setFile(null); }} className="w-full shrink-0">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Analyze Another Profile
-                </Button>
-            </div>
-          </aside>
-
-          <main className="lg:col-span-8 xl:col-span-9 space-y-6">
-             <div className="mb-2">
-                <h1 className="text-4xl font-bold tracking-tight text-foreground">LinkedIn Review Results</h1>
+       <div className="min-h-screen bg-muted/40 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">LinkedIn Review Results</h1>
                 <p className="text-muted-foreground">Here's a detailed breakdown of your LinkedIn profile analysis.</p>
-            </div>
-
-            <div id="overview" data-section-id="overview" className="scroll-mt-20 space-y-6">
-              <ImprovementTips suggestions={result.aiSuggestions} />
-              <ScoreBreakdownChart data={result.scoreBreakdown} />
-            </div>
-
-            {result.scoreBreakdown.map((category) => (
-              <div key={category.title} id={toKebabCase(category.title)} data-section-id={toKebabCase(category.title)} className="scroll-mt-20">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between text-xl">
-                      <span>{category.title}</span>
-                      <CategoryScoreIndicator score={category.score} />
-                    </CardTitle>
-                    <CardDescription>
-                      {category.feedback}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {category.checks.map((check, checkIndex) => (
-                        <div key={checkIndex} className="flex items-start gap-3 p-3 rounded-md">
-                          {check.passed ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
-                          )}
-                          <div>
-                            <p className="font-medium text-sm text-foreground">{check.check}</p>
-                            <p className="text-xs text-muted-foreground">{check.details}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
-            ))}
+              <Button variant="outline" onClick={() => { setResult(null); setFile(null); }}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Analyze Another
+              </Button>
+            </header>
+
+            <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
             
-            <div id="extracted-text" data-section-id="extracted-text" className="scroll-mt-20">
-                <Card className="shadow-sm h-full">
-                <CardHeader>
-                    <CardTitle>Extracted Profile Text</CardTitle>
-                    <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ScrollArea className="h-[calc(100vh-18rem)] rounded-md border p-4">
-                    <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
-                        {result.extractedText}
-                    </pre>
-                    </ScrollArea>
-                </CardContent>
-                </Card>
+            <ImprovementTips suggestions={result.aiSuggestions} />
+
+            <div className="space-y-4">
+              {result.reportSections.map((section, index) => (
+                <ReportSection key={index} section={section} />
+              ))}
             </div>
-          </main>
+
+            <Card>
+              <CardHeader>
+                  <CardTitle>Extracted Profile Text</CardTitle>
+                  <CardDescription>This is the text our AI used for the analysis to ensure accuracy.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-96 overflow-auto">
+                      {result.extractedText}
+                  </pre>
+              </CardContent>
+            </Card>
+
         </div>
       </div>
     );

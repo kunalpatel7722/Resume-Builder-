@@ -3,7 +3,7 @@
 import type { ResumeAtsCheckOutput } from "@/ai/flows/resume-ats-check";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Star } from "lucide-react";
 
 type KeywordAnalysisData = ResumeAtsCheckOutput['keywordAnalysis'];
 
@@ -23,10 +23,17 @@ const KeywordAnalysis = ({ data }: KeywordAnalysisProps) => {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl">Keyword & Skill Match</CardTitle>
-        <CardDescription>
-          We found a {matchPercentage}% match between the keywords in the job description and your resume.
-        </CardDescription>
+        <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 bg-primary/10 text-primary p-2 rounded-lg">
+                <Star className="h-6 w-6" />
+            </div>
+            <div>
+                <CardTitle className="text-xl">Keyword & Skill Match</CardTitle>
+                <CardDescription>
+                We found a {matchPercentage}% match between the keywords in the job description and your resume.
+                </CardDescription>
+            </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
