@@ -139,10 +139,10 @@ export default function ProfileAnalyzer() {
        <div className="min-h-screen bg-background">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 flex h-[calc(100vh-7rem)] flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+            <div className="sticky top-24 flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
                 <ScoreDisplay score={result.score} />
                 <Separator/>
-                <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-4">
+                <div className="flex flex-col gap-4 pr-4">
                     <div>
                         <h3 className="font-bold text-foreground">Summary</h3>
                         <p className="text-sm text-muted-foreground mt-1">{result.summaryFeedback}</p>
