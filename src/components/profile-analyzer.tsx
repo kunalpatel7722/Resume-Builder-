@@ -8,18 +8,20 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft, Briefcase, FileSignature, CheckSquare, Star } from "lucide-react";
+import { UploadCloud, Keyboard, Loader2, BarChart, FileText, Wand2, ArrowLeft } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
 import { linkedinProfileScore, type LinkedinProfileScoreInput, type LinkedinProfileScoreOutput } from "@/ai/flows/linkedin-profile-score";
 import ScoreDisplay from "@/components/score-display";
 import ScoreBreakdown from "./score-breakdown";
+import ImprovementTips from "@/components/improvement-tips";
 
 type AnalysisResult = {
   score: number;
   summaryFeedback: string;
   scoreBreakdown: LinkedinProfileScoreOutput['scoreBreakdown'];
+  improvementTips: LinkedinProfileScoreOutput['improvementTips'];
   extractedText: string;
 };
 
@@ -87,6 +89,7 @@ export default function ProfileAnalyzer() {
         score: scoreOutput.overallScore,
         summaryFeedback: scoreOutput.summaryFeedback,
         scoreBreakdown: scoreOutput.scoreBreakdown,
+        improvementTips: scoreOutput.improvementTips,
         extractedText: scoreOutput.extractedText,
       });
 
@@ -149,23 +152,30 @@ export default function ProfileAnalyzer() {
           </aside>
 
           <main className="lg:col-span-8 xl:col-span-9">
+             <div className="mb-6">
+                <h1 className="text-3xl font-bold text-foreground">LinkedIn Review Results</h1>
+                <p className="text-muted-foreground">Here's a detailed breakdown of your LinkedIn profile analysis.</p>
+            </div>
              <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="overview"><BarChart className="mr-2"/>Overview</TabsTrigger>
                   <TabsTrigger value="extracted-text"><FileText className="mr-2"/>Extracted Text</TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview">
-                    <Card className="shadow-sm">
-                      <CardHeader>
-                        <CardTitle>Detailed Analysis</CardTitle>
-                        <CardDescription>
-                          Each section of your profile has been scored. Click on a section to see detailed checks and feedback.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ScoreBreakdown breakdown={result.scoreBreakdown} />
-                      </CardContent>
-                    </Card>
+                    <div className="space-y-6">
+                      <ImprovementTips tips={result.improvementTips} />
+                      <Card className="shadow-sm">
+                        <CardHeader>
+                          <CardTitle>Detailed Analysis</CardTitle>
+                          <CardDescription>
+                            Each section of your profile has been scored. Click on a section to see detailed checks and feedback.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ScoreBreakdown breakdown={result.scoreBreakdown} />
+                        </CardContent>
+                      </Card>
+                    </div>
                 </TabsContent>
                 <TabsContent value="extracted-text">
                   <Card className="shadow-sm h-full">
@@ -175,7 +185,7 @@ export default function ProfileAnalyzer() {
                     </CardHeader>
                     <CardContent>
                       <ScrollArea className="h-[calc(100vh-12rem)] rounded-md border p-4 bg-muted/50">
-                        <pre className="text-sm text-foreground whitespace-pre-wrap break-words font-sans">
+                        <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
                           {result.extractedText}
                         </pre>
                       </ScrollArea>
