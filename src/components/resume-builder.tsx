@@ -44,6 +44,7 @@ import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 export interface ResumeData {
@@ -200,6 +201,9 @@ export default function ResumeBuilder() {
 
   const [summarySuggestions, setSummarySuggestions] = useState<string[]>([]);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  
+  const isMobile = useIsMobile();
+  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
 
   const showPreview = !fullWidthSteps.includes(currentStep);
 
@@ -225,8 +229,8 @@ export default function ResumeBuilder() {
 
   useEffect(() => {
     const fetchSkillSuggestions = async () => {
-      if (currentStep !== 'skills' || generatingSkills) return;
-  
+      if (generatingSkills) return;
+
       const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
       const latestRole = lastExperienceWithRole?.role;
   
@@ -238,22 +242,17 @@ export default function ResumeBuilder() {
         return;
       }
       
-      // Only re-fetch if the role has changed since last fetch
-      if (latestRole === suggestionsForRole) {
-        return;
-      }
+      if (latestRole === suggestionsForRole) return;
   
       setGeneratingSkills(true);
+      setSuggestionsForRole(latestRole);
       
       try {
         const result = await generateResumeContent({ jobTitle: latestRole });
         setAiSuggestions(result);
-        setSuggestionsForRole(latestRole); 
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        // Don't clear suggestions on failure, maybe previous are still useful
-        // setAiSuggestions(null); 
         setSuggestionsForRole(null);
       } finally {
         setGeneratingSkills(false);
@@ -495,7 +494,12 @@ export default function ResumeBuilder() {
 
   const handleDownloadPdf = async () => {
     const element = previewRef.current;
-    if (!element) return;
+    if (!element) {
+        if(isMobile) {
+            toast({ title: "Preview not visible", description: "Please switch to the Preview tab to download the PDF.", variant: "destructive" });
+        }
+        return;
+    }
 
     setIsDownloading(true);
     try {
@@ -642,7 +646,7 @@ export default function ResumeBuilder() {
       <main className={cn(
           "overflow-y-auto",
           showPreview
-              ? "lg:col-span-5 p-4 sm:p-6 lg:p-8"
+              ? "lg:col-span-4 p-4 sm:p-6 lg:p-8"
               : "w-full py-16 px-4 sm:px-6 lg:px-8"
       )}>
         <div className="lg:hidden">
@@ -674,9 +678,33 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
+        {showPreview && (
+            <div className="lg:hidden sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-2 mb-4 border-b">
+                <div className="flex justify-center rounded-md bg-muted p-1 max-w-xs mx-auto">
+                    <Button 
+                        onClick={() => setMobileView('edit')}
+                        variant={mobileView === 'edit' ? 'default' : 'ghost'}
+                        className="flex-1"
+                        size="sm"
+                    >
+                        Edit
+                    </Button>
+                    <Button 
+                        onClick={() => setMobileView('preview')}
+                        variant={mobileView === 'preview' ? 'default' : 'ghost'}
+                        className="flex-1"
+                        size="sm"
+                    >
+                        Preview
+                    </Button>
+                </div>
+            </div>
+        )}
+
         <div className={cn(
             "min-h-[50vh]",
-            showPreview ? "max-w-xl mx-auto lg:mx-0" : "max-w-4xl mx-auto"
+            showPreview ? "max-w-xl mx-auto lg:mx-0" : "max-w-4xl mx-auto",
+            isMobile && mobileView === 'preview' ? 'hidden' : 'block'
         )}>
           {currentStep === 'career-level' && (
             <div className="space-y-4">
@@ -1115,17 +1143,23 @@ export default function ResumeBuilder() {
               <div className="text-center space-y-4 flex flex-col items-center justify-center h-full">
                   <FileCheck2 className="w-16 h-16 text-green-500" />
                   <h3 className="text-2xl font-bold">Your Resume is Ready!</h3>
-                  <p className="text-muted-foreground max-w-md">Review your resume on the right (on desktop) or download it below. If you need to make changes, just click on a previous step.</p>
+                  <p className="text-muted-foreground max-w-md">
+                    {isMobile
+                      ? "Switch to the Preview tab to see your resume and download it."
+                      : "Review your resume on the right. If you need to make changes, just click on a previous step."
+                    }
+                  </p>
               </div>
           )}
         </div>
         
         <div className={cn("mt-8 pt-6 border-t flex", 
-          showPreview ? "justify-between max-w-xl mx-auto lg:mx-0" : "justify-between max-w-4xl mx-auto"
+          showPreview ? "justify-between max-w-xl mx-auto lg:mx-0" : "justify-between max-w-4xl mx-auto",
+          isMobile && mobileView === 'preview' ? 'hidden' : 'block'
         )}>
           <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Previous</Button>
           {currentStep === 'finalize' ? (
-              <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+              <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className={cn(isMobile && 'hidden')}>
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                   Download PDF
               </Button>
@@ -1136,13 +1170,31 @@ export default function ResumeBuilder() {
           ) : null}
          </div>
 
+        {showPreview && isMobile && mobileView === 'preview' && (
+            <div className="space-y-4">
+                <div className="bg-muted p-2 -mx-4 -mt-4">
+                    <div 
+                        ref={previewRef} 
+                        className="w-full aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
+                    >
+                        {templateComponents[selectedTemplate as keyof typeof templateComponents]}
+                    </div>
+                </div>
+                {currentStep === 'finalize' && (
+                    <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className="w-full">
+                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
+                        Download PDF
+                    </Button>
+                )}
+            </div>
+        )}
       </main>
 
       {showPreview && (
-        <aside className="hidden lg:flex lg:col-span-4 bg-muted p-8 items-start justify-center overflow-y-auto">
+        <aside className="hidden lg:flex lg:col-span-5 bg-muted p-8 items-start justify-center overflow-y-auto">
           <div 
             ref={previewRef} 
-            className="w-full max-w-2xl aspect-[1/1.414] bg-white transform scale-95 origin-top shadow-xl ring-1 ring-black/5"
+            className="w-full max-w-2xl aspect-[1/1.414] bg-white shadow-xl ring-1 ring-black/5"
           >
             {templateComponents[selectedTemplate as keyof typeof templateComponents]}
           </div>
