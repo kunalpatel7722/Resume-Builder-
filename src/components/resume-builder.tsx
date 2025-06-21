@@ -39,6 +39,9 @@ import { CreativeWriterTemplate } from './resume-templates/creative-writer-templ
 import { DatePicker } from './ui/date-picker';
 import { Checkbox } from './ui/checkbox';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
+
 
 export interface ResumeData {
   personalInfo: {
@@ -663,12 +666,6 @@ export default function ResumeBuilder() {
                   <p className="text-muted-foreground">Pick from our ready-to-use phrases or write your own and get AI writing help.</p>
 
                   <div>
-                    <div className="flex justify-end items-center mb-1">
-                        <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                          {generatingIndex === index ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                          Enhance with AI
-                      </Button>
-                    </div>
                     <div className="flex items-center gap-2 border border-input rounded-t-md p-1 bg-muted/50">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
@@ -684,6 +681,29 @@ export default function ResumeBuilder() {
                         placeholder="Use the toolbar to add formatting."
                       />
                   </div>
+                  <Card className="bg-muted/50">
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Wand2 className="h-5 w-5 text-primary" />
+                        AI Content Helper
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="flex items-center gap-2">
+                         <Input
+                              id={`ai-role-${exp.id}`}
+                              value={exp.role}
+                              readOnly
+                              placeholder="Job title from previous step"
+                              className="bg-background"
+                          />
+                          <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                              Get Suggestions
+                          </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
 
                   {aiSuggestions && suggestionsForIndex === index && (
                     <Card className="bg-muted/50">
@@ -796,3 +816,5 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+
+    
