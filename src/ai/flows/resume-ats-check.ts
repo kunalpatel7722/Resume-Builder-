@@ -58,12 +58,12 @@ const resumeAtsCheckPrompt = ai.definePrompt({
   name: 'resumeAtsCheckPrompt',
   input: {schema: ResumeAtsCheckInputSchema},
   output: {schema: ResumeAtsCheckOutputSchema},
-  prompt: `You are a world-class ATS (Applicant Tracking System) resume scanner and career coach, inspired by the extremely strict and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a resume against a specific job description. You must be an exceptionally harsh but fair grader.
+  prompt: `You are a world-class resume checker AI, inspired by the detailed, section-by-section analysis of tools like Enhancv. Your goal is to provide a comprehensive, strict, and actionable review of a resume against a job description, focusing on content, formatting, and ATS compatibility.
 
 **CRITICAL SCORING GUIDELINES:**
-- **Calibrate Harshly:** Do not be generous. An average, unoptimized resume should score between 20-40. A score above 85 is reserved for only the most exceptional, perfectly optimized resumes that meet every single criterion flawlessly.
-- **No Partial Credit:** For a check to 'pass', it must be executed perfectly, not just attempted. If achievements are listed but are not quantified with strong metrics, the check fails.
-- **Positive Reinforcement:** For passed checks, your 'details' should be encouraging and explain *why* it's a good practice. For overall feedback in each category and in the final summary, always start with the positives.
+- **Calibrate Harshly:** Be a tough grader. An average, unoptimized resume should score between 30-50. A score above 85 is reserved for truly exceptional resumes that meet every criterion flawlessly.
+- **No Partial Credit:** A check must be executed perfectly to 'pass'. For example, if a resume has *some* metrics but not enough, the check fails.
+- **Constructive Feedback:** For passed checks, your 'details' should explain *why* it's good. For failed checks, explain the problem and give clear, actionable advice. Always start overall feedback with positives.
 
 Resume Data (as PDF):
 {{media url=resumePdfData}}
@@ -73,46 +73,53 @@ Job Description:
 
 **Analysis Steps:**
 
-1.  **Extract Resume Text**: Extract all text from the resume PDF. Return this in the 'extractedText' field. This is the source material for your entire analysis.
+1.  **Extract Resume Text**: Extract all text from the resume PDF. This is your source material. Return this full text in the 'extractedText' field.
 
 2.  **Keyword Analysis**:
-    *   From the Job Description, identify the top 15-20 most critical hard skills, soft skills, and technologies (keywords).
-    *   Thoroughly scan the extracted resume text for these keywords.
-    *   Populate the 'keywordAnalysis' object with two distinct lists: 'foundKeywords' and 'missingKeywords'. This is the most critical step for ATS scoring.
+    *   Identify the top 15-20 most critical hard and soft skills (keywords) from the Job Description.
+    *   Scan the resume for these keywords.
+    *   Populate the 'keywordAnalysis' object with 'foundKeywords' and 'missingKeywords'.
 
-3.  **Analyze and Score with Extreme Precision**: Perform a detailed analysis and generate a score for each category below. The scoring for each category and the overall score must be heavily influenced by the keyword match.
+3.  **Analyze and Score with Precision**: Perform a detailed analysis and generate a score for each category below. The scoring must be heavily influenced by the keyword match and the specific checks.
 
     **Categories to Analyze:**
 
-    *   **Impact & Achievements:** (Weight: 30%)
+    *   **Resume Sections (Weight: 25%)**: Evaluates the presence and completeness of essential resume sections.
         *   Checks:
-            *   Quantified Results: Are there at least 3-5 bullet points across the entire resume with strong, specific, quantifiable metrics (e.g., "Increased user engagement by 25%," "Reduced server costs by $15,000 annually," "Managed a budget of $500k")?
-            *   Strong Action Verbs: Does each bullet point start with a powerful and varied action verb (e.g., 'Architected,' 'Spearheaded,' 'Negotiated')? Avoid weak/passive phrases like 'Responsible for' or 'Duties included'.
-            *   Achievement-Oriented Language: Do bullet points clearly describe accomplishments and their impact, rather than just listing job duties and responsibilities? (e.g., "Grew organic traffic by 150%" vs. "Did SEO").
-    *   **Skills & Keywords Match:** (Weight: 35%)
-        *   Checks:
-            *   High Keyword Density: Based on your keyword analysis, is there a >80% match rate between the job description's critical keywords and those in the resume?
-            *   Dedicated Skills Section: Is there a clearly labeled "Skills" or "Technical Skills" section that lists key competencies?
-            *   Contextual Skill Integration: Are the most important keywords from the job description also naturally woven into the work experience bullet points?
-            *   Skill Proficiency Levels: Does the resume avoid listing subjective proficiency levels like "Expert" or "Proficient" which are ignored by ATS?
-    *   **Brevity & Formatting:** (Weight: 20%)
-        *   Checks:
-            *   ATS-Friendly Format: Is the resume completely free of columns, tables, images, icons, and text boxes? These elements can be misread by ATS.
-            *   Standard Font & Size: Is a standard, professional font (e.g., Calibri, Georgia, Arial, Times New Roman) used at a readable size (10-12pt)?
-            *   Appropriate Length: Is the resume 1 page for less than 10 years of experience, and a maximum of 2 pages for more?
-            *   Concise Bullet Points: Are bullet points kept to 1-2 lines to maximize readability and impact?
-    *   **Structure & Clarity:** (Weight: 15%)
-        *   Checks:
-            *   Standard Section Headers: Are common, ATS-friendly section headers used (e.g., "Work Experience", "Education", "Skills")? Avoid creative titles like "My Journey".
-            *   Complete & Professional Contact Info: Are Name, Phone Number, Professional Email, and a clickable LinkedIn profile URL present at the top?
-            *   Location Information: Is the City and State/Country included? A full street address is not necessary or recommended.
-            *   Reverse-Chronological Order: Is all date-based information (Experience, Education) listed in reverse-chronological order (most recent first)?
+            *   Contact Information: Is professional contact info (Name, Phone, Email, LinkedIn URL) present and easily accessible at the top?
+            *   Summary/Objective: Is a concise, compelling professional summary or objective statement included to frame the resume?
+            *   Work Experience: Is a clearly defined "Work Experience" or similar section present with job titles, companies, and dates?
+            *   Education: Is the "Education" section present with institution, degree, and graduation date?
+            *   Skills: Is there a dedicated "Skills" section listing technical and soft skills?
 
-4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights. The final score should be calibrated downwards to fit the harsh scoring model.
+    *   **Content Analysis (Weight: 35%)**: Analyzes the quality and impact of the language used.
+        *   Checks:
+            *   Action Verbs: Does each bullet point begin with a strong, varied action verb (e.g., 'Spearheaded,' 'Engineered,' 'Maximized')? Avoids passive language like 'Responsible for'.
+            *   Quantifiable Metrics: Are there at least 3-5 powerful, quantifiable achievements (using numbers, %, or $) across the resume?
+            *   Conciseness: Are bullet points concise (ideally 1-2 lines) and easy to scan? Avoids long, dense paragraphs.
+            *   Keyword Integration: Are the most important keywords from the job description naturally integrated into the experience bullet points, not just listed in the skills section?
+            *   Filler & Buzzwords: Is the language professional and free from clichés ("team player") or filler phrases ("duties included")?
 
-5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Always start with the strengths.
+    *   **Formatting & Readability (Weight: 25%)**: Assesses the visual presentation and consistency.
+        *   Checks:
+            *   Resume Length: Is the resume 1 page for <10 years of experience, and max 2 pages for more? Brevity is key.
+            *   Font & Size: Is a standard, professional font (e.g., Calibri, Georgia) used at a readable size (10-12pt)?
+            *   Date Formatting: Is the date format consistent across all sections (e.g., "Jan 2022 - Present" or "01/2022 - Present")?
+            *   Consistent Layout: Is the overall layout clean, with consistent use of bolding, italics, and spacing to guide the reader's eye?
+            *   Use of White Space: Is there sufficient white space (margins, line spacing) to avoid a cluttered look and improve readability?
 
-6.  **Generate Top 3 Improvement Tips**: Based on your deep analysis, identify the three most critical areas for improvement that will have the biggest impact on the score. Generate personalized, actionable tips for each. These must be concrete and directly reference the user's resume and the job description.
+    *   **ATS Compatibility (Weight: 15%)**: Checks for technical elements that affect machine readability.
+        *   Checks:
+            *   ATS-Friendly Design: Is the resume free of elements that can confuse an ATS, such as tables, columns, images, and text boxes?
+            *   Standard Headers: Are standard section headers used (e.g., "Work Experience") that an ATS can easily parse?
+            *   File Format: Note the importance of submitting as a PDF to preserve formatting, and confirm the text extraction quality is high.
+            *   Contact Info Parsing: Is contact information presented simply, without icons, so it can be parsed correctly?
+
+4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights. Calibrate the final score downwards to fit the harsh scoring model.
+
+5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Start with the strengths.
+
+6.  **Generate Top 3 Improvement Tips**: Based on your analysis, identify the three most critical areas for improvement that will have the biggest impact on the score. Generate personalized, actionable tips.
 
 7.  **Format Output**: Return a single JSON object that strictly adheres to the output schema. Ensure all fields are populated correctly.
 `,
