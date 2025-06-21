@@ -1,0 +1,78 @@
+
+import React from 'react';
+import type { ResumeData } from '@/components/resume-builder';
+
+export const AcademicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+  const { personalInfo, summary, experience, education, skills } = data;
+
+  return (
+    <div className="bg-white text-gray-900 p-10 w-full h-full font-serif text-sm">
+      <header className="text-center mb-6">
+        <h1 className="text-4xl font-bold">{personalInfo.name || 'Your Name'}</h1>
+        <p className="text-md text-gray-700 mt-1">{experience[0]?.role || 'Professional Title'}</p>
+        <div className="text-xs text-gray-600 mt-3">
+          <span>{personalInfo.address}</span>
+          {personalInfo.address && (personalInfo.phone || personalInfo.email) ? <span className="mx-2">·</span> : ''}
+          <span>{personalInfo.phone}</span>
+          {personalInfo.phone && personalInfo.email ? <span className="mx-2">·</span> : ''}
+          <span>{personalInfo.email}</span>
+        </div>
+      </header>
+
+      <hr className="border-gray-300 mb-6" />
+
+      <main className="space-y-6">
+        {summary && (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-700 mb-2">Professional Summary</h2>
+            <p className="text-gray-700 leading-relaxed">{summary}</p>
+          </section>
+        )}
+
+        {education.length > 0 && education[0]?.school && (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-700 mb-3">Education</h2>
+            {education.map((edu) => (
+              <div key={edu.id} className="mb-3">
+                 <div className="flex justify-between items-baseline">
+                    <h3 className="text-md font-semibold">{edu.school || 'School Name'}</h3>
+                    <p className="text-xs text-gray-600 font-medium">{edu.dates || 'Dates'}</p>
+                </div>
+                <p className="text-sm italic text-gray-800">{edu.degree || 'Degree'}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {experience.length > 0 && experience[0]?.role && (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-700 mb-3">Professional Experience</h2>
+            {experience.map((job) => (
+              <div key={job.id} className="mb-4">
+                <div className="flex justify-between items-baseline">
+                  <h3 className="text-md font-semibold">{job.role || 'Job Title'}</h3>
+                  <p className="text-xs text-gray-600 font-medium">{job.dates || 'Dates'}</p>
+                </div>
+                <p className="text-sm font-medium italic text-gray-800">{job.company || 'Company Name'}</p>
+                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1 text-sm">
+                  {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
+                    <li key={i} className="pl-2">{desc.replace(/^•\s*/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {skills.length > 0 && (
+           <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-700 mb-2">Areas of Expertise</h2>
+            <p className="text-gray-700 text-sm">{skills.filter(skill => skill).join(', ')}</p>
+           </section>
+        )}
+      </main>
+    </div>
+  );
+};
+
+    

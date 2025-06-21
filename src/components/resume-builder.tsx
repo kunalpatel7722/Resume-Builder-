@@ -22,6 +22,8 @@ import { ProfessionalTemplate } from './resume-templates/professional-template';
 import { MinimalistTemplate } from './resume-templates/minimalist-template';
 import { ExecutiveTemplate } from './resume-templates/executive-template';
 import { SimpleTemplate } from './resume-templates/simple-template';
+import { TechnicalTemplate } from './resume-templates/technical-template';
+import { AcademicTemplate } from './resume-templates/academic-template';
 
 export interface ResumeData {
   personalInfo: {
@@ -77,6 +79,8 @@ const templates = [
   { id: 'minimalist', name: 'Minimalist' },
   { id: 'executive', name: 'Executive' },
   { id: 'simple', name: 'Simple' },
+  { id: 'technical', name: 'Technical' },
+  { id: 'academic', name: 'Academic' },
 ];
 
 const careerLevels = [
@@ -299,6 +303,8 @@ export default function ResumeBuilder() {
     minimalist: <MinimalistTemplate data={resumeData} />,
     executive: <ExecutiveTemplate data={resumeData} />,
     simple: <SimpleTemplate data={resumeData} />,
+    technical: <TechnicalTemplate data={resumeData} />,
+    academic: <AcademicTemplate data={resumeData} />,
   };
 
   return (
@@ -584,3 +590,5 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+
+    

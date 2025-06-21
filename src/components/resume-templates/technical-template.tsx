@@ -1,0 +1,89 @@
+
+import React from 'react';
+import type { ResumeData } from '@/components/resume-builder';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code } from 'lucide-react';
+
+export const TechnicalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
+  const { personalInfo, summary, experience, education, skills } = data;
+
+  return (
+    <div className="bg-white text-gray-800 w-full h-full font-sans flex text-xs">
+        <aside className="w-1/3 bg-gray-900 text-white p-6 flex flex-col space-y-6">
+            <section className="text-center">
+                <h1 className="text-2xl font-bold tracking-tight">{personalInfo.name || 'Your Name'}</h1>
+                <h2 className="text-md text-primary mt-1 font-mono">{experience[0]?.role || 'Your Title'}</h2>
+            </section>
+
+            <div className="w-full h-px bg-gray-700" />
+
+            <section>
+                 <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Contact</h3>
+                 <div className="space-y-2 text-gray-300">
+                    {personalInfo.email && <div className="flex items-center gap-2"><Mail size={14} /><span>{personalInfo.email}</span></div>}
+                    {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} /><span>{personalInfo.phone}</span></div>}
+                    {personalInfo.address && <div className="flex items-center gap-2"><MapPin size={14} /><span>{personalInfo.address}</span></div>}
+                </div>
+            </section>
+
+            {education.length > 0 && education[0]?.school && (
+                <section>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Education</h3>
+                    <div className="space-y-3">
+                        {education.map((edu) => (
+                          <div key={edu.id}>
+                             <h4 className="font-bold text-white">{edu.school || 'School Name'}</h4>
+                             <p className="text-gray-300">{edu.degree || 'Degree'}</p>
+                             <p className="text-xs text-gray-400">{edu.dates || 'Dates'}</p>
+                          </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {skills.length > 0 && (
+                <section>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">Skills</h3>
+                    <ul className="flex flex-wrap gap-1.5">
+                        {skills.filter(skill => skill).map((skill, index) => (
+                            <li key={index} className="bg-primary/20 text-primary-foreground text-[11px] font-mono px-2 py-0.5 rounded">{skill}</li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+        </aside>
+
+        <main className="w-2/3 p-8">
+            {summary && (
+              <section className="mb-6">
+                <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3">Profile</h2>
+                <p className="text-gray-600 leading-relaxed">{summary}</p>
+              </section>
+            )}
+
+            {experience.length > 0 && experience[0]?.role && (
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-wider text-gray-800 flex items-center gap-2 pb-1 border-b-2 border-gray-200 mb-3"><Briefcase size={18}/>Experience</h2>
+                <div className="space-y-4">
+                  {experience.map((job) => (
+                    <div key={job.id}>
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
+                        <p className="text-xs text-gray-500 font-medium">{job.dates || 'Dates'}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}</p>
+                      <ul className="mt-2 text-gray-600 space-y-1 text-sm list-disc list-outside pl-4 font-mono">
+                        {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
+                          <li key={i}>{desc.replace(/^•\s*/, '')}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+        </main>
+    </div>
+  );
+};
+
+    
