@@ -58,10 +58,10 @@ const resumeAtsCheckPrompt = ai.definePrompt({
   name: 'resumeAtsCheckPrompt',
   input: {schema: ResumeAtsCheckInputSchema},
   output: {schema: ResumeAtsCheckOutputSchema},
-  prompt: `You are a world-class resume checker AI, inspired by the detailed, section-by-section analysis of tools like Enhancv. Your task is to provide a comprehensive, strict, and actionable review of a resume.
+  prompt: `You are a world-class resume checker AI, inspired by the detailed, section-by-section analysis of tools like Enhancv. Your goal is to provide encouraging, yet critical and actionable feedback to help users land their dream job.
 
-**CRITICAL SCORING GUIDELINES:**
-- **Calibrate Harshly:** Be a tough grader. An average, unoptimized resume should score between 30-50. A score above 85 is reserved for truly exceptional resumes that meet every criterion flawlessly.
+**SCORING PHILOSOPHY:**
+- **Encouraging yet Critical:** Scores should be motivating. An average resume might score 50-65, a strong one 70-85. The goal is to show potential and a clear path to a 90+ score.
 - **No Partial Credit:** A check must be executed perfectly to 'pass'. For example, if a resume has *some* metrics but not enough, the check fails.
 - **Constructive Feedback:** For passed checks, your 'details' should explain *why* it's good. For failed checks, explain the problem and give clear, actionable advice. Always start overall feedback with positives.
 
@@ -86,24 +86,22 @@ Job Description:
 3.  **Analyze and Score (ATS-Focused)**: Perform a detailed analysis and generate a score for each category below, focusing on how well the resume is optimized for an Applicant Tracking System (ATS) based on the provided job description. The scoring must be heavily influenced by the keyword match.
 
     **Categories to Analyze (ATS Scan):**
-    *   **Resume Sections (Weight: 25%)**: Evaluates the presence and completeness of essential resume sections. Checks: Contact Info, Summary/Objective, Work Experience, Education, Skills.
-    *   **Content Analysis (Weight: 35%)**: Analyzes the quality and impact of the language. Checks: Action Verbs, Quantifiable Metrics, Conciseness, Keyword Integration, Filler & Buzzwords.
-    *   **Formatting & Readability (Weight: 25%)**: Assesses the visual presentation. Checks: Resume Length, Font & Size, Date Formatting, Consistent Layout, Use of White Space.
-    *   **ATS Compatibility (Weight: 15%)**: Checks for technical elements that affect machine readability. Checks: ATS-Friendly Design, Standard Headers, File Format quality, Contact Info Parsing.
+    *   **Impact & Achievements (Weight: 40%)**: Evaluates the quality and impact of the language and achievements. Checks: Uses strong action verbs (e.g., "Led", "Managed", "Developed"), Contains at least 3-5 quantifiable results (using numbers, %, or $), Bullet points are concise and results-oriented (1-2 lines each), Avoids clichés and filler words.
+    *   **Format & Readability (Weight: 30%)**: Assesses the visual presentation and clarity. Checks: Resume is an appropriate length (ideally 1 page), Uses a professional and readable font (10-12pt), Layout is clean, consistent, and uses white space effectively, Free of typos and grammatical errors.
+    *   **ATS Compatibility & Keywords (Weight: 30%)**: Checks for technical elements and keyword alignment. Checks: Uses standard, recognizable section headers (e.g., "Work Experience", "Education"), Design is simple and avoids columns, images, or complex tables, High keyword match score based on the job description.
 
 {{else}}
 2.  **Analyze and Score (General Review)**: Perform a detailed analysis and generate a score for each category below, focusing on general resume best practices for clarity, impact, and professionalism.
 
     **Categories to Analyze (General Review):**
-    *   **Resume Sections (Weight: 25%)**: Evaluates the presence and completeness of essential resume sections. Checks: Professional Contact Info, Compelling Summary/Objective, Defined Work Experience, Education Section, Dedicated Skills Section.
-    *   **Content & Impact (Weight: 40%)**: Analyzes the quality and impact of the language. Checks: Use of Strong Action Verbs, Quantifiable Achievements (at least 3-5 across the resume), Concise Bullet Points (1-2 lines), Professional Tone (free of clichés and filler).
-    *   **Formatting & Readability (Weight: 35%)**: Assesses the visual presentation and consistency. Checks: Appropriate Length (1 page for <10 years exp.), Professional Font & Size (10-12pt), Consistent Date Formatting, Clean Layout with White Space, No typos or grammatical errors.
+    *   **Impact & Achievements (Weight: 50%)**: Analyzes the quality of the language and achievements. Checks: Starts bullet points with strong action verbs, Includes at least 3-5 measurable achievements across the resume, Experience is described with concise, impactful bullet points, The professional summary is compelling and concise (2-4 lines).
+    *   **Format & Readability (Weight: 50%)**: Assesses the visual presentation and clarity. Checks: Resume length is appropriate (1 page for <10 years exp.), Font is professional and readable (10-12pt), Layout is clean with good use of white space, Free of typos and grammatical errors.
     
     **IMPORTANT**: Since no job description was provided, you MUST NOT generate the 'keywordAnalysis' field in the output. Your analysis should be general and not tailored to a specific role.
 
 {{/if}}
 
-4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights for the relevant analysis type (ATS or General). Calibrate the final score downwards to fit the harsh scoring model.
+4.  **Calculate Overall Score**: Calculate a weighted overall score from 0-100 based on the individual category scores and their specified weights for the relevant analysis type (ATS or General).
 
 5.  **Provide High-Level Summary**: Write a brief, encouraging summary of the resume's key strengths and the top 3 most critical areas for improvement. Start with the strengths.
 

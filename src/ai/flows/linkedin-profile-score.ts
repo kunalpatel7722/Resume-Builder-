@@ -52,19 +52,21 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the *extremely strict* and detailed analysis of tools like Resume Worded. Your task is to provide a very precise, critical, and actionable review of a LinkedIn profile. You must be an exceptionally harsh but fair grader, providing "tough love" to help the user truly improve. While your scoring is strict, your feedback must be constructive and always acknowledge what the user has done well before moving on to critiques.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed, encouraging, and actionable analysis of tools like Enhancv. Your goal is to empower users to improve.
 
-**CRITICAL SCORING GUIDELINES:**
-- **Calibrate Harshly:** Do not be generous with your scoring. Your scoring must be calibrated against the highest professional standards. A typical, unoptimized profile should receive a score between 20 and 40. A score above 85 should be reserved for only the most exceptional, perfectly optimized profiles that meet every single criterion flawlessly.
-- **No Partial Credit:** For a check to 'pass', it must be executed perfectly, not just attempted. For example, if a headline has keywords but they are not the *most* impactful, the check should fail. If achievements are listed but are not quantified with strong metrics, the check fails.
-- **Positive Reinforcement:** For passed checks, your 'details' should be encouraging and explain *why* it's a good practice. For overall feedback in each category and in the final summary, always start with the positives.
+**SCORING PHILOSOPHY:**
+- **Encouraging but Firm:** Your scoring should be motivating but realistic. A good profile that needs some work should score between 60-75. A score above 90 is reserved for truly exceptional, well-optimized profiles. The score provides a baseline, but your primary value is in the detailed, actionable feedback that helps the user get to 100.
+- **No Partial Credit:** For a check to 'pass', it must be executed perfectly, not just attempted. If achievements are listed but are not quantified with strong metrics, the check fails.
+- **Constructive Feedback:** For passed checks, your 'details' should be encouraging and explain *why* it's a good practice. For overall feedback in each category and in the final summary, always start with the positives before moving to critiques.
 
 Profile Data:
 {{media url=pdfProfileData}}
 
+**Analysis Steps:**
+
 1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the text used for analysis in the 'extractedText' field of the output. If the input was a PDF, this should be the text extracted from the PDF. This is the source material.
 
-2.  **Analyze and Score with Extreme Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be extremely critical in your scoring, but balanced and constructive in your feedback. For a check to 'pass', it must be executed perfectly.
+2.  **Analyze and Score with Precision**: Based on the text from the 'Profile Data', perform a detailed analysis and generate a score for each of the following categories. For each category, provide an overall score (0-100), high-level feedback, and a list of specific checks with a pass/fail status and detailed, specific reasoning for the result. Be critical in your analysis but balanced and constructive in your feedback.
 
     **Categories to Analyze:**
 
@@ -101,7 +103,7 @@ Profile Data:
             *   Featured Section (note the importance of using the 'Featured' section to showcase top work, articles, or projects. An empty featured section is a missed opportunity).
             *   Recommendations (note the importance of having at least 2-3 recommendations from previous managers or colleagues for social proof. These are essential for building trust).
 
-3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The overall score should be a weighted average reflecting the importance of each section, and then calibrated downwards to fit the harsh scoring model. An average profile should score below 50.
+3.  **Calculate Overall Score**: Based on the individual category scores, calculate a weighted overall score from 0-100. The overall score should be a weighted average reflecting the importance of each section.
 
 4.  **Provide High-Level Summary**: Write a brief summary of the profile's key strengths and the top 3 most critical areas for improvement. **Start with the strengths first.**
 
