@@ -605,7 +605,7 @@ export default function ResumeBuilder() {
           )}
           {currentStep === 'experience' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Great! Let's work on your experience</h3>
+                <h3 className="text-2xl font-semibold">Tell us about your most recent job</h3>
                 <p className="text-muted-foreground">Start with your most recent job and work backward.</p>
                 
                 {resumeData.experience.map((exp, index) => (
@@ -674,7 +674,7 @@ export default function ResumeBuilder() {
 
                       <Card className="bg-primary/5 border-primary/20">
                           <CardHeader className="p-3">
-                              <CardTitle className="flex items-center gap-2 text-base"><Bot size={18}/> AI Content Helper</CardTitle>
+                              <CardTitle className="flex items-center gap-2 text-base"><Wand2 size={18}/> Enhance with AI</CardTitle>
                               <CardDescription className="text-xs">Enter a job title to get AI-powered suggestions.</CardDescription>
                           </CardHeader>
                           <CardContent className="p-3 pt-0">
@@ -685,7 +685,7 @@ export default function ResumeBuilder() {
                                     onChange={(e) => handleJobTitleChange(index, e.target.value)}
                                   />
                                   <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                                      {generatingIndex === index ? <Loader2 className="animate-spin" /> : 'Generate'}
+                                      {generatingIndex === index ? <Loader2 className="animate-spin" /> : 'Get Suggestions'}
                                   </Button>
                               </div>
                           </CardContent>
@@ -776,7 +776,7 @@ export default function ResumeBuilder() {
         
         {/* Footer with Next/Prev buttons */}
         <div className="mt-8 pt-6 border-t flex justify-between max-w-xl mx-auto lg:mx-0">
-          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Back</Button>
+          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Previous</Button>
           {currentStep === 'finalize' ? (
               <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                   {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
