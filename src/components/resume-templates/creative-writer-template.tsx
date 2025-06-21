@@ -2,6 +2,8 @@
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Feather, BookOpen, PenTool } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -36,11 +38,9 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
                     <h3 className="text-xl font-semibold">{job.role || 'Job Title'}</h3>
                     <p className="text-md italic text-gray-700">{job.company || 'Publisher / Company'} &mdash; <span className="text-sm text-gray-500">{job.dates || 'Dates'}</span></p>
                 </div>
-                <div className="text-gray-800 space-y-2 prose prose-sm max-w-none">
-                  {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                    <p key={i}>{desc.replace(/^•\s*/, '')}</p>
-                  ))}
-                </div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                    {job.description}
+                </ReactMarkdown>
             </div>
             ))}
           </section>

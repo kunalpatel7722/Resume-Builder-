@@ -2,6 +2,8 @@
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -55,11 +57,9 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                        <div className="absolute -left-[30px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-gray-100"></div>
                       <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
                       <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'} / <span className="text-xs font-normal text-gray-500">{job.dates || 'Dates'}</span></p>
-                      <ul className="mt-2 text-gray-600 space-y-1 text-sm list-disc list-outside pl-4">
-                        {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                          <li key={i}>{desc.replace(/^•\s*/, '')}</li>
-                        ))}
-                      </ul>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none text-gray-600">
+                          {job.description}
+                      </ReactMarkdown>
                     </div>
                   ))}
                 </div>

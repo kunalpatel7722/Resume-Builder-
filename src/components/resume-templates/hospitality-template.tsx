@@ -2,6 +2,8 @@
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -36,11 +38,9 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
                     <p className="text-sm text-gray-600">{job.dates || 'Dates'}</p>
                 </div>
                 <p className="text-md italic">{job.role || 'Job Title'}</p>
-                <ul className="mt-2 text-gray-700 space-y-1 list-disc list-outside pl-5">
-                {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                    <li key={i}>{desc.replace(/^•\s*/, '')}</li>
-                ))}
-                </ul>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-base max-w-none prose-serif text-gray-700">
+                  {job.description}
+                </ReactMarkdown>
             </div>
             ))}
           </section>

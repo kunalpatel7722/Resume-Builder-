@@ -1,6 +1,8 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -38,11 +40,9 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
                     <p className="text-xs text-gray-500">{job.dates || 'Dates'}</p>
                     </div>
                     <p className="text-md text-gray-600">{job.company || 'Company Name'}</p>
-                    <ul className="mt-2 text-gray-600 space-y-1 text-sm list-disc list-outside pl-4 font-light">
-                    {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                        <li key={i} className="pl-2">{desc.replace(/^•\s*/, '')}</li>
-                    ))}
-                    </ul>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm prose-p:font-light max-w-none text-gray-600">
+                      {job.description}
+                    </ReactMarkdown>
                 </div>
                 ))}
             </div>

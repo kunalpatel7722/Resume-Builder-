@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, ChangeEvent } from 'react';
+import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { generateResumeContent, type GenerateResumeContentOutput } from '@/ai/fl
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -69,8 +69,8 @@ export interface ResumeData {
 const initialResumeData: ResumeData = {
   personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
   summary: '',
-  experience: [{ id: 1, company: '', role: '', dates: '', description: '' }],
-  education: [{ id: 1, school: '', degree: '', dates: '' }],
+  experience: [{ id: Date.now(), company: '', role: '', dates: '', description: '' }],
+  education: [{ id: Date.now(), school: '', degree: '', dates: '' }],
   skills: [],
   targetCountry: '',
 };
@@ -145,6 +145,18 @@ export default function ResumeBuilder() {
   const [aiSuggestions, setAiSuggestions] = useState<GenerateResumeContentOutput | null>(null);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
   const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
+  const [editorFocus, setEditorFocus] = useState<{ id: string; start: number; end: number } | null>(null);
+
+  useEffect(() => {
+    if (editorFocus) {
+      const el = document.getElementById(editorFocus.id) as HTMLTextAreaElement;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(editorFocus.start, editorFocus.end);
+      }
+      setEditorFocus(null);
+    }
+  }, [editorFocus, resumeData.experience]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -224,9 +236,54 @@ export default function ResumeBuilder() {
   const handleAddResponsibility = (responsibility: string, experienceIndex: number) => {
     const newExperience = [...resumeData.experience];
     const currentDescription = newExperience[experienceIndex].description;
-    newExperience[experienceIndex].description = (currentDescription ? currentDescription + '\n' : '') + `• ${responsibility}`;
-    setResumeData(prev => ({ ...prev, experience: newExperience }));
+    const newDescription = (currentDescription ? currentDescription + '\n' : '') + `* ${responsibility}`;
+    
+    const event = { target: { name: 'description', value: newDescription } } as any;
+    handleExperienceChange(experienceIndex, event);
   };
+
+  const applyFormat = (index: number, format: 'bold' | 'italic' | 'bullet') => {
+    const expId = resumeData.experience[index].id;
+    const textareaId = `description-${expId}`;
+    const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    let newValue;
+    let newStart;
+    let newEnd;
+
+    switch (format) {
+      case 'bold':
+        newValue = `${text.substring(0, start)}**${selectedText || 'text'}**${text.substring(end)}`;
+        newStart = start + 2;
+        newEnd = newStart + (selectedText || 'text').length;
+        break;
+      case 'italic':
+        newValue = `${text.substring(0, start)}*${selectedText || 'text'}*${text.substring(end)}`;
+        newStart = start + 1;
+        newEnd = newStart + (selectedText || 'text').length;
+        break;
+      case 'bullet':
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        newValue = `${text.substring(0, lineStart)}* ${text.substring(lineStart)}`;
+        newStart = start + 2;
+        newEnd = newStart;
+        break;
+      default:
+        return;
+    }
+    
+    const event = { target: { name: 'description', value: newValue } } as any;
+    handleExperienceChange(index, event);
+
+    setEditorFocus({ id: textareaId, start: newStart, end: newEnd });
+  };
+
 
   const handleAddSkill = (skill: string) => {
     if (!resumeData.skills.includes(skill)) {
@@ -556,8 +613,20 @@ export default function ResumeBuilder() {
                           <div><Label>Dates (e.g., 2020 - Present)</Label><Input name="dates" value={exp.dates} onChange={(e) => handleExperienceChange(index, e)} /></div>
                       </div>
                       <div>
-                          <Label>Description</Label>
-                          <Textarea name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e)} className="h-24" placeholder="Start each bullet point on a new line with a '•'."/>
+                        <Label>Description</Label>
+                        <div className="flex items-center gap-2 border border-input rounded-md p-1 bg-muted/50 mb-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bullet')}><List size={16}/></Button>
+                        </div>
+                        <Textarea 
+                            id={`description-${exp.id}`}
+                            name="description" 
+                            value={exp.description} 
+                            onChange={(e) => handleExperienceChange(index, e)} 
+                            className="h-24 rounded-t-none border-t-0" 
+                            placeholder="Use the toolbar to add formatting."
+                          />
                       </div>
 
                       <Card className="bg-primary/5 border-primary/20">

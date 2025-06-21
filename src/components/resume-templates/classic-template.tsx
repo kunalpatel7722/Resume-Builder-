@@ -1,6 +1,8 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -40,11 +42,9 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                   <p className="text-xs text-gray-600 font-medium">{job.dates || 'Dates'}</p>
                 </div>
                 <p className="text-sm font-medium italic text-gray-800">{job.company || 'Company Name'}</p>
-                <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1 text-sm">
-                  {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                    <li key={i} className="pl-2">{desc.replace(/^•\s*/, '')}</li>
-                  ))}
-                </ul>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-700">
+                    {job.description}
+                </ReactMarkdown>
               </div>
             ))}
           </section>

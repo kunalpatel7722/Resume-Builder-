@@ -2,6 +2,8 @@
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import { Scale } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, experience, education, skills } = data;
@@ -41,11 +43,9 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                   <p className="text-sm font-medium">{job.dates || 'Dates'}</p>
                 </div>
                 <p className="text-md italic">{job.role || 'Job Title'}</p>
-                <ul className="list-disc list-inside mt-2 text-gray-800 space-y-1">
-                  {job.description.split('\n').filter(line => line.trim() !== '').map((desc, i) => (
-                    <li key={i} className="pl-2">{desc.replace(/^•\s*/, '')}</li>
-                  ))}
-                </ul>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none prose-serif text-gray-800">
+                    {job.description}
+                </ReactMarkdown>
               </div>
             ))}
           </section>
