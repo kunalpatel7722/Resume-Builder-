@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HeartPulse } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, HeartPulse, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -67,7 +67,7 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
 
         {education.length > 0 && education[0]?.school && (
           <section>
-            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-3">Education & Certifications</h3>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-3">Education & Licenses</h3>
             {education.map((edu) => {
               const gradDate = edu.isStillEnrolled 
                 ? 'Enrolled' 
@@ -79,6 +79,12 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
                 </div>
               )
             })}
+            {certifications.map((cert) => (
+                <div key={cert.id} className="mb-2 mt-2">
+                   <h4 className="text-md font-semibold">{cert.name || 'Certification Name'}</h4>
+                   <p className="text-sm text-gray-600">{cert.issuer || 'Issuing Body'} | {cert.date || 'Date'}</p>
+                </div>
+            ))}
           </section>
         )}
 
@@ -86,6 +92,13 @@ export const HealthcareTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
            <section>
             <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Skills</h3>
             <p className="text-gray-700 text-sm">{skills.filter(skill => skill).join(' | ')}</p>
+           </section>
+        )}
+
+        {languages.length > 0 && (
+           <section>
+            <h3 className="text-md font-bold uppercase tracking-wider text-primary mb-2">Languages</h3>
+            <p className="text-gray-700 text-sm">{languages.map(lang => `${lang.name} (${lang.level})`).join(' | ')}</p>
            </section>
         )}
       </main>

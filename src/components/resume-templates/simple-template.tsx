@@ -5,9 +5,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { Award, Globe } from 'lucide-react';
 
 export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -85,11 +86,35 @@ export const SimpleTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             </div>
           </section>
         )}
+        
+        {certifications.length > 0 && (
+          <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Certifications</h2>
+            <div className="space-y-4">
+            {certifications.map((cert) => (
+              <div key={cert.id} className="flex justify-between items-baseline">
+                <div>
+                    <h3 className="text-md font-semibold text-gray-800">{cert.name || 'Certification Name'}</h3>
+                    <p className="text-sm text-gray-600">{cert.issuer || 'Issuing Body'}</p>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">{cert.date || 'Date'}</p>
+              </div>
+            ))}
+            </div>
+          </section>
+        )}
 
         {skills.length > 0 && (
            <section>
             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Skills</h2>
             <p className="text-gray-700 text-sm leading-6">{skills.filter(skill => skill).join('  ·  ')}</p>
+           </section>
+        )}
+
+        {languages.length > 0 && (
+           <section>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3">Languages</h2>
+            <p className="text-gray-700 text-sm leading-6">{languages.map(lang => `${lang.name} (${lang.level})`).join('  ·  ')}</p>
            </section>
         )}
       </main>

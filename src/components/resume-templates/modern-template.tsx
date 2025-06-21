@@ -1,7 +1,7 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
@@ -12,7 +12,7 @@ interface ModernTemplateProps {
 }
 
 export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -85,9 +85,21 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
             })}
           </section>
         )}
+        
+        {certifications.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Award size={18}/> Certifications</h2>
+            {certifications.map((cert) => (
+              <div key={cert.id} className="mb-2">
+                <h3 className="text-md font-bold text-gray-800">{cert.name || 'Certification Name'}</h3>
+                <p className="text-sm font-semibold text-gray-600 italic">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+              </div>
+            ))}
+          </section>
+        )}
 
         {skills.length > 0 && (
-           <section>
+           <section className="mb-6">
             <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Star size={18}/> Skills</h2>
             <div className="flex flex-wrap gap-2">
                 {skills.filter(skill => skill).map((skill, index) => (
@@ -96,7 +108,19 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ data }) => {
             </div>
            </section>
         )}
-
+        
+        {languages.length > 0 && (
+           <section>
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2"><Globe size={18}/> Languages</h2>
+            <div className="flex flex-wrap gap-4">
+                {languages.map((lang) => (
+                    <div key={lang.id} className="text-gray-700 text-sm">
+                        <span className="font-semibold">{lang.name}:</span> {lang.level}
+                    </div>
+                ))}
+            </div>
+           </section>
+        )}
       </main>
     </div>
   );

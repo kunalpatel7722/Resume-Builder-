@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Feather, BookOpen, PenTool } from 'lucide-react';
+import { Mail, Phone, MapPin, Feather, BookOpen, PenTool, Award, Languages } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -87,6 +87,29 @@ export const CreativeWriterTemplate: React.FC<{ data: ResumeData }> = ({ data })
                     </div>
                   )
                 })}
+              </section>
+            )}
+            
+            {certifications.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Award /> Certifications</h2>
+                {certifications.map((cert) => (
+                  <div key={cert.id} className="text-center mb-2">
+                     <h3 className="text-xl font-semibold">{cert.name || 'Certification Name'}</h3>
+                     <p className="text-md italic text-gray-700">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            {languages.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold mb-3 text-center tracking-wider flex items-center justify-center gap-2"><Languages /> Languages</h2>
+                <ul className="text-center space-y-1">
+                  {languages.map((lang) => (
+                    <li key={lang.id} className="text-gray-700">{lang.name}: <span className="italic">{lang.level}</span></li>
+                  ))}
+                </ul>
               </section>
             )}
         </div>

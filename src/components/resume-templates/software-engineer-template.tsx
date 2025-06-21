@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Linkedin, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Code, Github, Linkedin, Globe, Award } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -92,6 +92,36 @@ export const SoftwareEngineerTemplate: React.FC<{ data: ResumeData }> = ({ data 
                   )
                 })}
              </div>
+          </section>
+        )}
+        
+        {certifications.length > 0 && (
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 mt-4">Certifications</h3>
+            <div className="space-y-2">
+                {certifications.map((cert) => (
+                    <div key={cert.id} className="grid grid-cols-4 gap-4">
+                        <div className="col-span-1 text-xs text-gray-600">
+                            <p className="font-semibold">{cert.issuer || 'Issuer'}</p>
+                            <p>{cert.date || 'Date'}</p>
+                        </div>
+                        <div className="col-span-3">
+                            <p className="font-semibold text-md text-gray-800">{cert.name || 'Certification'}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+          </section>
+        )}
+
+        {languages.length > 0 && (
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {languages.map((lang) => (
+                    <span key={lang.id} className="text-sm text-gray-700 font-mono">{lang.name} ({lang.level})</span>
+                ))}
+            </div>
           </section>
         )}
       </main>

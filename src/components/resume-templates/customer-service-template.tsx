@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Smile, Star, Heart, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Smile, Star, Heart, MessageSquare, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const CustomerServiceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -93,6 +93,28 @@ export const CustomerServiceTemplate: React.FC<{ data: ResumeData }> = ({ data }
                   </div>
                 )
               })}
+            </section>
+          )}
+          {certifications.length > 0 && (
+            <section>
+              <h3 className="text-md font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2"><Award size={16} /> Certifications</h3>
+              {certifications.map((cert) => (
+                <div key={cert.id} className="mb-2">
+                   <h4 className="text-md font-bold text-gray-800">{cert.name || 'Certification Name'}</h4>
+                   <p className="text-sm font-semibold text-primary">{cert.issuer || 'Issuing Body'}</p>
+                   <p className="text-xs text-gray-500">{cert.date || 'Date'}</p>
+                </div>
+              ))}
+            </section>
+          )}
+          {languages.length > 0 && (
+            <section>
+              <h3 className="text-md font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2"><Globe size={16} /> Languages</h3>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {languages.map((lang) => (
+                    <li key={lang.id} className="bg-primary/10 rounded-md px-2 py-1">{lang.name} - {lang.level}</li>
+                ))}
+              </ul>
             </section>
           )}
         </aside>

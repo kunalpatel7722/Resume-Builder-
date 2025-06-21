@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Palette, Dribbble, Brush, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -48,6 +48,16 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                         </div>
                     </section>
                 )}
+                {languages.length > 0 && (
+                    <section>
+                        <h3 className="font-bold text-sm uppercase tracking-wider mb-2">Languages</h3>
+                        <div className="space-y-1 text-xs text-gray-600">
+                            {languages.map(lang => (
+                                <p key={lang.id}>{lang.name} ({lang.level})</p>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
         </aside>
 
@@ -80,7 +90,7 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
             )}
 
              {education.length > 0 && education[0]?.school && (
-              <section>
+              <section className="mb-6">
                 <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><GraduationCap size={18}/>Education</h2>
                  {education.map((edu) => {
                     const gradDate = edu.isStillEnrolled 
@@ -94,6 +104,17 @@ export const GraphicDesignerTemplate: React.FC<{ data: ResumeData }> = ({ data }
                    )
                  })}
               </section>
+            )}
+            {certifications.length > 0 && (
+                <section>
+                    <h2 className="text-lg font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3"><Award size={18}/>Certifications</h2>
+                    {certifications.map(cert => (
+                        <div key={cert.id} className="mb-2">
+                           <h3 className="text-base font-bold text-gray-900">{cert.name}</h3>
+                           <p className="text-sm text-gray-700">{cert.issuer} - {cert.date}</p>
+                        </div>
+                    ))}
+                </section>
             )}
         </main>
     </div>

@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building, Award } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -79,6 +79,21 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
           </section>
         )}
 
+        {certifications.length > 0 && (
+          <section>
+            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">CERTIFICATIONS</h2>
+            {certifications.map((cert) => (
+                <div key={cert.id} className="flex justify-between items-start">
+                  <div>
+                      <h3 className="text-lg font-semibold">{cert.name || 'Certification Name'}</h3>
+                      <p className="text-md italic">{cert.issuer || 'Issuing Body'}</p>
+                  </div>
+                  <p className="text-sm text-gray-600">{cert.date || 'Date'}</p>
+                </div>
+              ))}
+          </section>
+        )}
+
         {skills.length > 0 && (
            <section>
             <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">KEY SKILLS</h2>
@@ -88,6 +103,17 @@ export const HospitalityTemplate: React.FC<{ data: ResumeData }> = ({ data }) =>
                 ))}
             </div>
            </section>
+        )}
+
+        {languages.length > 0 && (
+            <section>
+                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">LANGUAGES</h2>
+                <div className="columns-2">
+                    {languages.map(lang => (
+                        <p key={lang.id} className="text-gray-700 mb-1">{lang.name} ({lang.level})</p>
+                    ))}
+                </div>
+            </section>
         )}
       </main>
     </div>

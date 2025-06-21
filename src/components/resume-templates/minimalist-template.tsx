@@ -5,9 +5,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { Award, Globe } from 'lucide-react';
 
 export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -73,7 +74,7 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
               return (
                 <div key={edu.id}>
                    <div className="flex justify-between items-baseline">
-                      <h3 className="text-lg font-normal">{edu.degree || 'Degree'} in {edu.fieldOfStudy}</h3>
+                      <h3 className="text-lg font-normal">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</h3>
                       <p className="text-xs text-gray-500">{gradDate || 'Date'}</p>
                   </div>
                   <p className="text-md text-gray-600">{edu.school || 'School Name'}</p>
@@ -84,11 +85,37 @@ export const MinimalistTemplate: React.FC<{ data: ResumeData }> = ({ data }) => 
           </section>
         )}
 
+        {certifications.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Certifications</h2>
+            <div className="space-y-4">
+            {certifications.map((cert) => (
+              <div key={cert.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-lg font-normal">{cert.name || 'Certification Name'}</h3>
+                    <p className="text-xs text-gray-500">{cert.date || 'Date'}</p>
+                  </div>
+                  <p className="text-md text-gray-600">{cert.issuer || 'Issuing Body'}</p>
+              </div>
+            ))}
+            </div>
+          </section>
+        )}
+
         {skills.length > 0 && (
            <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Skills</h2>
             <p className="text-gray-600 leading-6">{skills.filter(skill => skill).join(', ')}</p>
            </section>
+        )}
+
+        {languages.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Languages</h2>
+            <p className="text-gray-600 leading-6">
+              {languages.map(lang => `${lang.name} (${lang.level})`).join(', ')}
+            </p>
+          </section>
         )}
       </main>
     </div>

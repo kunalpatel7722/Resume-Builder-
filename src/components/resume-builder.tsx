@@ -15,7 +15,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -81,6 +81,8 @@ export interface ResumeData {
     isStillEnrolled: boolean;
   }[];
   skills: string[];
+  languages: { id: number; name: string; level: string }[];
+  certifications: { id: number; name: string; issuer: string; date: string }[];
   targetCountry: string;
 }
 
@@ -90,10 +92,12 @@ const initialResumeData: ResumeData = {
   experience: [{ id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }],
   education: [{ id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }],
   skills: [],
+  languages: [],
+  certifications: [],
   targetCountry: '',
 };
 
-const steps = [
+const coreSteps = [
   { id: 'career-level', name: 'Career Level' },
   { id: 'target-country', name: 'Target Country' },
   { id: 'template', name: 'Choose Template' },
@@ -104,9 +108,17 @@ const steps = [
   { id: 'education', name: 'Education' },
   { id: 'skills', name: 'Skills' },
   { id: 'summary', name: 'Summary' },
+];
+
+const optionalStepsData = [
+  { id: 'certifications', name: 'Certifications', icon: Award },
+  { id: 'languages', name: 'Languages', icon: Languages },
+];
+
+const finalSteps = [
   { id: 'add-section', name: 'Add Section' },
   { id: 'finalize', name: 'Finalize' },
-];
+]
 
 const templates = [
   { id: 'modern', name: 'Modern' },
@@ -178,6 +190,8 @@ const degreeLevels = [
   "Other",
 ];
 
+const languageLevels = ["Native", "Fluent", "Proficient", "Conversational", "Basic"];
+
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
@@ -205,8 +219,15 @@ export default function ResumeBuilder() {
   
   const isMobile = useIsMobile();
   const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
+  const [addedSections, setAddedSections] = useState<string[]>([]);
 
   const showPreview = !fullWidthSteps.includes(currentStep);
+
+  const steps = [
+    ...coreSteps,
+    ...optionalStepsData.filter(s => addedSections.includes(s.id)),
+    ...finalSteps,
+  ];
 
   useEffect(() => {
     // This is the cleanup function for the component unmount
@@ -230,21 +251,17 @@ export default function ResumeBuilder() {
 
   useEffect(() => {
     const fetchSkillSuggestions = async () => {
-      if (generatingSkills) return;
-
       const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
       const latestRole = lastExperienceWithRole?.role;
   
-      if (!latestRole) {
-        if (suggestionsForRole !== null) {
+      if (!latestRole || latestRole === suggestionsForRole) {
+        if (!latestRole) {
             setAiSuggestions(null);
             setSuggestionsForRole(null);
         }
         return;
       }
       
-      if (latestRole === suggestionsForRole) return;
-  
       setGeneratingSkills(true);
       setSuggestionsForRole(latestRole);
       
@@ -254,7 +271,7 @@ export default function ResumeBuilder() {
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setSuggestionsForRole(null);
+        setSuggestionsForRole(null); // Allow refetch on error
       } finally {
         setGeneratingSkills(false);
       }
@@ -263,7 +280,7 @@ export default function ResumeBuilder() {
     if(currentStep === 'skills') {
       fetchSkillSuggestions();
     }
-  }, [currentStep, resumeData.experience, suggestionsForRole, generatingSkills, toast]);
+  }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
 
 
   const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -348,6 +365,32 @@ export default function ResumeBuilder() {
 
   const handleSkillsChange = (newSkills: string[]) => {
     setResumeData(prev => ({ ...prev, skills: newSkills }));
+  };
+
+  // Handlers for Certifications
+  const addCertification = () => {
+    setResumeData(prev => ({ ...prev, certifications: [...prev.certifications, { id: Date.now(), name: '', issuer: '', date: '' }]}));
+  };
+  const removeCertification = (id: number) => {
+    setResumeData(prev => ({ ...prev, certifications: prev.certifications.filter(c => c.id !== id) }));
+  };
+  const handleCertificationChange = (index: number, name: string, value: string) => {
+    const newCerts = [...resumeData.certifications];
+    (newCerts[index] as any)[name] = value;
+    setResumeData(prev => ({ ...prev, certifications: newCerts }));
+  };
+
+  // Handlers for Languages
+  const addLanguage = () => {
+    setResumeData(prev => ({ ...prev, languages: [...prev.languages, { id: Date.now(), name: '', level: 'Proficient' }]}));
+  };
+  const removeLanguage = (id: number) => {
+    setResumeData(prev => ({ ...prev, languages: prev.languages.filter(l => l.id !== id) }));
+  };
+  const handleLanguageChange = (index: number, name: string, value: string) => {
+    const newLangs = [...resumeData.languages];
+    (newLangs[index] as any)[name] = value;
+    setResumeData(prev => ({ ...prev, languages: newLangs }));
   };
   
   const handleAiGenerate = async (index: number) => {
@@ -476,7 +519,10 @@ export default function ResumeBuilder() {
     if (currentIndex > 0) {
        if (currentStep === 'experience-description') {
         setCurrentStep('experience');
-      } else {
+      } else if (addedSections.includes(currentStep)) {
+        setCurrentStep('add-section');
+      }
+      else {
         setCurrentStep(steps[currentIndex - 1].id);
       }
     }
@@ -490,6 +536,18 @@ export default function ResumeBuilder() {
   const handleCountrySelect = (country: string) => {
     setResumeData(prev => ({ ...prev, targetCountry: country }));
     nextStep();
+  };
+
+  const handleAddSection = (sectionId: string) => {
+    if (!addedSections.includes(sectionId)) {
+        setAddedSections(prev => [...prev, sectionId]);
+        setCurrentStep(sectionId);
+    }
+  };
+
+  const handleRemoveSection = (sectionId: string) => {
+    setAddedSections(prev => prev.filter(id => id !== sectionId));
+    (setResumeData as any)(prev => ({ ...prev, [sectionId]: [] }));
   };
 
 
@@ -634,7 +692,7 @@ export default function ResumeBuilder() {
                     isActive ? "bg-primary text-primary-foreground border-primary" : 
                     isCompleted ? "bg-green-500 text-white border-green-500" : "bg-card"
                   )}>
-                    {isCompleted ? <FileCheck2 size={16}/> : index + 1}
+                    {isCompleted ? <FileCheck2 size={16}/> : coreSteps.findIndex(s => s.id === step.id) + 1 || ''}
                   </div>
                   <span className="text-sm">{step.name}</span>
                 </button>
@@ -1140,30 +1198,75 @@ export default function ResumeBuilder() {
                 )}
               </div>
           )}
+          {currentStep === 'certifications' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-semibold">Do you have any certifications?</h3>
+              <p className="text-muted-foreground">Add any relevant certifications you have earned.</p>
+              
+              {resumeData.certifications.map((cert, index) => (
+                <div key={cert.id} className="space-y-4 p-4 border rounded-lg relative">
+                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeCertification(cert.id)}><Trash2 size={16}/></Button>
+                    <div className="space-y-4">
+                        <div><Label htmlFor={`certName-${cert.id}`}>Certification Name</Label><Input id={`certName-${cert.id}`} name="name" value={cert.name} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} /></div>
+                        <div><Label htmlFor={`certIssuer-${cert.id}`}>Issuing Organization</Label><Input id={`certIssuer-${cert.id}`} name="issuer" value={cert.issuer} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} /></div>
+                        <div><Label htmlFor={`certDate-${cert.id}`}>Date Earned</Label><Input id={`certDate-${cert.id}`} name="date" value={cert.date} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} placeholder="e.g., May 2023" /></div>
+                    </div>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addCertification}><Plus className="mr-2" />Add Another Certification</Button>
+            </div>
+          )}
+           {currentStep === 'languages' && (
+            <div className="space-y-6">
+              <h3 className="text-2xl font-semibold">Which languages do you speak?</h3>
+              <p className="text-muted-foreground">Add any languages you speak and your proficiency level.</p>
+              
+              {resumeData.languages.map((lang, index) => (
+                <div key={lang.id} className="space-y-4 p-4 border rounded-lg relative">
+                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeLanguage(lang.id)}><Trash2 size={16}/></Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label htmlFor={`langName-${lang.id}`}>Language</Label><Input id={`langName-${lang.id}`} name="name" value={lang.name} onChange={(e) => handleLanguageChange(index, e.target.name, e.target.value)} /></div>
+                        <div>
+                            <Label htmlFor={`langLevel-${lang.id}`}>Proficiency</Label>
+                            <Select onValueChange={(value) => handleLanguageChange(index, 'level', value)} value={lang.level}>
+                                <SelectTrigger id={`langLevel-${lang.id}`}><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    {languageLevels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addLanguage}><Plus className="mr-2" />Add Another Language</Button>
+            </div>
+          )}
            {currentStep === 'add-section' && (
             <div className="space-y-4">
               <h3 className="text-2xl font-semibold">Do you want to add any other sections?</h3>
               <p className="text-muted-foreground">Employers are impressed by a thorough resume. Add any of the sections below.</p>
               <Card>
                 <CardContent className="p-4 space-y-2">
-                {[
-                  { title: 'Accomplishments', icon: Trophy },
-                  { title: 'Certifications', icon: Award },
-                  { title: 'Additional Information', icon: Info },
-                  { title: 'Languages', icon: Languages },
-                  { title: 'Publications', icon: FileText },
-                  { title: 'References', icon: Users },
-                ].map((section) => (
-                  <button
-                    key={section.title}
-                    disabled
-                    className="w-full flex items-center gap-3 p-3 rounded-md text-left text-muted-foreground bg-muted/50 cursor-not-allowed"
-                  >
-                    <section.icon className="h-5 w-5" />
-                    <span>{section.title}</span>
-                    <span className="ml-auto text-xs font-semibold text-primary/80">Coming Soon</span>
-                  </button>
-                ))}
+                {optionalStepsData.map((section) => {
+                    const isAdded = addedSections.includes(section.id);
+                    return (
+                        <div key={section.id} className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
+                             <section.icon className={cn("h-5 w-5", isAdded ? "text-primary" : "text-muted-foreground")} />
+                             <span className={cn(isAdded && "font-semibold")}>{section.name}</span>
+                             {isAdded ? (
+                                <div className="ml-auto flex items-center gap-2">
+                                    <CheckCircle className="h-5 w-5 text-green-500"/>
+                                    <Button variant="ghost" size="sm" onClick={() => handleRemoveSection(section.id)}>Remove</Button>
+                                    <Button variant="outline" size="sm" onClick={() => setCurrentStep(section.id)}>Edit</Button>
+                                </div>
+                             ) : (
+                                <Button className="ml-auto" variant="secondary" size="sm" onClick={() => handleAddSection(section.id)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Add
+                                </Button>
+                             )}
+                        </div>
+                    );
+                })}
                 </CardContent>
               </Card>
             </div>
@@ -1193,8 +1296,8 @@ export default function ResumeBuilder() {
                   Download PDF
               </Button>
           ) : currentStep === 'add-section' ? (
-              <Button onClick={nextStep}>
-                  Finish
+              <Button onClick={() => setCurrentStep('finalize')}>
+                  Finish & Next
               </Button>
           ) : currentStep !== 'career-level' && currentStep !== 'target-country' && currentStep !== 'select-method' ? (
               <Button onClick={nextStep}>

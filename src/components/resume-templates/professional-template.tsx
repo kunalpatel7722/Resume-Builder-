@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, User } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, User, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -67,6 +67,17 @@ export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) =
                     </ul>
                 </section>
             )}
+
+            {languages.length > 0 && (
+                <section>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-3">Languages</h3>
+                    <div className="space-y-2 text-slate-200">
+                        {languages.map((lang) => (
+                            <p key={lang.id}>{lang.name} <span className="text-slate-400">({lang.level})</span></p>
+                        ))}
+                    </div>
+                </section>
+            )}
         </aside>
 
         <main className="w-2/3 p-8">
@@ -78,7 +89,7 @@ export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) =
             )}
 
             {experience.length > 0 && experience[0]?.role && (
-              <section>
+              <section className="mb-6">
                 <h2 className="text-lg font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2 pb-1 border-b-2 border-slate-300 mb-3"><Briefcase size={18}/>Experience</h2>
                 <div className="space-y-4">
                   {experience.map((job) => {
@@ -96,6 +107,20 @@ export const ProfessionalTemplate: React.FC<{ data: ResumeData }> = ({ data }) =
                       </div>
                     )
                   })}
+                </div>
+              </section>
+            )}
+
+            {certifications.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2 pb-1 border-b-2 border-slate-300 mb-3"><Award size={18}/>Certifications</h2>
+                <div className="space-y-4">
+                  {certifications.map((cert) => (
+                    <div key={cert.id}>
+                      <h3 className="text-base font-bold text-slate-900">{cert.name || 'Certification Name'}</h3>
+                      <p className="text-sm font-semibold text-slate-700">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+                    </div>
+                  ))}
                 </div>
               </section>
             )}

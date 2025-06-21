@@ -5,9 +5,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
+import { Award, Globe } from 'lucide-react';
+
 
 export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -82,12 +84,33 @@ export const ClassicTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             })}
           </section>
         )}
+        
+        {certifications.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Certifications</h2>
+            {certifications.map((cert) => (
+              <div key={cert.id} className="mb-2 text-center">
+                 <p className="text-md font-semibold">{cert.name || 'Certification Name'}</p>
+                 <p className="text-sm italic text-gray-800">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+              </div>
+            ))}
+          </section>
+        )}
 
         {skills.length > 0 && (
-           <section>
+           <section className="mb-6">
             <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Skills</h2>
             <p className="text-gray-700 text-sm text-center">{skills.filter(skill => skill).join(' • ')}</p>
            </section>
+        )}
+
+        {languages.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Languages</h2>
+            <p className="text-gray-700 text-sm text-center">
+                {languages.map(lang => `${lang.name} (${lang.level})`).join(' • ')}
+            </p>
+          </section>
         )}
       </main>
     </div>

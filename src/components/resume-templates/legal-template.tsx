@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Scale } from 'lucide-react';
+import { Scale, Award } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -89,6 +89,27 @@ export const LegalTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             <h2 className="text-lg font-bold tracking-widest text-center mb-2">ADMISSIONS & SKILLS</h2>
             <p className="text-gray-800 text-sm text-center">{skills.filter(skill => skill).join('; ')}</p>
            </section>
+        )}
+
+        {certifications.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold tracking-widest text-center mb-3">CERTIFICATIONS</h2>
+            {certifications.map((cert) => (
+              <div key={cert.id} className="mb-2 text-center">
+                 <p className="text-md font-bold">{cert.name || 'Certification Name'}</p>
+                 <p className="text-md italic">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {languages.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold tracking-widest text-center mb-2">LANGUAGES</h2>
+            <p className="text-gray-800 text-sm text-center">
+                {languages.map(lang => `${lang.name} (${lang.level})`).join('; ')}
+            </p>
+          </section>
         )}
       </main>
     </div>

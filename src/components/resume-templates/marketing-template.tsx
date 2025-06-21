@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Megaphone, LineChart } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Megaphone, LineChart, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -30,11 +30,21 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                 </header>
 
                 {skills.length > 0 && (
-                    <section>
+                    <section className="mb-6">
                         <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Star size={16} /> Core Competencies</h3>
                         <ul className="flex flex-wrap gap-1.5">
                             {skills.filter(skill => skill).map((skill, index) => (
                                 <li key={index} className="bg-primary/10 text-primary-focus text-xs font-medium px-2 py-1 rounded-full">{skill}</li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+                 {languages.length > 0 && (
+                    <section>
+                        <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Globe size={16} /> Languages</h3>
+                        <ul className="space-y-1">
+                            {languages.map(lang => (
+                                <li key={lang.id} className="text-xs">{lang.name} <span className="text-gray-500">({lang.level})</span></li>
                             ))}
                         </ul>
                     </section>
@@ -96,6 +106,17 @@ export const MarketingTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     })}
                  </div>
               </section>
+            )}
+            {certifications.length > 0 && (
+                <section>
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Award size={18}/>Certifications</h3>
+                    {certifications.map(cert => (
+                        <div key={cert.id} className="mb-2">
+                           <h4 className="text-md font-bold text-gray-800">{cert.name}</h4>
+                           <p className="text-sm text-gray-600 italic">{cert.issuer} - {cert.date}</p>
+                        </div>
+                    ))}
+                </section>
             )}
         </main>
     </div>

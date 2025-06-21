@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, User, Star, Briefcase, GraduationCap } from 'lucide-react';
+import { Mail, Phone, MapPin, User, Star, Briefcase, GraduationCap, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -50,6 +50,18 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         </ul>
                     </section>
                 )}
+                
+                {languages.length > 0 && (
+                    <section>
+                        <h2 className="text-md font-semibold uppercase tracking-wider border-b-2 border-primary pb-1 mb-3 flex items-center gap-2"><Globe size={16} />Languages</h2>
+                        <ul className="space-y-1 text-xs">
+                           {languages.map(lang => (
+                             <li key={lang.id}>{lang.name} <span className="text-gray-500">({lang.level})</span></li>
+                           ))}
+                        </ul>
+                    </section>
+                )}
+
             </div>
         </aside>
 
@@ -87,7 +99,7 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             )}
 
             {education.length > 0 && education[0]?.school && (
-              <section>
+              <section className="mb-8">
                 <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-4 flex items-center gap-2"><GraduationCap size={20}/>Education</h2>
                  <div className="space-y-2">
                     {education.map((edu) => {
@@ -106,6 +118,20 @@ export const CreativeTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                     })}
                  </div>
               </section>
+            )}
+
+            {certifications.length > 0 && (
+                <section>
+                    <h2 className="text-xl font-bold uppercase tracking-wide text-primary mb-4 flex items-center gap-2"><Award size={20}/>Certifications</h2>
+                    <div className="space-y-2">
+                        {certifications.map((cert) => (
+                          <div key={cert.id} className="mb-2">
+                             <h3 className="text-md font-bold text-gray-800">{cert.name || 'Certification Name'}</h3>
+                             <p className="text-sm font-semibold text-gray-600 italic">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+                          </div>
+                        ))}
+                    </div>
+                </section>
             )}
         </main>
     </div>

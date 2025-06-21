@@ -1,14 +1,14 @@
 
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp, Award, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 
 export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -66,6 +66,16 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                         })}
                     </section>
                 )}
+                 {languages.length > 0 && (
+                    <section>
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
+                        <ul className="space-y-1">
+                            {languages.map(lang => (
+                                <li key={lang.id} className="text-gray-700">{lang.name}: {lang.level}</li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
             </div>
         </aside>
 
@@ -78,7 +88,7 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
             )}
 
             {experience.length > 0 && experience[0]?.role && (
-              <section>
+              <section className="mb-6">
                 <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Professional Experience</h2>
                 <div className="space-y-4">
                   {experience.map((job) => {
@@ -98,6 +108,19 @@ export const FinanceTemplate: React.FC<{ data: ResumeData }> = ({ data }) => {
                   })}
                 </div>
               </section>
+            )}
+             {certifications.length > 0 && (
+                <section>
+                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Certifications</h2>
+                    <div className="space-y-3">
+                        {certifications.map((cert) => (
+                          <div key={cert.id}>
+                            <h3 className="text-base font-bold text-gray-900">{cert.name || 'Certification Name'}</h3>
+                            <p className="text-sm font-semibold text-gray-700">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
+                          </div>
+                        ))}
+                    </div>
+                </section>
             )}
         </main>
     </div>
