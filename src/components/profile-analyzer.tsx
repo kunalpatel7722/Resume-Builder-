@@ -100,9 +100,9 @@ export default function ProfileAnalyzer() {
               </Button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 lg:items-start">
               {/* Left Column */}
-              <div className="lg:col-span-2 space-y-8">
+              <div className="lg:col-span-3 space-y-8">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 <div className="space-y-4">
                   {result.reportSections.map((section, index) => (
