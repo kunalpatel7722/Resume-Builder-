@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file defines a Genkit flow for scoring a LinkedIn profile.
  *
- * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or URL) and returns a detailed score and analysis.
+ * - linkedinProfileScore -  A function that processes a LinkedIn profile (via PDF or raw text) and returns a detailed score and analysis.
  * - LinkedinProfileScoreInput - The input type for the linkedinProfileScore function.
  * - LinkedinProfileScoreOutput - The return type for the linkedinProfileScoreOutput function.
  */
@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const LinkedinProfileScoreInputSchema = z.object({
-  profileData: z.string().describe("The LinkedIn profile data, either as a PDF data URI or a URL to the profile."),
+  profileData: z.string().describe("The LinkedIn profile data, either as a PDF data URI or as raw text."),
 });
 
 export type LinkedinProfileScoreInput = z.infer<typeof LinkedinProfileScoreInputSchema>;
@@ -46,9 +46,10 @@ const linkedinProfileScorePrompt = ai.definePrompt({
   name: 'linkedinProfileScorePrompt',
   input: {schema: LinkedinProfileScoreInputSchema},
   output: {schema: LinkedinProfileScoreOutputSchema},
-  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise and actionable review of a LinkedIn profile based on the provided data.
+  prompt: `You are a world-class LinkedIn profile reviewer and career coach, inspired by the detailed analysis of tools like Resume Worded. Your task is to provide a very precise and actionable review of a LinkedIn profile based on the provided data. The input may be from a PDF (as a data URI) or raw text.
 
-Profile Data: {{{profileData}}}
+Profile Data:
+{{{profileData}}}
 
 1.  **Set the Source Text**: Your entire analysis will be based on the 'Profile Data' provided. You MUST return the original, unedited 'Profile Data' in the 'extractedText' field of the output. This is the source material.
 
