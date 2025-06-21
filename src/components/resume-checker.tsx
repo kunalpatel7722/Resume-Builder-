@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -132,17 +131,14 @@ export default function ResumeChecker() {
        <div className="min-h-screen bg-background">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 p-4 md:p-6 max-w-[100rem] mx-auto">
           <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+            <div className="sticky top-24 flex h-[calc(100vh-7rem)] flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
                 <ScoreDisplay score={result.overallScore} />
-
                 <Separator/>
-
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-4">
                     <div>
                         <h3 className="font-bold text-foreground">Summary</h3>
                         <p className="text-sm text-muted-foreground mt-1">{result.summaryFeedback}</p>
                     </div>
-                    
                     <nav className="space-y-1">
                         <p className="font-bold text-foreground mb-1">Content</p>
                         {navLinks.map(link => (
@@ -151,8 +147,8 @@ export default function ResumeChecker() {
                                 href={`#${link.id}`}
                                 onClick={(e) => handleScrollTo(e, link.id)}
                                 className={cn(
-                                    "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                                    activeSection === link.id && "font-semibold text-primary"
+                                    "block rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-foreground",
+                                    activeSection === link.id ? "font-semibold text-primary" : "text-muted-foreground"
                                 )}
                             >
                                 {link.title}
@@ -160,9 +156,7 @@ export default function ResumeChecker() {
                         ))}
                     </nav>
                 </div>
-
                 <Separator/>
-
                 <Button variant="outline" onClick={() => { setResult(null); setFile(null); setJobDescription(""); }} className="w-full shrink-0">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Scan Another Resume
