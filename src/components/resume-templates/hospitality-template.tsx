@@ -1,12 +1,11 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Smile, Building, Award, Trophy, Activity, Link as LinkIcon, Pencil, Users, Languages } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
+import { Star, Languages, Award, Trophy } from 'lucide-react';
 
 export interface TemplateProps {
   data: ResumeData;
@@ -15,27 +14,24 @@ export interface TemplateProps {
 }
 
 const fontClasses = {
-  sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-lg',
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
 };
 
 export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, awards } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const hasExperience = experience.some(e => e.role || e.company || e.description);
   const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = skills.some(s => s);
   const hasLanguages = languages.some(l => l.name);
   const hasCertifications = certifications.some(c => c.name);
-  const hasActivities = activities.some(a => a);
   const hasAwards = awards.some(a => a.name);
-  const hasCustomSections = customSections.some(c => c.title || c.content);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
-    if (!startDate) return 'Dates';
+    if (!startDate) return '';
     const start = format(startDate, 'MMM yyyy');
     if (isCurrent) return `${start} - Present`;
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
@@ -44,149 +40,110 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
 
   const fontClass = fontClasses[fontSize];
 
+  const MainSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-lg font-bold uppercase tracking-wider border-b-2 pb-1 mb-3" style={{ borderColor: accentColor }}>{title}</h2>
+        <div className="space-y-4">{children}</div>
+      </section>
+    );
+  };
+  
+  const SidebarSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-base font-bold uppercase tracking-wider mb-2" style={{ color: accentColor }}>{title}</h2>
+        {children}
+      </section>
+    );
+  };
+  
   return (
-    <div className={cn("bg-white text-gray-800 p-8 w-full h-full font-['Garamond',_serif]", fontClass)}>
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
-        <p className="text-lg text-gray-600 mt-1">{hasExperience ? experience[0]?.role : 'Hospitality Manager'}</p>
-        <div className="text-sm text-gray-500 mt-3 border-t border-gray-200 pt-2">
-          {personalInfo.phone || 'Phone'} &nbsp;&bull;&nbsp; {personalInfo.email || 'Email'} &nbsp;&bull;&nbsp; {fullAddress || 'Address'}
+    <div className={cn("bg-white text-gray-800 w-full h-full flex", fontClass)} style={{ fontFamily: "'Quicksand', sans-serif" }}>
+      <aside className="w-[30%] bg-gray-50 p-6 flex flex-col gap-6">
+        <header className="text-center">
+            <h1 className="text-3xl font-bold">{fullName || 'Your Name'}</h1>
+            <h2 className="text-base text-gray-600 mt-1">{hasExperience ? experience[0]?.role : 'Hospitality Professional'}</h2>
+        </header>
+
+        <div className="text-center text-xs text-gray-600 space-y-1">
+            <p>{personalInfo.phone}</p>
+            <p>{personalInfo.email}</p>
+            <p>{personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</p>
         </div>
-      </header>
-      
-      <main className="space-y-6">
-        <section>
-          <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">PROFESSIONAL SUMMARY</h2>
-          {summary ? (
-            <p className="text-gray-700 leading-snug">{summary}</p>
-          ) : (
-            <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
-          )}
-        </section>
 
-        <section>
-          <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-3">EXPERIENCE</h2>
-          {hasExperience ? (
-            experience.map((job) => {
-              const location = [job.city, job.state].filter(Boolean).join(', ');
-              return (
-                <div key={job.id} className="mb-4">
-                    <div className="flex justify-between items-baseline">
-                        <h3 className="text-lg font-semibold">{job.company || 'Hotel / Restaurant Name'}{location && `, ${location}`}</h3>
-                        <p className="text-sm text-gray-600">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
-                    </div>
-                    <p className="text-md italic">{job.role || 'Job Title'}</p>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-base max-w-none prose-serif text-gray-700">
-                      {job.description || '* Your job description will appear here.'}
-                    </ReactMarkdown>
-                </div>
-              )
-            })
-          ) : (
-             <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
-          )}
-        </section>
+        <SidebarSection title="Skills" show={hasSkills}>
+          <ul className="text-sm space-y-1">
+            {skills.map((skill, i) => (
+              <li key={i} className="flex items-center">
+                <Star size={12} className="mr-2" style={{color: accentColor}}/> {skill}
+              </li>
+            ))}
+          </ul>
+        </SidebarSection>
+        
+        <SidebarSection title="Languages" show={hasLanguages}>
+          <ul className="text-sm space-y-1">
+            {languages.map(lang => (
+              <li key={lang.id} className="flex items-center">
+                <Languages size={12} className="mr-2" style={{color: accentColor}}/> {lang.name} ({lang.level})
+              </li>
+            ))}
+          </ul>
+        </SidebarSection>
 
-        <section>
-          <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">EDUCATION</h2>
-          {hasEducation ? (
-            education.map((edu) => {
-              const gradDate = edu.isStillEnrolled 
-                ? 'Enrolled' 
-                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-              return (
-                <div key={edu.id} className="flex justify-between items-start">
-                  <div>
-                      <h3 className="text-lg font-semibold">{edu.school || 'University Name'}</h3>
-                      <p className="text-md italic">{edu.degree || 'Degree'}</p>
-                  </div>
-                  <p className="text-sm text-gray-600">{gradDate || 'Date'}</p>
-                </div>
-              )
-            })
-          ) : (
-             <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
-          )}
-        </section>
+        <SidebarSection title="Certifications" show={hasCertifications}>
+          <div className="space-y-3 text-sm">
+            {certifications.map(cert => (
+              <div key={cert.id}>
+                <p className="font-bold flex items-center"><Award size={12} className="mr-2" style={{color: accentColor}}/>{cert.name}</p>
+              </div>
+            ))}
+          </div>
+        </SidebarSection>
+      </aside>
 
-        {hasCertifications && (
-          <section>
-            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">CERTIFICATIONS</h2>
-            {certifications.map((cert) => (
-                <div key={cert.id} className="flex justify-between items-start">
-                  <div>
-                      <h3 className="text-lg font-semibold">{cert.name || 'Certification Name'}</h3>
-                      <p className="text-md italic">{cert.issuer || 'Issuing Body'}</p>
-                  </div>
-                  <p className="text-sm text-gray-600">{cert.date || 'Date'}</p>
-                </div>
-              ))}
-          </section>
-        )}
+      <main className="w-[70%] p-8 overflow-y-auto">
+        <MainSection title="Summary">
+            {summary ? (
+              <p className="text-gray-700 leading-relaxed">{summary}</p>
+            ) : (
+              <p className="text-gray-400 italic">Your professional summary will appear here.</p>
+            )}
+        </MainSection>
 
-        {hasAwards && (
-          <section>
-            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">AWARDS</h2>
-            {awards.map((award) => (
-                <div key={award.id} className="flex justify-between items-start">
-                  <div>
-                      <h3 className="text-lg font-semibold">{award.name || 'Award Name'}</h3>
-                      <p className="text-md italic">{award.description}</p>
-                  </div>
-                  <p className="text-sm text-gray-600">{award.date || 'Date'}</p>
-                </div>
-              ))}
-          </section>
-        )}
-
-        {hasSkills && (
-           <section>
-            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">KEY SKILLS</h2>
-            <div className="columns-2">
-                {skills.filter(skill => skill).map((skill, index) => (
-                    <p key={index} className="text-gray-700 mb-1">{skill}</p>
-                ))}
+        <MainSection title="Experience" show={hasExperience}>
+          {experience.map(job => (
+            <div key={job.id}>
+              <div className="flex justify-between items-baseline">
+                <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
+                <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+              </div>
+              <p className="text-sm font-semibold italic">{job.company || 'Hotel / Company'}</p>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                {job.description || '* Your job description will appear here.'}
+              </ReactMarkdown>
             </div>
-           </section>
-        )}
-
-        {hasActivities && (
-            <section>
-                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">ACTIVITIES</h2>
-                <div className="columns-2">
-                    {activities.map((activity, index) => (
-                        <p key={index} className="text-gray-700 mb-1">{activity}</p>
-                    ))}
-                </div>
-            </section>
-        )}
+          ))}
+        </MainSection>
         
-        {hasCustomSections && customSections.map(section => (
-          <section key={section.id}>
-            <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">{section.title}</h2>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-base max-w-none prose-serif text-gray-700">
-                {section.content}
-            </ReactMarkdown>
-          </section>
-        ))}
-
-        {hasLanguages && (
-            <section>
-                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">LANGUAGES</h2>
-                <div className="columns-2">
-                    {languages.map(lang => (
-                        <p key={lang.id} className="text-gray-700 mb-1">{lang.name} ({lang.level})</p>
-                    ))}
+        <MainSection title="Education" show={hasEducation}>
+            {education.map(edu => (
+                <div key={edu.id}>
+                    <h3 className="text-base font-bold">{edu.school || 'University Name'}</h3>
+                    <p className="text-sm font-semibold">{edu.degree || 'Degree'}</p>
+                    <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                 </div>
-            </section>
-        )}
+            ))}
+        </MainSection>
         
-        {showReferences && (
-            <section>
-                <h2 className="text-xl font-bold border-b border-gray-300 pb-1 mb-2">REFERENCES</h2>
-                <p className="text-gray-700">Available upon request.</p>
-            </section>
-        )}
+        <MainSection title="Awards" show={hasAwards}>
+          {awards.map(award => (
+            <p key={award.id} className="flex items-center"><Trophy size={14} className="mr-2" style={{color: accentColor}}/> <span className="font-bold">{award.name}</span>, {award.date}</p>
+          ))}
+        </MainSection>
       </main>
     </div>
   );

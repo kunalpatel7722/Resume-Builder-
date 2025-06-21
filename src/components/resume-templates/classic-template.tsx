@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -14,9 +13,9 @@ export interface TemplateProps {
 }
 
 const fontClasses = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
+  sm: 'text-[10pt]',
+  md: 'text-[11pt]',
+  lg: 'text-[12pt]',
 };
 
 export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
@@ -27,25 +26,32 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
   const hasExperience = experience.some(e => e.role || e.company || e.description);
   const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = skills.some(s => s);
-  const hasLanguages = languages.some(l => l.name);
-  const hasCertifications = certifications.some(c => c.name);
-  const hasActivities = activities.some(a => a);
-  const hasAwards = awards.some(a => a.name);
-  const hasWebsites = websites.some(w => w.url);
   const hasCustomSections = customSections.some(c => c.title || c.content);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
-    if (!startDate) return 'Dates';
+    if (!startDate) return '';
     const start = format(startDate, 'MMM yyyy');
     if (isCurrent) return `${start} - Present`;
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
     return start;
   };
 
+  const fontClass = fontClasses[fontSize];
+
+  const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-[.2em] text-center mb-3">{title}</h2>
+        {children}
+      </section>
+    );
+  };
+
   return (
-    <div className={cn("bg-white text-gray-900 p-10 shadow-lg w-full h-full font-serif", fontClasses[fontSize])}>
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold tracking-widest uppercase">{fullName || 'Your Name'}</h1>
+    <div className={cn("bg-white text-black p-10 w-full h-full font-serif", fontClass)}>
+      <header className="text-center mb-4">
+        <h1 className="text-3xl font-bold tracking-widest">{fullName || 'Your Name'}</h1>
         <div className="text-xs text-gray-600 mt-2">
           <span>{fullAddress || 'Address'}</span>
           {(fullAddress && (personalInfo.phone || personalInfo.email)) ? <span className="mx-2">|</span> : ''}
@@ -55,136 +61,65 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
         </div>
       </header>
 
-      <hr className="border-gray-400 mb-6" />
+      <div className="w-full h-px bg-gray-300 my-4" />
 
-      <main>
-        <section className="mb-6">
-          <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Summary</h2>
+      <main className="space-y-4">
+        <Section title="Summary">
           {summary ? (
-            <p className="text-gray-700 leading-relaxed text-justify">{summary}</p>
+            <p className="text-gray-800 leading-relaxed text-center">{summary}</p>
           ) : (
-            <p className="text-gray-400 italic text-sm text-center">Your summary will appear here.</p>
+            <p className="text-gray-400 italic text-center">Your professional summary will appear here.</p>
           )}
-        </section>
-
-        <section className="mb-6">
-          <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Experience</h2>
-          {hasExperience ? (
-            experience.map((job) => {
+        </Section>
+        
+        <Section title="Experience" show={hasExperience}>
+          <div className="space-y-3">
+            {experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
-                <div key={job.id} className="mb-4">
+                <div key={job.id}>
                   <div className="flex justify-between items-baseline">
-                    <h3 className="text-md font-semibold">{job.role || 'Job Title'}</h3>
+                    <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
                     <p className="text-xs text-gray-600 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                   </div>
-                  <p className="text-sm font-medium italic text-gray-800">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-700">
-                      {job.description || '* Your job description will appear here.'}
+                  <p className="text-sm font-bold italic text-gray-700">{job.company || 'Company Name'}{location && `, ${location}`}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-800">
+                    {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
                 </div>
-              )
-            })
-          ) : (
-             <p className="text-gray-400 italic text-sm text-center">Your experience will appear here.</p>
-          )}
-        </section>
+              );
+            })}
+          </div>
+        </Section>
 
-        <section className="mb-6">
-          <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Education</h2>
-          {hasEducation ? (
-            education.map((edu) => {
-               const gradDate = edu.isStillEnrolled 
-                ? 'Enrolled' 
-                : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
+        <Section title="Education" show={hasEducation}>
+          <div className="space-y-2">
+            {education.map((edu) => {
+              const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
               return (
-                <div key={edu.id} className="mb-2">
+                <div key={edu.id}>
                    <div className="flex justify-between items-baseline">
-                      <h3 className="text-md font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</h3>
+                      <h3 className="text-base font-bold">{edu.school || 'School Name'}</h3>
                       <p className="text-xs text-gray-600 font-medium">{gradDate || 'Date'}</p>
                   </div>
-                  <p className="text-sm font-medium italic text-gray-800">{edu.school || 'School Name'}{edu.location && `, ${edu.location}`}</p>
+                  <p className="text-sm italic">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                 </div>
-              )
-            })
-          ) : (
-            <p className="text-gray-400 italic text-sm text-center">Your education will appear here.</p>
-          )}
-        </section>
-        
-        {hasAwards && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Awards & Accomplishments</h2>
-            {awards.map((award) => (
-              <div key={award.id} className="mb-2 text-center">
-                 <p className="text-md font-semibold">{award.name || 'Award Name'} - {award.date || 'Date'}</p>
-                 <p className="text-sm italic text-gray-800">{award.description}</p>
-              </div>
-            ))}
-          </section>
-        )}
-        
-        {hasCertifications && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-3 text-center">Certifications</h2>
-            {certifications.map((cert) => (
-              <div key={cert.id} className="mb-2 text-center">
-                 <p className="text-md font-semibold">{cert.name || 'Certification Name'}</p>
-                 <p className="text-sm italic text-gray-800">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
-              </div>
-            ))}
-          </section>
-        )}
+              );
+            })}
+          </div>
+        </Section>
 
-        {hasSkills && (
-           <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Skills</h2>
-            <p className="text-gray-700 text-sm text-center">{skills.filter(skill => skill).join(' • ')}</p>
-           </section>
-        )}
-
-        {hasActivities && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Activities</h2>
-            <p className="text-gray-700 text-sm text-center">{activities.filter(a => a).join(' • ')}</p>
-          </section>
-        )}
-        
-        {hasWebsites && (
-          <section className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Links</h2>
-            <div className="text-center">
-              {websites.map((site) => (
-                <a key={site.id} href={site.url} className="hover:underline text-sm mx-2" style={{ color: accentColor }}>{site.label || site.url}</a>
-              ))}
-            </div>
-          </section>
-        )}
+        <Section title="Skills" show={hasSkills}>
+          <p className="text-center text-gray-800">{skills.join(' • ')}</p>
+        </Section>
 
         {hasCustomSections && customSections.map(section => (
-          <section key={section.id} className="mb-6">
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">{section.title}</h2>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none prose-serif text-gray-700">
-                {section.content}
+          <Section key={section.id} title={section.title || 'Custom Section'}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-800">
+                {section.content || 'Your custom section content will appear here.'}
             </ReactMarkdown>
-          </section>
+          </Section>
         ))}
-
-        {hasLanguages && (
-          <section>
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">Languages</h2>
-            <p className="text-gray-700 text-sm text-center">
-                {languages.map(lang => `${lang.name} (${lang.level})`).join(' • ')}
-            </p>
-          </section>
-        )}
-
-        {showReferences && (
-          <section>
-            <h2 className="text-lg font-bold uppercase tracking-wider mb-2 text-center">References</h2>
-            <p className="text-gray-700 text-sm text-center">Available upon request.</p>
-          </section>
-        )}
       </main>
     </div>
   );

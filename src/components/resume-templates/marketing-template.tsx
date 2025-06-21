@@ -1,12 +1,11 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Megaphone, LineChart, Award, Globe, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
+import { Mail, Phone, MapPin, Link as LinkIcon, Star, Tool, MessageSquare } from 'lucide-react';
 
 export interface TemplateProps {
   data: ResumeData;
@@ -21,22 +20,20 @@ const fontClasses = {
 };
 
 export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
+  const { personalInfo, summary, experience, education, skills, websites, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
+  const tools = customSections.filter(s => s.title.toLowerCase().includes('tool'));
+  const testimonials = customSections.filter(s => s.title.toLowerCase().includes('testimonial'));
 
   const hasExperience = experience.some(e => e.role || e.company || e.description);
   const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = skills.some(s => s);
-  const hasLanguages = languages.some(l => l.name);
-  const hasCertifications = certifications.some(c => c.name);
-  const hasActivities = activities.some(a => a);
-  const hasAwards = awards.some(a => a.name);
   const hasWebsites = websites.some(w => w.url);
-  const hasCustomSections = customSections.some(c => c.title || c.content);
-
+  const hasTools = tools.length > 0;
+  const hasTestimonials = testimonials.length > 0;
+  
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
-    if (!startDate) return 'Dates';
+    if (!startDate) return '';
     const start = format(startDate, 'MMM yyyy');
     if (isCurrent) return `${start} - Present`;
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
@@ -45,151 +42,100 @@ export const MarketingTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
 
   const fontClass = fontClasses[fontSize];
 
+  const LeftColumnSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean, icon: React.ElementType }> = ({ title, children, show = true, icon: Icon }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-base font-bold uppercase tracking-wider mb-2 flex items-center gap-2"><Icon size={16} />{title}</h2>
+        {children}
+      </section>
+    );
+  };
+  
   return (
-    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
-        <aside className="w-1/3 p-6 flex flex-col justify-between" style={{ backgroundColor: `${accentColor}0D`}}>
-            <div>
-                <header className="text-left mb-8">
-                    <h1 className="text-3xl font-bold" style={{ color: accentColor }}>{fullName || 'Your Name'}</h1>
-                    <h2 className="text-lg text-gray-700">{hasExperience ? experience[0]?.role : 'Marketing Specialist'}</h2>
-                </header>
-
-                <section className="mb-6">
-                    <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Star size={16} /> Core Competencies</h3>
-                    {hasSkills ? (
-                        <ul className="flex flex-wrap gap-1.5">
-                            {skills.filter(skill => skill).map((skill, index) => (
-                                <li key={index} className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: `${accentColor}1A`, color: accentColor }}>{skill}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
-                    )}
-                </section>
-                 {hasLanguages && (
-                    <section className="mb-6">
-                        <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Globe size={16} /> Languages</h3>
-                        <ul className="space-y-1">
-                            {languages.map(lang => (
-                                <li key={lang.id} className="text-xs">{lang.name} <span className="text-gray-500">({lang.level})</span></li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
-                 {hasActivities && (
-                    <section>
-                        <h3 className="text-md font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"><Activity size={16} /> Activities</h3>
-                        <ul className="space-y-1">
-                            {activities.map((activity, index) => (
-                                <li key={index} className="text-xs">{activity}</li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
+    <div className={cn("bg-white text-gray-800 w-full h-full flex", fontClass)} style={{ fontFamily: "'Montserrat', sans-serif" }}>
+      <main className="w-[62%] p-8 overflow-y-auto">
+        <header className="mb-6">
+            <h1 className="text-5xl font-extrabold" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
+            <h2 className="text-xl font-semibold text-gray-700">{hasExperience ? experience[0]?.role : 'Marketing Professional'}</h2>
+             <div className="text-xs text-gray-600 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                {personalInfo.email && <div className="flex items-center gap-1.5"><Mail size={12} /><span>{personalInfo.email}</span></div>}
+                {personalInfo.phone && <div className="flex items-center gap-1.5"><Phone size={12} /><span>{personalInfo.phone}</span></div>}
+                {personalInfo.city && <div className="flex items-center gap-1.5"><MapPin size={12} /><span>{personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</span></div>}
+                {hasWebsites && websites.map(site => <div key={site.id} className="flex items-center gap-1.5"><LinkIcon size={12} /><a href={site.url} className="hover:underline">{site.label || site.url}</a></div>)}
             </div>
+        </header>
 
-            <div className="space-y-4 text-xs">
-                {personalInfo.email && <div className="flex items-center gap-2"><Mail size={14} style={{ color: accentColor }}/><span>{personalInfo.email}</span></div>}
-                {personalInfo.phone && <div className="flex items-center gap-2"><Phone size={14} style={{ color: accentColor }}/><span>{personalInfo.phone}</span></div>}
-                {fullAddress && <div className="flex items-center gap-2"><MapPin size={14} style={{ color: accentColor }}/><span>{fullAddress}</span></div>}
-                {hasWebsites && websites.map(site => (
-                  <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} style={{ color: accentColor }}/><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></div>
-                ))}
-            </div>
-        </aside>
-
-        <main className="w-2/3 p-8 space-y-6">
-             <section>
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-2"><Megaphone size={18}/> Career Summary</h3>
+        <div className="space-y-6">
+            <section>
+                <h2 className="text-lg font-bold border-b-2 border-gray-100 pb-1 mb-2">Summary</h2>
                 {summary ? (
-                    <p className="text-gray-600 leading-relaxed border-l-4 pl-4" style={{ borderColor: `${accentColor}33` }}>{summary}</p>
+                    <p className="text-gray-700 leading-relaxed">{summary}</p>
                 ) : (
-                    <p className="text-gray-400 italic text-sm border-l-4 pl-4" style={{ borderColor: `${accentColor}33` }}>Your summary will appear here.</p>
+                    <p className="text-gray-400 italic">Your professional summary will appear here.</p>
                 )}
-              </section>
-            
+            </section>
             <section>
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Briefcase size={18}/> Professional Experience</h3>
-              {hasExperience ? (
+                <h2 className="text-lg font-bold border-b-2 border-gray-100 pb-1 mb-2">Experience</h2>
                 <div className="space-y-4">
-                  {experience.map((job) => {
-                    const location = [job.city, job.state].filter(Boolean).join(', ');
-                    return (
-                      <div key={job.id}>
+                {hasExperience ? (
+                    experience.map(job => (
+                    <div key={job.id}>
                         <div className="flex justify-between items-baseline">
-                          <h4 className="text-md font-bold text-gray-800">{job.role || 'Job Title'}</h4>
-                          <p className="text-xs text-gray-500">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                        <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
+                        <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                         </div>
-                        <p className="text-sm font-semibold text-gray-600 italic">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                            {job.description || '* Your job description will appear here.'}
+                        <p className="text-sm font-semibold italic">{job.company || 'Company Name'}</p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                        {job.description || '* Your job description will appear here.'}
                         </ReactMarkdown>
-                      </div>
-                    )
-                  })}
+                    </div>
+                    ))
+                ) : (
+                    <p className="text-gray-400 italic">Your experience will appear here.</p>
+                )}
                 </div>
-              ) : (
-                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
-              )}
             </section>
-
             <section>
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><GraduationCap size={18}/>Education</h3>
-              {hasEducation ? (
-                <div className="space-y-2">
-                  {education.map((edu) => {
-                    const gradDate = edu.isStillEnrolled 
-                      ? 'Enrolled' 
-                      : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-                    return (
-                      <div key={edu.id}>
-                         <h4 className="text-md font-bold text-gray-800">{edu.degree || 'Degree'}</h4>
-                         <p className="text-sm text-gray-600 italic">{edu.school || 'School Name'} - {gradDate || 'Date'}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <p className="text-gray-400 italic text-sm">Your education will appear here.</p>
-              )}
+                 <h2 className="text-lg font-bold border-b-2 border-gray-100 pb-1 mb-2">Education</h2>
+                 {hasEducation ? (
+                    education.map(edu => (
+                        <div key={edu.id}>
+                            <h3 className="text-base font-bold">{edu.school || 'University Name'}</h3>
+                            <p className="text-sm font-semibold">{edu.degree || 'Degree'}</p>
+                            <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                        </div>
+                    ))
+                 ) : (
+                    <p className="text-gray-400 italic">Your education will appear here.</p>
+                 )}
             </section>
-            {hasCertifications && (
-                <section>
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Award size={18}/>Certifications</h3>
-                    {certifications.map(cert => (
-                        <div key={cert.id} className="mb-2">
-                           <h4 className="text-md font-bold text-gray-800">{cert.name}</h4>
-                           <p className="text-sm text-gray-600 italic">{cert.issuer} - {cert.date}</p>
-                        </div>
-                    ))}
-                </section>
-            )}
-            {hasAwards && (
-                <section>
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Trophy size={18}/>Awards</h3>
-                    {awards.map(award => (
-                        <div key={award.id} className="mb-2">
-                           <h4 className="text-md font-bold text-gray-800">{award.name}</h4>
-                           <p className="text-sm text-gray-600 italic">{award.description} - {award.date}</p>
-                        </div>
-                    ))}
-                </section>
-            )}
-             {hasCustomSections && customSections.map(section => (
-                <section key={section.id}>
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Pencil size={18}/>{section.title}</h3>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                        {section.content}
-                    </ReactMarkdown>
-                </section>
+        </div>
+      </main>
+
+      <aside className="w-[38%] p-6 flex flex-col gap-6" style={{ backgroundColor: `${accentColor}10`}}>
+        <LeftColumnSection title="Skills" icon={Star} show={hasSkills}>
+          <div className="flex flex-wrap gap-2">
+            {skills.map((skill, i) => <span key={i} className="text-sm bg-white border px-2 py-0.5 rounded-full">{skill}</span>)}
+          </div>
+        </LeftColumnSection>
+        
+        <LeftColumnSection title="Tools" icon={Tool} show={hasTools}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+              {tools.map(t => t.content).join('\n')}
+            </ReactMarkdown>
+        </LeftColumnSection>
+
+        <LeftColumnSection title="Testimonials" icon={MessageSquare} show={hasTestimonials}>
+          <div className="space-y-3">
+             {testimonials.map(section => (
+                <blockquote key={section.id} className="border-l-4 border-white p-2 text-sm italic">
+                    {section.content || '"Your testimonial content will appear here."'}
+                </blockquote>
             ))}
-            {showReferences && (
-                <section>
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-3"><Users size={18}/>References</h3>
-                    <p className="text-gray-600">Available upon request.</p>
-                </section>
-            )}
-        </main>
+          </div>
+        </LeftColumnSection>
+      </aside>
     </div>
   );
 };

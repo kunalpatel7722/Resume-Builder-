@@ -1,12 +1,11 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, TrendingUp, Award, Globe, Link as LinkIcon, Trophy, Activity, Pencil, Users } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
+import { TrendingUp, DollarSign } from 'lucide-react';
 
 export interface TemplateProps {
   data: ResumeData;
@@ -15,28 +14,26 @@ export interface TemplateProps {
 }
 
 const fontClasses = {
-  sm: 'text-[10px]',
-  md: 'text-xs',
-  lg: 'text-sm',
+  sm: 'text-[9.5pt]',
+  md: 'text-[10.5pt]',
+  lg: 'text-[11.5pt]',
 };
 
 export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const hasExperience = experience.some(e => e.role || e.company || e.description);
   const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = skills.some(s => s);
-  const hasLanguages = languages.some(l => l.name);
   const hasCertifications = certifications.some(c => c.name);
-  const hasActivities = activities.some(a => a);
   const hasAwards = awards.some(a => a.name);
-  const hasWebsites = websites.some(w => w.url);
-  const hasCustomSections = customSections.some(c => c.title || c.content);
+  const KPIs = awards.filter(a => a.name.toLowerCase().includes('kpi') || a.description.match(/(\d+%?)/));
+  const hasKPIs = KPIs.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
-    if (!startDate) return 'Dates';
+    if (!startDate) return '';
     const start = format(startDate, 'MMM yyyy');
     if (isCurrent) return `${start} - Present`;
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
@@ -45,162 +42,86 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor, fo
 
   const fontClass = fontClasses[fontSize];
 
+  const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean, className?: string }> = ({ title, children, show = true, className }) => {
+    if (!show) return null;
+    return (
+      <section className={className}>
+        <h2 className="text-sm font-bold uppercase tracking-widest border-b-2 pb-1 mb-3" style={{ color: accentColor, borderColor: accentColor }}>{title}</h2>
+        {children}
+      </section>
+    );
+  };
+  
   return (
-    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
-        <aside className="w-1/3 bg-gray-50 p-6 flex flex-col">
-            <header className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Finance Analyst'}</h2>
-            </header>
-            
-            <div className="space-y-6">
-                <section>
-                    <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Contact</h3>
-                    <div className="space-y-2 text-xs text-gray-600">
-                        {personalInfo.email && <p>{personalInfo.email}</p>}
-                        {personalInfo.phone && <p>{personalInfo.phone}</p>}
-                        {fullAddress && <p>{fullAddress}</p>}
-                    </div>
-                </section>
+    <div className={cn("bg-white text-gray-800 p-8 w-full h-full", fontClass)} style={{ fontFamily: "'Source Sans 3', sans-serif" }}>
+      <header className="text-center mb-6">
+        <h1 className="text-3xl font-bold" style={{ fontFamily: "'Merriweather', serif"}}>{fullName || 'Your Name'}</h1>
+        <p className="text-base text-gray-600 mt-1">{personalInfo.email} &bull; {personalInfo.phone} &bull; {fullAddress}</p>
+      </header>
 
-                <section>
-                    <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Skills</h3>
-                    {hasSkills ? (
-                        <ul className="space-y-1">
-                            {skills.filter(skill => skill).map((skill, index) => (
-                                <li key={index} className="text-gray-700">{skill}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
-                    )}
-                </section>
-
-                <section>
-                    <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Education</h3>
-                    {hasEducation ? (
-                        education.map((edu) => {
-                          const gradDate = edu.isStillEnrolled 
-                            ? 'Enrolled' 
-                            : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-                          return (
-                            <div key={edu.id} className="text-gray-700">
-                               <h4 className="font-semibold">{edu.school || 'University Name'}</h4>
-                               <p>{edu.degree || 'Degree'}</p>
-                               <p className="text-gray-500">{gradDate || 'Date'}</p>
-                            </div>
-                          )
-                        })
-                    ) : (
-                        <p className="text-gray-400 italic text-xs">Your education will appear here.</p>
-                    )}
-                </section>
-                 {hasLanguages && (
-                    <section>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Languages</h3>
-                        <ul className="space-y-1">
-                            {languages.map(lang => (
-                                <li key={lang.id} className="text-gray-700">{lang.name}: {lang.level}</li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
-                {hasWebsites && (
-                    <section>
-                        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-2">Links</h3>
-                        <ul className="space-y-1">
-                            {websites.map(site => (
-                                <li key={site.id}><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></li>
-                            ))}
-                        </ul>
-                    </section>
-                )}
-            </div>
-        </aside>
-
-        <main className="w-2/3 p-8">
-            <section className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-2">Career Objective</h2>
-              {summary ? (
-                <p className="text-gray-600 leading-relaxed">{summary}</p>
-              ) : (
-                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
-              )}
-            </section>
-
-            <section className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Professional Experience</h2>
-              {hasExperience ? (
-                <div className="space-y-4">
-                  {experience.map((job) => {
-                    const location = [job.city, job.state].filter(Boolean).join(', ');
-                    return (
-                      <div key={job.id}>
-                        <div className="flex justify-between items-baseline">
-                          <h3 className="text-base font-bold text-gray-900">{job.role || 'Job Title'}</h3>
-                          <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
-                        </div>
-                        <p className="text-sm font-semibold text-gray-700">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                            {job.description || '* Your job description will appear here.'}
-                        </ReactMarkdown>
-                      </div>
-                    )
-                  })}
+      <main className="grid grid-cols-3 gap-x-6 gap-y-4">
+        <Section title="Summary" className="col-span-3">
+          {summary ? (
+            <p className="text-gray-700 leading-relaxed">{summary}</p>
+          ) : (
+            <p className="text-gray-400 italic">Your professional summary will appear here.</p>
+          )}
+        </Section>
+        
+        <div className="col-span-2 space-y-4">
+          <Section title="Experience" show={hasExperience}>
+            <div className="space-y-4">
+            {experience.map(job => (
+              <div key={job.id}>
+                <div className="flex justify-between items-baseline">
+                  <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
+                  <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
                 </div>
-              ) : (
-                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
-              )}
-            </section>
-             {hasAwards && (
-                <section className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Awards</h2>
-                    <div className="space-y-3">
-                        {awards.map((award) => (
-                          <div key={award.id}>
-                            <h3 className="text-base font-bold text-gray-900">{award.name || 'Award Name'} - <span className="text-sm font-semibold text-gray-700">{award.date || 'Date'}</span></h3>
-                            <p className="text-gray-600">{award.description}</p>
-                          </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-             {hasCertifications && (
-                <section className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Certifications</h2>
-                    <div className="space-y-3">
-                        {certifications.map((cert) => (
-                          <div key={cert.id}>
-                            <h3 className="text-base font-bold text-gray-900">{cert.name || 'Certification Name'}</h3>
-                            <p className="text-sm font-semibold text-gray-700">{cert.issuer || 'Issuing Body'} - {cert.date || 'Date'}</p>
-                          </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-            {hasActivities && (
-                <section className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">Activities</h2>
-                    <ul className="list-disc list-inside text-gray-700">
-                        {activities.map((activity, index) => <li key={index}>{activity}</li>)}
-                    </ul>
-                </section>
-            )}
-            {hasCustomSections && customSections.map(section => (
-                <section key={section.id} className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">{section.title}</h2>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-600">
-                        {section.content}
-                    </ReactMarkdown>
-                </section>
+                <p className="text-sm font-semibold italic">{job.company || 'Company Name'}</p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                  {job.description || '* Your job description will appear here.'}
+                </ReactMarkdown>
+              </div>
             ))}
-            {showReferences && (
-                <section>
-                    <h2 className="text-lg font-bold text-gray-800 pb-1 border-b-2 border-gray-200 mb-3">References</h2>
-                    <p className="text-gray-600">Available upon request.</p>
-                </section>
-            )}
-        </main>
+            </div>
+          </Section>
+        </div>
+
+        <div className="col-span-1 space-y-4">
+          <Section title="Key Performance Indicators" show={hasKPIs}>
+            <div className="space-y-2">
+              {KPIs.map(kpi => (
+                <div key={kpi.id} className="text-center bg-gray-50 p-2 rounded">
+                  <p className="text-2xl font-bold" style={{color: accentColor}}>{kpi.description.match(/(\d+%?)/)?.[0]}</p>
+                  <p className="text-xs uppercase font-semibold">{kpi.name.replace('KPI:','')}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+          
+          <Section title="Skills" show={hasSkills}>
+            <ul className="text-sm space-y-1">
+              {skills.map((skill, i) => <li key={i}>{skill}</li>)}
+            </ul>
+          </Section>
+          
+          <Section title="Education" show={hasEducation}>
+              {education.map(edu => (
+                  <div key={edu.id}>
+                      <h3 className="text-sm font-bold">{edu.school || 'University Name'}</h3>
+                      <p className="text-xs">{edu.degree || 'Degree'}</p>
+                      <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
+                  </div>
+              ))}
+          </Section>
+          
+          <Section title="Certifications" show={hasCertifications}>
+             <ul className="text-sm space-y-1">
+              {certifications.map((cert, i) => <li key={i}>{cert.name}</li>)}
+            </ul>
+          </Section>
+        </div>
+      </main>
     </div>
   );
 };

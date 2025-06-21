@@ -1,7 +1,6 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, User, Globe, Languages, Trophy, Activity, Link as LinkIcon, Pencil, Users } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Award, Trophy, Languages } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
@@ -15,34 +14,24 @@ export interface TemplateProps {
 }
 
 const fontClasses = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
-};
-
-const headingClasses = {
-  sm: 'text-xl',
-  md: 'text-2xl',
-  lg: 'text-3xl',
+  sm: 'text-[10pt]',
+  md: 'text-[11pt]',
+  lg: 'text-[12pt]',
 };
 
 export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, activities, awards, websites, customSections, showReferences } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, awards } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const hasExperience = experience.some(e => e.role || e.company || e.description);
   const hasEducation = education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = skills.some(s => s);
   const hasLanguages = languages.some(l => l.name);
   const hasCertifications = certifications.some(c => c.name);
-  const hasActivities = activities.some(a => a);
   const hasAwards = awards.some(a => a.name);
-  const hasWebsites = websites.some(w => w.url);
-  const hasCustomSections = customSections.some(c => c.title || c.content);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
-    if (!startDate) return 'Dates';
+    if (!startDate) return '';
     const start = format(startDate, 'MMM yyyy');
     if (isCurrent) return `${start} - Present`;
     if (endDate) return `${start} - ${format(endDate, 'MMM yyyy')}`;
@@ -50,180 +39,111 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor, 
   };
 
   const fontClass = fontClasses[fontSize];
-  const headingClass = headingClasses[fontSize];
+
+  const MainSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-[.2em] mb-2 border-b-2 pb-1" style={{ borderColor: accentColor }}>{title}</h2>
+        <div className="space-y-4">{children}</div>
+      </section>
+    );
+  };
+  
+  const SidebarSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+    if (!show) return null;
+    return (
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-[.2em] mb-2">{title}</h2>
+        {children}
+      </section>
+    );
+  };
 
   return (
-    <div className={cn("bg-white text-gray-800 w-full h-full font-sans flex", fontClass)}>
-        <aside className="w-1/3 bg-slate-100 p-8 flex flex-col space-y-8">
-            <div>
-                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight leading-none">{fullName || 'Your Name'}</h1>
-                <h2 className="text-md font-semibold mt-2" style={{ color: accentColor }}>{hasExperience ? experience[0]?.role : 'Professional Title'}</h2>
-            </div>
-            
-            <section>
-                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Contact</h3>
-                 <div className="space-y-3 text-slate-600 text-xs">
-                    {personalInfo.email && <div className="flex items-start gap-2"><Mail size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.email}</span></div>}
-                    {personalInfo.phone && <div className="flex items-start gap-2"><Phone size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{personalInfo.phone}</span></div>}
-                    {fullAddress && <div className="flex items-start gap-2"><MapPin size={14} className="mt-0.5" style={{ color: accentColor }}/><span>{fullAddress}</span></div>}
-                    {hasWebsites && websites.map(site => (
-                        <div key={site.id} className="flex items-start gap-2"><LinkIcon size={14} className="mt-0.5" style={{ color: accentColor }}/><a href={site.url} className="hover:underline" style={{ color: accentColor }}>{site.label || site.url}</a></div>
-                    ))}
-                </div>
-            </section>
-            
-            <section>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Education</h3>
-                {hasEducation ? (
-                    <div className="space-y-3">
-                        {education.map((edu) => {
-                          const gradDate = edu.isStillEnrolled 
-                            ? 'Enrolled' 
-                            : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
-                          return (
-                            <div key={edu.id}>
-                               <h4 className="font-bold text-slate-800">{edu.school || 'School Name'}</h4>
-                               <p className="text-slate-600">{edu.degree || 'Degree'}</p>
-                               <p className="text-xs text-slate-500">{gradDate || 'Date'}</p>
-                            </div>
-                          )
-                        })}
-                    </div>
-                ) : (
-                    <p className="text-gray-400 italic text-xs">Your education will appear here.</p>
-                )}
-            </section>
+    <div className={cn("bg-white text-gray-800 w-full h-full flex", fontClass)} style={{ fontFamily: "'Libre Baskerville', serif" }}>
+      <main className="w-[72%] p-8 overflow-y-auto">
+        <header className="mb-6 text-center">
+            <h1 className="text-4xl font-bold">{fullName || 'Your Name'}</h1>
+            <h2 className="text-lg text-gray-600 mt-1">{hasExperience ? experience[0]?.role : 'Executive Title'}</h2>
+        </header>
 
-            <section>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Skills</h3>
-                {hasSkills ? (
-                    <ul className="space-y-1.5 text-slate-700">
-                        {skills.filter(skill => skill).map((skill, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                               <Star size={14} style={{ color: accentColor }}/> <span>{skill}</span>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-gray-400 italic text-xs">Your skills will appear here.</p>
-                )}
-            </section>
+        <div className="text-center text-xs text-gray-600 mb-6 flex justify-center gap-4">
+            <span>{personalInfo.phone}</span>
+            <span>{personalInfo.email}</span>
+            <span>{personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</span>
+        </div>
 
-            {hasLanguages && (
-                <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 border-b-2 border-slate-300 pb-1">Languages</h3>
-                    <ul className="space-y-1.5 text-slate-700">
-                        {languages.map((lang) => (
-                            <li key={lang.id} className="flex items-center gap-2">
-                                <Languages size={14} style={{ color: accentColor }}/>
-                                <span>{lang.name} <span className="text-slate-500">({lang.level})</span></span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            )}
-        </aside>
-
-        <main className="w-2/3 p-8 bg-white">
-            <section className="mb-8">
-              <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-3", headingClass)}><User size={24} style={{ color: accentColor }}/> Profile</h2>
+        <div className="space-y-5">
+            <MainSection title="Executive Summary">
               {summary ? (
-                <p className="text-slate-600 leading-relaxed text-sm">{summary}</p>
+                <p className="text-gray-700 leading-relaxed">{summary}</p>
               ) : (
-                <p className="text-gray-400 italic text-sm">Your summary will appear here.</p>
+                <p className="text-gray-400 italic">Your executive summary will appear here.</p>
               )}
-            </section>
+            </MainSection>
 
-            <section className="mb-8">
-              <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Briefcase size={24} style={{ color: accentColor }}/>Experience</h2>
-              {hasExperience ? (
-                <div className="space-y-5">
-                  {experience.map((job) => {
-                    const location = [job.city, job.state].filter(Boolean).join(', ');
-                    return (
-                      <div key={job.id} className="relative pl-6">
-                         <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
-                         <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ backgroundColor: accentColor }}></div>
-                        <div>
-                          <div className="flex justify-between items-baseline">
-                            <h3 className="text-lg font-bold text-slate-900">{job.role || 'Job Title'}</h3>
-                            <p className="text-xs text-slate-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
-                          </div>
-                          <p className="text-md font-semibold text-slate-600">{job.company || 'Company Name'}{location && ` - ${location}`}</p>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-slate-600">
-                              {job.description || '* Your job description will appear here.'}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )
-                  })}
+            <MainSection title="Professional Experience" show={hasExperience}>
+              {experience.map(job => (
+                <div key={job.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="text-base font-bold">{job.role || 'Job Title'}</h3>
+                    <p className="text-xs text-gray-500 font-medium">{formatDateRange(job.startDate, job.endDate, job.isCurrentJob)}</p>
+                  </div>
+                  <p className="text-sm font-bold italic" style={{ color: accentColor }}>{job.company || 'Company Name'}</p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                    {job.description || '* Your job description will appear here.'}
+                  </ReactMarkdown>
                 </div>
-              ) : (
-                <p className="text-gray-400 italic text-sm">Your experience will appear here.</p>
-              )}
-            </section>
-            
-            {hasAwards && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Trophy size={24} style={{ color: accentColor }}/>Accomplishments</h2>
-                <div className="space-y-5">
-                  {awards.map((award) => (
-                    <div key={award.id} className="relative pl-6">
-                      <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
-                      <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ backgroundColor: accentColor }}></div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">{award.name || 'Award Name'}</h3>
-                        <p className="text-md font-semibold text-slate-600">{award.description} - {award.date || 'Date'}</p>
-                      </div>
+              ))}
+            </MainSection>
+
+            <MainSection title="Education" show={hasEducation}>
+                {education.map(edu => (
+                    <div key={edu.id}>
+                        <h3 className="text-base font-bold">{edu.school || 'University Name'}</h3>
+                        <p className="text-sm font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
+                        <p className="text-xs text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                ))}
+            </MainSection>
 
-            {hasCertifications && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Award size={24} style={{ color: accentColor }}/>Certifications</h2>
-                <div className="space-y-5">
-                  {certifications.map((cert) => (
-                    <div key={cert.id} className="relative pl-6">
-                      <div className="absolute left-0 top-1.5 h-full w-0.5 bg-slate-200"></div>
-                      <div className="absolute left-[-5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ backgroundColor: accentColor }}></div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">{cert.name || 'Certification Name'}</h3>
-                        <p className="text-md font-semibold text-slate-600">{cert.issuer || 'Issuing Organization'} - {cert.date || 'Date'}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {hasActivities && (
-              <section className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Activity size={24} style={{ color: accentColor }}/>Activities</h2>
-                <ul className="list-disc list-inside text-slate-700">
-                  {activities.map((activity, index) => <li key={index}>{activity}</li>)}
+             <MainSection title="Awards & Recognition" show={hasAwards}>
+                <ul className="list-disc list-inside space-y-1">
+                    {awards.map(award => (
+                        <li key={award.id}><span className="font-bold">{award.name}</span>, {award.date}</li>
+                    ))}
                 </ul>
-              </section>
-            )}
+             </MainSection>
+        </div>
+      </main>
 
-            {hasCustomSections && customSections.map(section => (
-              <section key={section.id} className="mb-8">
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Pencil size={24} style={{ color: accentColor }}/>{section.title}</h2>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-slate-600">
-                    {section.content}
-                </ReactMarkdown>
-              </section>
+      <aside className="w-[28%] p-6 flex flex-col gap-6" style={{ backgroundColor: `${accentColor}15` }}>
+        <SidebarSection title="Core Competencies" show={hasSkills}>
+          <ul className="text-sm space-y-1">
+            {skills.map((skill, i) => <li key={i}>{skill}</li>)}
+          </ul>
+        </SidebarSection>
+        
+        <SidebarSection title="Certifications" show={hasCertifications}>
+          <div className="space-y-3 text-sm">
+            {certifications.map(cert => (
+              <div key={cert.id}>
+                <p className="font-bold">{cert.name}</p>
+                <p className="text-xs">{cert.issuer}, {cert.date}</p>
+              </div>
             ))}
-
-            {showReferences && (
-              <section>
-                <h2 className={cn("font-bold text-slate-800 flex items-center gap-3 mb-4", headingClass)}><Users size={24} style={{ color: accentColor }}/>References</h2>
-                <p className="text-slate-600 leading-relaxed text-sm">Available upon request.</p>
-              </section>
-            )}
-        </main>
+          </div>
+        </SidebarSection>
+        
+        <SidebarSection title="Languages" show={hasLanguages}>
+          <ul className="text-sm space-y-1">
+            {languages.map(lang => (
+              <li key={lang.id}>{lang.name} ({lang.level})</li>
+            ))}
+          </ul>
+        </SidebarSection>
+      </aside>
     </div>
   );
 };
