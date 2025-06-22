@@ -95,7 +95,7 @@ export default function ProfileAnalyzer() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-8 bg-background">
+      <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-8 bg-background">
         <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <h3 className="text-2xl font-bold text-foreground">Analyzing Profile...</h3>
@@ -121,7 +121,7 @@ export default function ProfileAnalyzer() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
-              <div className="lg:col-span-1 space-y-4">
+              <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 <div className="space-y-4">
                   {result.reportSections.map((section, index) => (
@@ -154,7 +154,7 @@ export default function ProfileAnalyzer() {
                 </div>
               </div>
 
-              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
+              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 mt-8 lg:mt-0">
                 <ImprovementTips suggestions={result.aiSuggestions} />
                  {activeDetail && (
                     <Card>
@@ -163,7 +163,7 @@ export default function ProfileAnalyzer() {
                         </CardHeader>
                         <CardContent>
                             {activeDetail.title === 'Extracted Profile Text' ? (
-                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
+                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md">
                                     {result.extractedText}
                                 </pre>
                             ) : (

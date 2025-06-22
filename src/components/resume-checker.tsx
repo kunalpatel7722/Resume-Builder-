@@ -98,7 +98,7 @@ export default function ResumeChecker() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-8 bg-background">
+      <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-8 bg-background">
         <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md">
           <Loader2 className="w-16 h-16 text-primary animate-spin" />
           <h3 className="text-2xl font-bold text-foreground">Scanning Resume...</h3>
@@ -125,7 +125,7 @@ export default function ResumeChecker() {
             
             <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
               {/* Left Column */}
-              <div className="lg:col-span-1 space-y-4">
+              <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 
                 <div className="space-y-4">
@@ -160,7 +160,7 @@ export default function ResumeChecker() {
               </div>
 
               {/* Right Column */}
-              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 lg:sticky lg:top-24">
+              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 mt-8 lg:mt-0">
                 {result.keywordAnalysis && (
                   <KeywordAnalysis data={result.keywordAnalysis} />
                 )}
@@ -172,7 +172,7 @@ export default function ResumeChecker() {
                         </CardHeader>
                         <CardContent>
                             {activeDetail.title === 'Extracted Resume Text' ? (
-                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md max-h-[500px] overflow-y-auto">
+                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md">
                                     {result.extractedText}
                                 </pre>
                             ) : (
@@ -190,7 +190,7 @@ export default function ResumeChecker() {
 
 
   return (
-    <div className="bg-background">
+    <div className="bg-background min-h-[calc(100vh-4rem)]">
       <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <header className="text-center mb-12">
            <FileText className="w-12 h-12 mx-auto text-primary mb-4" />
