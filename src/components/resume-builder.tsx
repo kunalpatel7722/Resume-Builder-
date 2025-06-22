@@ -270,33 +270,34 @@ export default function ResumeBuilder() {
 
     if (!container || !content) return;
 
-    const resizeObserver = new ResizeObserver(() => {
-        const previewBaseWidth = 850; // The fixed width of the unscaled resume
-        if (container.offsetWidth > 0 && previewBaseWidth > 0) {
-            const scale = container.offsetWidth / previewBaseWidth;
-            content.style.transform = `scale(${scale})`;
-            content.style.transformOrigin = 'top left';
-            container.style.height = `${content.getBoundingClientRect().height * scale}px`;
-        }
-    });
-
-    resizeObserver.observe(container);
-    resizeObserver.observe(content);
-
-    // Initial scale calculation
-    const previewBaseWidth = 850;
-    if (container.offsetWidth > 0 && previewBaseWidth > 0) {
+    // A function to calculate and apply the scale
+    const applyScale = () => {
+      const previewBaseWidth = 850; // The fixed width of the unscaled resume
+      if (container.offsetWidth > 0 && previewBaseWidth > 0) {
         const scale = container.offsetWidth / previewBaseWidth;
         content.style.transform = `scale(${scale})`;
         content.style.transformOrigin = 'top left';
-        container.style.height = `${content.getBoundingClientRect().height * scale}px`;
-    }
+        // Use offsetHeight for unscaled height, then multiply by scale for the container
+        container.style.height = `${content.offsetHeight * scale}px`;
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      applyScale();
+    });
+
+    // We only need to observe the container for width changes.
+    resizeObserver.observe(container);
+
+    // Apply scale initially and whenever dependencies change.
+    // Use a small timeout to ensure the DOM has updated with new content.
+    setTimeout(applyScale, 50);
 
     return () => {
-        if (container) resizeObserver.unobserve(container);
-        if (content) resizeObserver.unobserve(content);
+      if (container) resizeObserver.unobserve(container);
     };
   }, [isFinalizing, isMobile, mobileView, selectedTemplate, resumeData, accentColor, fontSize]);
+
 
   const showPreview = !fullWidthSteps.includes(currentStep);
 
@@ -907,7 +908,7 @@ export default function ResumeBuilder() {
         "bg-background",
         showPreview
             ? "lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start"
-            : "min-h-[calc(100vh-4rem)]"
+            : ""
     )}>
       
       {showPreview && !isMobile && (
@@ -944,9 +945,10 @@ export default function ResumeBuilder() {
       )}
 
       <main className={cn(
+          "w-full p-4 sm:p-6 lg:p-8",
           showPreview
-              ? "lg:col-span-4 p-4 sm:p-6 lg:p-8"
-              : "w-full py-16 px-4 sm:px-6 lg:px-8"
+              ? "lg:col-span-4"
+              : "max-w-4xl mx-auto py-16"
       )}>
         <div className="lg:hidden">
             <div className="flex items-center justify-between mb-6">
@@ -1001,7 +1003,7 @@ export default function ResumeBuilder() {
         )}
 
         <div className={cn(
-            "min-h-[50vh]",
+            "",
             showPreview ? "max-w-xl mx-auto lg:mx-0" : "max-w-4xl mx-auto",
             isMobile && mobileView === 'preview' ? 'hidden' : 'block'
         )}>
