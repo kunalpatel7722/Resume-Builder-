@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -40,6 +41,13 @@ import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { StellarTemplate } from './resume-templates/stellar-template';
+import { DynamicTemplate } from './resume-templates/dynamic-template';
+import { CascadeTemplate } from './resume-templates/cascade-template';
+import { FolioTemplate } from './resume-templates/folio-template';
+import { ImpactTemplate } from './resume-templates/impact-template';
+import { OnyxTemplate } from './resume-templates/onyx-template';
 
 
 export interface ResumeData {
@@ -195,6 +203,12 @@ const templates = [
   { id: 'it-professional', name: 'IT Professional' },
   { id: 'project-manager', name: 'Project Manager' },
   { id: 'creative-writer', name: 'Creative Writer' },
+  { id: 'stellar', name: 'Stellar (Circular Photo)' },
+  { id: 'dynamic', name: 'Dynamic (Circular Photo)' },
+  { id: 'cascade', name: 'Cascade (Circular Photo)' },
+  { id: 'folio', name: 'Folio (Square Photo)' },
+  { id: 'impact', name: 'Impact (Square Photo)' },
+  { id: 'onyx', name: 'Onyx (Square Photo)' },
 ];
 
 const months = [
@@ -280,6 +294,12 @@ export default function ResumeBuilder() {
     'it-professional': ItProfessionalTemplate,
     'project-manager': ProjectManagerTemplate,
     'creative-writer': CreativeWriterTemplate,
+    stellar: StellarTemplate,
+    dynamic: DynamicTemplate,
+    cascade: CascadeTemplate,
+    folio: FolioTemplate,
+    impact: ImpactTemplate,
+    onyx: OnyxTemplate,
   };
   
   const TemplateComponent = selectedTemplate ? templateComponents[selectedTemplate as keyof typeof templateComponents] : ModernTemplate;
@@ -292,7 +312,8 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        const contentWidth = content.offsetWidth;
+        // A4 aspect ratio is ~1/1.414, so content width is known
+        const contentWidth = 850; 
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
@@ -306,6 +327,7 @@ export default function ResumeBuilder() {
       resizeObserver.observe(container);
     }
     
+    // Initial scale calculation
     const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
@@ -535,6 +557,23 @@ export default function ResumeBuilder() {
   const handleReferencesChange = (checked: boolean) => {
     setResumeData(prev => ({ ...prev, showReferences: checked }));
   };
+
+  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResumeData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            photoUrl: reader.result as string,
+          },
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   
   const handleAiGenerate = async (index: number) => {
     const jobTitle = resumeData.experience[index].role;
@@ -676,26 +715,13 @@ export default function ResumeBuilder() {
       const pdf = new jspdf({
         orientation: 'p',
         unit: 'px',
-        format: 'a4',
+        format: [canvas.width, canvas.height],
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = canvasWidth / canvasHeight;
-      const pdfRatio = pdfWidth / pdfHeight;
-
-      let finalWidth, finalHeight;
-      if (ratio > pdfRatio) {
-          finalWidth = pdfWidth;
-          finalHeight = pdfWidth / ratio;
-      } else {
-          finalHeight = pdfHeight;
-          finalWidth = pdfHeight * ratio;
-      }
-
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, finalWidth, finalHeight);
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
     } catch (error) {
       console.error(error);
@@ -706,7 +732,6 @@ export default function ResumeBuilder() {
       });
     } finally {
       setIsDownloading(false);
-       // Re-apply scale after download
       const container = previewContainerRef.current;
       if (container && element) {
         const scale = container.offsetWidth / element.offsetWidth;
@@ -770,8 +795,8 @@ export default function ResumeBuilder() {
                   <div className="lg:col-span-5 lg:sticky lg:top-24">
                     {selectedTemplate ? (
                       <>
-                        <div ref={previewContainerRef} className="w-full max-w-[450px] mx-auto shadow-lg ring-1 ring-black/5">
-                          <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                        <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5">
+                          <div ref={previewContentRef} className="w-[850px] aspect-[1/1.414] origin-top-left bg-white">
                               <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
                           </div>
                         </div>
@@ -788,35 +813,46 @@ export default function ResumeBuilder() {
                 </div>
               </div>
             );
+        case 'personal':
+          return (
+             <Card>
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                  <CardDescription>What's the best way for employers to contact you?</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="photo-upload">Profile Photo</Label>
+                      <div className="mt-2 flex items-center gap-4">
+                          <Avatar className="h-16 w-16">
+                              <AvatarImage src={resumeData.personalInfo.photoUrl || ''} alt="Profile photo" data-ai-hint="person face" />
+                              <AvatarFallback>{resumeData.personalInfo.firstName?.[0]}{resumeData.personalInfo.lastName?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <Input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} className="max-w-xs" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
+                    </div>
+                    <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
+                        <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
+                    </div>
+                </CardContent>
+              </Card>
+          )
         default:
             return (
-              <div className="grid lg:grid-cols-12 lg:gap-8 items-start">
-                  <main className="lg:col-span-7 w-full p-4 sm:p-6 lg:p-8">
+              <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+                  <main className="lg:col-span-7 w-full p-4 sm:p-0">
                     <div className="max-w-xl mx-auto">
-                        {currentStep === 'personal' && (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle>Personal Information</CardTitle>
-                              <CardDescription>What's the best way for employers to contact you?</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
-                                    <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
-                                    <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
-                                </div>
-                                <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
-                                    <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
-                                    <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
-                                </div>
-                            </CardContent>
-                          </Card>
-                      )}
                       {currentStep === 'experience' && (
                           <div className="space-y-6">
                             <Card>
@@ -979,23 +1015,13 @@ export default function ResumeBuilder() {
                             </CardContent>
                           </Card>
                       )}
-                      <div className="mt-8 pt-6 border-t flex justify-between">
-                        <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
-                          <ArrowLeft className="mr-2" />
-                          Back
-                        </Button>
-                          <Button onClick={nextStep}>
-                              Next
-                              <ArrowRight className="ml-2" />
-                          </Button>
-                      </div>
                     </div>
                   </main>
                   
-                  <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24">
+                  <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24">
                       <div 
                         ref={previewContainerRef}
-                        className="w-full max-w-[450px] mx-auto shadow-2xl ring-1 ring-black/10"
+                        className="w-full max-w-md mx-auto shadow-2xl ring-1 ring-black/10"
                       >
                         <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
@@ -1007,10 +1033,11 @@ export default function ResumeBuilder() {
     }
   };
 
-  if (isFinalizing) {
-    return (
-        <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
-            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky lg:top-24">
+  const FullPageContent = () => {
+    if (isFinalizing) {
+      return (
+        <div className="grid lg:grid-cols-12 lg:gap-8 p-4 lg:p-8">
+            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky top-24">
                 <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-6">
                     <ArrowLeft className="mr-2" />
                     Back to Editor
@@ -1043,8 +1070,8 @@ export default function ResumeBuilder() {
                     </div>
                 </div>
             </aside>
-            <main className="lg:col-span-8 flex flex-col items-center justify-start mt-8 lg:mt-0">
-                 <div className="flex justify-end w-full max-w-[450px] mb-4">
+            <main className="lg:col-span-8 flex flex-col items-center mt-8 lg:mt-0">
+                 <div className="flex justify-end w-full max-w-md mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -1052,7 +1079,7 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-[450px] shadow-lg ring-1 ring-black/5"
+                    className="w-full max-w-md shadow-lg ring-1 ring-black/5"
                   >
                     <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
@@ -1060,8 +1087,39 @@ export default function ResumeBuilder() {
                   </div>
             </main>
         </div>
-    );
+      )
+    }
+
+    if (currentStep === 'template') {
+      return renderContent();
+    }
+
+    return (
+       <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
+            <main className="lg:col-span-7 w-full">
+              {renderContent()}
+              <div className="mt-8 pt-6 border-t flex justify-between">
+                <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+                  <ArrowLeft className="mr-2" />
+                  Back
+                </Button>
+                  <Button onClick={nextStep}>
+                      Next
+                      <ArrowRight className="ml-2" />
+                  </Button>
+              </div>
+            </main>
+            <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24">
+              <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5">
+                <div ref={previewContentRef} className="w-[850px] aspect-[1/1.414] origin-top-left bg-white">
+                  <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                </div>
+              </div>
+            </aside>
+        </div>
+    )
   }
 
-  return <div>{renderContent()}</div>;
+  return <div>{FullPageContent()}</div>;
 }
+
