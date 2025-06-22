@@ -430,7 +430,7 @@ const templates = {
 
 export const ResumeThumbnail: React.FC<ResumeThumbnailProps> = ({ templateId }) => {
     return (
-        <div className="w-full aspect-[1/1.414] overflow-hidden rounded-md bg-muted border border-gray-300 shadow-inner">
+        <div className="w-full aspect-[210/297] overflow-hidden rounded-md bg-muted border border-gray-300 shadow-inner">
             {templates[templateId]}
         </div>
     );

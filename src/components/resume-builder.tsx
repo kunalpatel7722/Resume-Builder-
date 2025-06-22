@@ -312,17 +312,13 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        // A4 aspect ratio is ~1/1.414. Using 850px as a base width.
+        // Using 850px as a base width for high-resolution rendering.
         const contentWidth = 850; 
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
             content.style.transform = `scale(${scale})`;
             content.style.transformOrigin = 'top left';
-            
-            // Get scaled height
-            const contentHeight = content.getBoundingClientRect().height / scale;
-            container.style.height = `${contentHeight * scale}px`;
         }
     };
 
@@ -760,477 +756,11 @@ export default function ResumeBuilder() {
     }
   };
 
-  if (!isBuilding) {
-    return (
-      <div className="w-full">
-        <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
-          <FileCheck2 className="w-16 h-16 mx-auto text-primary mb-6" />
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-            The AI-Powered Resume Builder
-          </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Create a professional, ATS-friendly resume in minutes. Get AI-powered suggestions, choose from professional templates, and land your dream job.
-          </p>
-          <div className="mt-10">
-            <Button size="lg" className="text-lg h-14 px-10" onClick={() => setIsBuilding(true)}>
-              Create My Resume
-            </Button>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  const renderContent = () => {
-    switch (currentStep) {
-        case 'template':
-            return (
-              <div className="w-full">
-                <div className="text-center py-12 px-4">
-                  <h3 className="text-3xl font-bold">Choose a template to get started</h3>
-                  <p className="text-muted-foreground mt-2">You can change it any time.</p>
-                </div>
-
-                <div className="grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
-                  <div className="lg:col-span-7">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {templates.map((template) => (
-                        <div 
-                          key={template.id}
-                          onClick={() => setSelectedTemplate(template.id)}
-                          className="cursor-pointer group"
-                        >
-                          <div className={cn(
-                            "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
-                            selectedTemplate === template.id ? "border-primary" : "border-card"
-                          )}>
-                            <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                          </div>
-                          <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <aside className="lg:col-span-5 lg:sticky top-24">
-                    {selectedTemplate ? (
-                      <>
-                        <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[1/1.414]">
-                          <div ref={previewContentRef} className="w-[850px] bg-white">
-                              <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
-                          </div>
-                        </div>
-                        <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
-                          Continue with this template <ArrowRight className="ml-2" />
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="hidden lg:flex items-center justify-center h-96 border-2 border-dashed rounded-lg bg-secondary/50">
-                        <p className="text-muted-foreground">Click a template to preview</p>
-                      </div>
-                    )}
-                  </aside>
-                </div>
-              </div>
-            );
-        case 'personal':
-          return (
-             <Card>
-                <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>What's the best way for employers to contact you?</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="photo-upload">Profile Photo</Label>
-                      <div className="mt-2 flex items-center gap-4">
-                          <Avatar className="h-16 w-16">
-                              <AvatarImage src={resumeData.personalInfo.photoUrl || ''} alt="Profile photo" data-ai-hint="person face" />
-                              <AvatarFallback>{resumeData.personalInfo.firstName?.[0]}{resumeData.personalInfo.lastName?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <Input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} className="max-w-xs" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
-                    </div>
-                    <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
-                    </div>
-                </CardContent>
-              </Card>
-          );
-        case 'add-section':
-            return (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Add Sections to Your Resume</CardTitle>
-                    <CardDescription>Strengthen your resume by adding these optional sections.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {optionalStepsData.map((section) => (
-                      <div key={section.id} className="flex items-start gap-4 p-4 rounded-lg border bg-background hover:bg-secondary/50 transition-colors">
-                        <section.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{section.name}</h3>
-                          <p className="text-sm text-muted-foreground">{section.description}</p>
-                        </div>
-                        {addedSections.includes(section.id) ? (
-                          <Button variant="ghost" className="text-destructive" onClick={() => handleRemoveSection(section.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove
-                          </Button>
-                        ) : (
-                          <Button variant="secondary" onClick={() => handleAddSection(section.id)}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-            );
-        default:
-            return (
-              <div className="max-w-xl mx-auto space-y-6">
-                {currentStep === 'experience' && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Work History</CardTitle>
-                        <CardDescription>Tell us about your most recent job and we’ll go from there.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {resumeData.experience.map((exp, index) => (
-                          <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
-                              <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="relative">
-                                    <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
-                                    <Input 
-                                        id={`role-${exp.id}`} 
-                                        name="role" 
-                                        value={exp.role} 
-                                        onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)}
-                                        onFocus={() => setActiveSuggestionBox(index)}
-                                        onBlur={() => setTimeout(() => setActiveSuggestionBox(null), 150)}
-                                        autoComplete="off"
-                                    />
-                                    {activeSuggestionBox === index && (
-                                        <Card className="absolute top-full z-10 w-full mt-1 shadow-lg">
-                                            <CardContent className="p-2 max-h-60 overflow-y-auto">
-                                                {suggestionsLoadingFor === index ? (
-                                                    <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                        Loading...
-                                                    </div>
-                                                ) : jobTitleSuggestions.length > 0 ? (
-                                                    <ul className="space-y-1">
-                                                        {jobTitleSuggestions.map((suggestion, sIndex) => (
-                                                            <li key={sIndex}>
-                                                                <button
-                                                                    type="button"
-                                                                    className="w-full text-left p-2 rounded-md hover:bg-secondary text-sm"
-                                                                    onMouseDown={() => handleSuggestionClick(suggestion, index)}
-                                                                >
-                                                                    {suggestion}
-                                                                </button>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                ) : ( value.length > 2 && <div className="p-4 text-center text-sm text-muted-foreground">No suggestions.</div> )}
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                </div>
-                                <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                      <Label>Start Date</Label>
-                                      <DatePicker date={exp.startDate || undefined} setDate={(date) => handleExperienceChange(index, 'startDate', date)} />
-                                  </div>
-                                   <div>
-                                      <Label>End Date</Label>
-                                      <DatePicker date={exp.endDate || undefined} setDate={(date) => handleExperienceChange(index, 'endDate', date)} disabled={exp.isCurrentJob} />
-                                  </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Checkbox id={`current-${exp.id}`} checked={exp.isCurrentJob} onCheckedChange={(checked) => handleExperienceChange(index, 'isCurrentJob', Boolean(checked))} />
-                                <Label htmlFor={`current-${exp.id}`}>I currently work here</Label>
-                              </div>
-                              <div>
-                                <Label htmlFor={`description-${exp.id}`}>Description</Label>
-                                <Textarea id={`description-${exp.id}`} name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} placeholder="Describe your responsibilities and achievements..." />
-                              </div>
-                              <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                                  {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                  AI Suggestions for '{exp.role || "this role"}'
-                              </Button>
-                              {aiSuggestions && suggestionsForIndex === index && (
-                                  <div className="space-y-1 max-h-40 overflow-y-auto">
-                                    {aiSuggestions.responsibilities.map((resp, i) => (
-                                      <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
-                                        <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
-                                        <span className="text-xs">{resp}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                              )}
-                          </div>
-                        ))}
-                        <Button variant="secondary" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
-                      </CardContent>
-                    </Card>
-                )}
-                {currentStep === 'education' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Education</CardTitle>
-                      <CardDescription>Tell us about your education.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {resumeData.education.map((edu, index) => (
-                          <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
-                              <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><Label htmlFor={`school-${edu.id}`}>School Name</Label><Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
-                                <div><Label htmlFor={`location-${edu.id}`}>School Location</Label><Input id={`location-${edu.id}`} name="location" value={edu.location} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
-                              </div>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
-                                    <Select onValueChange={(value) => handleEducationChange(index, 'degree', value)} value={edu.degree}>
-                                      <SelectTrigger id={`degree-${edu.id}`}><SelectValue placeholder="Select a degree" /></SelectTrigger>
-                                      <SelectContent>
-                                        {degreeLevels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
-                                      </SelectContent>
-                                    </Select>
-                                </div>
-                                <div><Label htmlFor={`fieldOfStudy-${edu.id}`}>Field of Study</Label><Input id={`fieldOfStudy-${edu.id}`} name="fieldOfStudy" value={edu.fieldOfStudy} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Checkbox id={`current-edu-${edu.id}`} checked={edu.isStillEnrolled} onCheckedChange={(checked) => handleEducationChange(index, 'isStillEnrolled', Boolean(checked))} />
-                                <Label htmlFor={`current-edu-${edu.id}`}>I'm still enrolled</Label>
-                              </div>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Graduation Month</Label>
-                                    <Select onValueChange={(value) => handleEducationChange(index, 'graduationMonth', value)} value={edu.graduationMonth} disabled={edu.isStillEnrolled}>
-                                        <SelectTrigger><SelectValue placeholder="Select month"/></SelectTrigger>
-                                        <SelectContent>
-                                            {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Graduation Year</Label>
-                                    <Select onValueChange={(value) => handleEducationChange(index, 'graduationYear', value)} value={edu.graduationYear} disabled={edu.isStillEnrolled}>
-                                        <SelectTrigger><SelectValue placeholder="Select year"/></SelectTrigger>
-                                        <SelectContent>
-                                            {years.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                               </div>
-                          </div>
-                      ))}
-                      <Button variant="secondary" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
-                    </CardContent>
-                  </Card>
-                )}
-                {currentStep === 'skills' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Skills</CardTitle>
-                      <CardDescription>Highlight your top skills.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Textarea 
-                          placeholder="e.g., React, Project Management, SEO, Public Speaking"
-                          value={resumeData.skills.join(', ')}
-                          onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
-                      />
-                      {generatingSkills ? (
-                        <div className="flex items-center gap-2 text-muted-foreground p-4 bg-secondary rounded-lg">
-                            <Loader2 className="animate-spin h-5 w-5" />
-                            <span>Loading AI skill suggestions...</span>
-                        </div>
-                      ) : aiSuggestions && (
-                            <div className="p-4 bg-secondary rounded-lg">
-                              <h4 className="font-semibold text-sm mb-2">Suggestions for a {suggestionsForRole || 'role'}</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {aiSuggestions.skills.map((skill, i) => (
-                                  <Button key={i} size="sm" variant="outline" className="bg-white" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
-                                    <Plus size={14} className="mr-1" />{skill}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-                {currentStep === 'summary' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Summary</CardTitle>
-                      <CardDescription>Write a brief 2-4 sentence summary about your career.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Textarea 
-                        className="h-32" 
-                        value={resumeData.summary} 
-                        onChange={handleSummaryChange} 
-                        placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
-                      />
-                      <Button variant="outline" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
-                          {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                          Generate with AI
-                      </Button>
-                      {summarySuggestions.length > 0 && (
-                          <div className="space-y-3">
-                            {summarySuggestions.map((suggestion, i) => (
-                              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
-                                <p className="text-sm text-foreground flex-1">{suggestion}</p>
-                                <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
-                                  <ClipboardPaste className="mr-2 h-4 w-4" />
-                                  Use
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-                 {currentStep === 'activities' && (
-                    <Card>
-                        <CardHeader><CardTitle>Activities</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            {resumeData.activities.map((activity, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <Input value={activity} onChange={e => handleActivityChange(index, e.target.value)} />
-                                    <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                </div>
-                            ))}
-                            <Button variant="secondary" onClick={addActivity}><Plus className="mr-2"/>Add Activity</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'awards' && (
-                    <Card>
-                        <CardHeader><CardTitle>Awards & Accomplishments</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                           {resumeData.awards.map((award, index) => (
-                            <div key={award.id} className="p-4 border rounded-lg space-y-2 relative">
-                                <Button variant="ghost" size="icon" onClick={() => removeAward(award.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                <div><Label>Award Name</Label><Input value={award.name} onChange={e => handleAwardChange(index, 'name', e.target.value)} /></div>
-                                <div><Label>Date</Label><Input value={award.date} onChange={e => handleAwardChange(index, 'date', e.target.value)} /></div>
-                                <div><Label>Description</Label><Textarea value={award.description} onChange={e => handleAwardChange(index, 'description', e.target.value)} /></div>
-                            </div>
-                           ))}
-                           <Button variant="secondary" onClick={addAward}><Plus className="mr-2"/>Add Award</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'certifications' && (
-                    <Card>
-                        <CardHeader><CardTitle>Certifications & Licenses</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                             {resumeData.certifications.map((cert, index) => (
-                                <div key={cert.id} className="p-4 border rounded-lg space-y-2 relative">
-                                    <Button variant="ghost" size="icon" onClick={() => removeCertification(cert.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                    <div><Label>Name</Label><Input value={cert.name} onChange={e => handleCertificationChange(index, 'name', e.target.value)} /></div>
-                                    <div><Label>Issuer</Label><Input value={cert.issuer} onChange={e => handleCertificationChange(index, 'issuer', e.target.value)} /></div>
-                                    <div><Label>Date</Label><Input value={cert.date} onChange={e => handleCertificationChange(index, 'date', e.target.value)} /></div>
-                                </div>
-                            ))}
-                            <Button variant="secondary" onClick={addCertification}><Plus className="mr-2"/>Add Certification</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'languages' && (
-                    <Card>
-                        <CardHeader><CardTitle>Languages</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            {resumeData.languages.map((lang, index) => (
-                                <div key={lang.id} className="flex gap-2 items-end">
-                                    <div className="flex-1"><Label>Language</Label><Input value={lang.name} onChange={e => handleLanguageChange(index, 'name', e.target.value)} /></div>
-                                    <div className="flex-1">
-                                        <Label>Level</Label>
-                                        <Select onValueChange={(value) => handleLanguageChange(index, 'level', value)} value={lang.level}>
-                                            <SelectTrigger><SelectValue/></SelectTrigger>
-                                            <SelectContent>{languageLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                                        </Select>
-                                    </div>
-                                    <Button variant="ghost" size="icon" onClick={() => removeLanguage(lang.id)}><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                </div>
-                            ))}
-                           <Button variant="secondary" onClick={addLanguage}><Plus className="mr-2"/>Add Language</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'websites' && (
-                    <Card>
-                        <CardHeader><CardTitle>Websites & Social Links</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                             {resumeData.websites.map((site, index) => (
-                                <div key={site.id} className="flex gap-2 items-end">
-                                    <div className="flex-1"><Label>Label</Label><Input value={site.label} onChange={e => handleWebsiteChange(index, 'label', e.target.value)} placeholder="e.g., LinkedIn, Portfolio" /></div>
-                                    <div className="flex-1"><Label>URL</Label><Input value={site.url} onChange={e => handleWebsiteChange(index, 'url', e.target.value)} /></div>
-                                    <Button variant="ghost" size="icon" onClick={() => removeWebsite(site.id)}><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                </div>
-                            ))}
-                            <Button variant="secondary" onClick={addWebsite}><Plus className="mr-2"/>Add Link</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'custom' && (
-                    <Card>
-                        <CardHeader><CardTitle>Custom Section</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            {resumeData.customSections.map((section, index) => (
-                                <div key={section.id} className="p-4 border rounded-lg space-y-2 relative">
-                                    <Button variant="ghost" size="icon" onClick={() => removeCustomSection(section.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
-                                    <div><Label>Title</Label><Input value={section.title} onChange={e => handleCustomSectionChange(index, 'title', e.target.value)} /></div>
-                                    <div><Label>Content</Label><Textarea value={section.content} onChange={e => handleCustomSectionChange(index, 'content', e.target.value)} /></div>
-                                </div>
-                            ))}
-                            <Button variant="secondary" onClick={addCustomSection}><Plus className="mr-2"/>Add Custom Section</Button>
-                        </CardContent>
-                    </Card>
-                 )}
-                 {currentStep === 'references' && (
-                    <Card>
-                        <CardHeader><CardTitle>References</CardTitle></CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-2 p-4 rounded-lg bg-secondary">
-                                <Checkbox id="references" checked={resumeData.showReferences} onCheckedChange={(checked) => handleReferencesChange(Boolean(checked))} />
-                                <Label htmlFor="references">Show "References available upon request" on my resume.</Label>
-                            </div>
-                        </CardContent>
-                    </Card>
-                 )}
-              </div>
-            );
-    }
-  };
-
   const FullPageContent = () => {
     if (isFinalizing) {
       return (
         <div className="lg:grid lg:grid-cols-12 lg:gap-8 p-4 lg:p-8">
-            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky top-24">
+            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky top-24 self-start">
                 <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-6">
                     <ArrowLeft className="mr-2" />
                     Back to Editor
@@ -1264,7 +794,7 @@ export default function ResumeBuilder() {
                 </div>
             </aside>
             <main className="lg:col-span-8 flex flex-col mt-8 lg:mt-0 items-center">
-                 <div className="flex justify-end w-full max-w-2xl mb-4">
+                 <div className="flex justify-end w-full max-w-lg mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -1272,9 +802,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-2xl shadow-lg ring-1 ring-black/5 aspect-[1/1.414]"
+                    className="w-full max-w-lg shadow-lg ring-1 ring-black/5 aspect-[210/297]"
                   >
-                    <div ref={previewContentRef} className="w-[850px] bg-white">
+                    <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -1282,35 +812,501 @@ export default function ResumeBuilder() {
         </div>
       )
     }
+  
+    const renderContent = () => {
+      switch (currentStep) {
+          case 'template':
+              return (
+                <div className="w-full">
+                  <div className="text-center py-12 px-4">
+                    <h3 className="text-3xl font-bold">Choose a template to get started</h3>
+                    <p className="text-muted-foreground mt-2">You can change it any time.</p>
+                  </div>
+  
+                  <div className="grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
+                    <div className="lg:col-span-7">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {templates.map((template) => (
+                          <div 
+                            key={template.id}
+                            onClick={() => setSelectedTemplate(template.id)}
+                            className="cursor-pointer group"
+                          >
+                            <div className={cn(
+                              "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
+                              selectedTemplate === template.id ? "border-primary" : "border-card"
+                            )}>
+                              <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                            </div>
+                            <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+  
+                    <aside className="lg:col-span-5 lg:sticky top-24">
+                      {selectedTemplate ? (
+                        <>
+                          <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
+                            <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
+                                <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
+                            </div>
+                          </div>
+                          <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
+                            Continue with this template <ArrowRight className="ml-2" />
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="hidden lg:flex items-center justify-center h-96 border-2 border-dashed rounded-lg bg-secondary/50">
+                          <p className="text-muted-foreground">Click a template to preview</p>
+                        </div>
+                      )}
+                    </aside>
+                  </div>
+                </div>
+              );
+          case 'personal':
+            return (
+               <Card>
+                  <CardHeader>
+                    <CardTitle>Personal Information</CardTitle>
+                    <CardDescription>What's the best way for employers to contact you?</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                      <div>
+                        <Label htmlFor="photo-upload">Profile Photo</Label>
+                        <div className="mt-2 flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={resumeData.personalInfo.photoUrl || ''} alt="Profile photo" data-ai-hint="person face" />
+                                <AvatarFallback>{resumeData.personalInfo.firstName?.[0]}{resumeData.personalInfo.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <Input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} className="max-w-xs" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
+                          <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
+                          <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
+                      </div>
+                      <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
+                          <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
+                          <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
+                      </div>
+                  </CardContent>
+                </Card>
+            );
+          case 'add-section':
+              return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Add Sections to Your Resume</CardTitle>
+                      <CardDescription>Strengthen your resume by adding these optional sections.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {optionalStepsData.map((section) => (
+                        <div key={section.id} className="flex items-start gap-4 p-4 rounded-lg border bg-background hover:bg-secondary/50 transition-colors">
+                          <section.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{section.name}</h3>
+                            <p className="text-sm text-muted-foreground">{section.description}</p>
+                          </div>
+                          {addedSections.includes(section.id) ? (
+                            <Button variant="ghost" className="text-destructive" onClick={() => handleRemoveSection(section.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove
+                            </Button>
+                          ) : (
+                            <Button variant="secondary" onClick={() => handleAddSection(section.id)}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+              );
+          default:
+              return (
+                <div className="max-w-xl mx-auto space-y-6">
+                  {currentStep === 'experience' && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Work History</CardTitle>
+                          <CardDescription>Tell us about your most recent job and we’ll go from there.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {resumeData.experience.map((exp, index) => (
+                            <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                                <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                      <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
+                                      <Input 
+                                          id={`role-${exp.id}`} 
+                                          name="role" 
+                                          value={exp.role} 
+                                          onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)}
+                                          onFocus={() => setActiveSuggestionBox(index)}
+                                          onBlur={() => setTimeout(() => setActiveSuggestionBox(null), 150)}
+                                          autoComplete="off"
+                                      />
+                                      {activeSuggestionBox === index && (
+                                          <Card className="absolute top-full z-10 w-full mt-1 shadow-lg">
+                                              <CardContent className="p-2 max-h-60 overflow-y-auto">
+                                                  {suggestionsLoadingFor === index ? (
+                                                      <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                          Loading...
+                                                      </div>
+                                                  ) : jobTitleSuggestions.length > 0 ? (
+                                                      <ul className="space-y-1">
+                                                          {jobTitleSuggestions.map((suggestion, sIndex) => (
+                                                              <li key={sIndex}>
+                                                                  <button
+                                                                      type="button"
+                                                                      className="w-full text-left p-2 rounded-md hover:bg-secondary text-sm"
+                                                                      onMouseDown={() => handleSuggestionClick(suggestion, index)}
+                                                                  >
+                                                                      {suggestion}
+                                                                  </button>
+                                                              </li>
+                                                          ))}
+                                                      </ul>
+                                                  ) : ( exp.role.length > 2 && <div className="p-4 text-center text-sm text-muted-foreground">No suggestions.</div> )}
+                                              </CardContent>
+                                          </Card>
+                                      )}
+                                  </div>
+                                  <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Start Date</Label>
+                                        <DatePicker date={exp.startDate || undefined} setDate={(date) => handleExperienceChange(index, 'startDate', date)} />
+                                    </div>
+                                     <div>
+                                        <Label>End Date</Label>
+                                        <DatePicker date={exp.endDate || undefined} setDate={(date) => handleExperienceChange(index, 'endDate', date)} disabled={exp.isCurrentJob} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox id={`current-${exp.id}`} checked={exp.isCurrentJob} onCheckedChange={(checked) => handleExperienceChange(index, 'isCurrentJob', Boolean(checked))} />
+                                  <Label htmlFor={`current-${exp.id}`}>I currently work here</Label>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                                  <Textarea id={`description-${exp.id}`} name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} placeholder="Describe your responsibilities and achievements..." />
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                                    {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                    AI Suggestions for '{exp.role || "this role"}'
+                                </Button>
+                                {aiSuggestions && suggestionsForIndex === index && (
+                                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                                      {aiSuggestions.responsibilities.map((resp, i) => (
+                                        <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
+                                          <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
+                                          <span className="text-xs">{resp}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                )}
+                            </div>
+                          ))}
+                          <Button variant="secondary" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
+                        </CardContent>
+                      </Card>
+                  )}
+                  {currentStep === 'education' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Education</CardTitle>
+                        <CardDescription>Tell us about your education.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {resumeData.education.map((edu, index) => (
+                            <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                                <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div><Label htmlFor={`school-${edu.id}`}>School Name</Label><Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                                  <div><Label htmlFor={`location-${edu.id}`}>School Location</Label><Input id={`location-${edu.id}`} name="location" value={edu.location} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                                </div>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                      <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
+                                      <Select onValueChange={(value) => handleEducationChange(index, 'degree', value)} value={edu.degree}>
+                                        <SelectTrigger id={`degree-${edu.id}`}><SelectValue placeholder="Select a degree" /></SelectTrigger>
+                                        <SelectContent>
+                                          {degreeLevels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
+                                        </SelectContent>
+                                      </Select>
+                                  </div>
+                                  <div><Label htmlFor={`fieldOfStudy-${edu.id}`}>Field of Study</Label><Input id={`fieldOfStudy-${edu.id}`} name="fieldOfStudy" value={edu.fieldOfStudy} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox id={`current-edu-${edu.id}`} checked={edu.isStillEnrolled} onCheckedChange={(checked) => handleEducationChange(index, 'isStillEnrolled', Boolean(checked))} />
+                                  <Label htmlFor={`current-edu-${edu.id}`}>I'm still enrolled</Label>
+                                </div>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                      <Label>Graduation Month</Label>
+                                      <Select onValueChange={(value) => handleEducationChange(index, 'graduationMonth', value)} value={edu.graduationMonth} disabled={edu.isStillEnrolled}>
+                                          <SelectTrigger><SelectValue placeholder="Select month"/></SelectTrigger>
+                                          <SelectContent>
+                                              {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
+                                          </SelectContent>
+                                      </Select>
+                                  </div>
+                                  <div>
+                                      <Label>Graduation Year</Label>
+                                      <Select onValueChange={(value) => handleEducationChange(index, 'graduationYear', value)} value={edu.graduationYear} disabled={edu.isStillEnrolled}>
+                                          <SelectTrigger><SelectValue placeholder="Select year"/></SelectTrigger>
+                                          <SelectContent>
+                                              {years.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                                          </SelectContent>
+                                      </Select>
+                                  </div>
+                                 </div>
+                            </div>
+                        ))}
+                        <Button variant="secondary" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                  {currentStep === 'skills' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Skills</CardTitle>
+                        <CardDescription>Highlight your top skills.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <Textarea 
+                            placeholder="e.g., React, Project Management, SEO, Public Speaking"
+                            value={resumeData.skills.join(', ')}
+                            onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
+                        />
+                        {generatingSkills ? (
+                          <div className="flex items-center gap-2 text-muted-foreground p-4 bg-secondary rounded-lg">
+                              <Loader2 className="animate-spin h-5 w-5" />
+                              <span>Loading AI skill suggestions...</span>
+                          </div>
+                        ) : aiSuggestions && (
+                              <div className="p-4 bg-secondary rounded-lg">
+                                <h4 className="font-semibold text-sm mb-2">Suggestions for a {suggestionsForRole || 'role'}</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {aiSuggestions.skills.map((skill, i) => (
+                                    <Button key={i} size="sm" variant="outline" className="bg-white" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
+                                      <Plus size={14} className="mr-1" />{skill}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  {currentStep === 'summary' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Summary</CardTitle>
+                        <CardDescription>Write a brief 2-4 sentence summary about your career.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <Textarea 
+                          className="h-32" 
+                          value={resumeData.summary} 
+                          onChange={handleSummaryChange} 
+                          placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
+                        />
+                        <Button variant="outline" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                            {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                            Generate with AI
+                        </Button>
+                        {summarySuggestions.length > 0 && (
+                            <div className="space-y-3">
+                              {summarySuggestions.map((suggestion, i) => (
+                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
+                                  <p className="text-sm text-foreground flex-1">{suggestion}</p>
+                                  <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
+                                    <ClipboardPaste className="mr-2 h-4 w-4" />
+                                    Use
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                   {currentStep === 'activities' && (
+                      <Card>
+                          <CardHeader><CardTitle>Activities</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                              {resumeData.activities.map((activity, index) => (
+                                  <div key={index} className="flex gap-2">
+                                      <Input value={activity} onChange={e => handleActivityChange(index, e.target.value)} />
+                                      <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                  </div>
+                              ))}
+                              <Button variant="secondary" onClick={addActivity}><Plus className="mr-2"/>Add Activity</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'awards' && (
+                      <Card>
+                          <CardHeader><CardTitle>Awards & Accomplishments</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                             {resumeData.awards.map((award, index) => (
+                              <div key={award.id} className="p-4 border rounded-lg space-y-2 relative">
+                                  <Button variant="ghost" size="icon" onClick={() => removeAward(award.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                  <div><Label>Award Name</Label><Input value={award.name} onChange={e => handleAwardChange(index, 'name', e.target.value)} /></div>
+                                  <div><Label>Date</Label><Input value={award.date} onChange={e => handleAwardChange(index, 'date', e.target.value)} /></div>
+                                  <div><Label>Description</Label><Textarea value={award.description} onChange={e => handleAwardChange(index, 'description', e.target.value)} /></div>
+                              </div>
+                             ))}
+                             <Button variant="secondary" onClick={addAward}><Plus className="mr-2"/>Add Award</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'certifications' && (
+                      <Card>
+                          <CardHeader><CardTitle>Certifications & Licenses</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                               {resumeData.certifications.map((cert, index) => (
+                                  <div key={cert.id} className="p-4 border rounded-lg space-y-2 relative">
+                                      <Button variant="ghost" size="icon" onClick={() => removeCertification(cert.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                      <div><Label>Name</Label><Input value={cert.name} onChange={e => handleCertificationChange(index, 'name', e.target.value)} /></div>
+                                      <div><Label>Issuer</Label><Input value={cert.issuer} onChange={e => handleCertificationChange(index, 'issuer', e.target.value)} /></div>
+                                      <div><Label>Date</Label><Input value={cert.date} onChange={e => handleCertificationChange(index, 'date', e.target.value)} /></div>
+                                  </div>
+                              ))}
+                              <Button variant="secondary" onClick={addCertification}><Plus className="mr-2"/>Add Certification</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'languages' && (
+                      <Card>
+                          <CardHeader><CardTitle>Languages</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                              {resumeData.languages.map((lang, index) => (
+                                  <div key={lang.id} className="flex gap-2 items-end">
+                                      <div className="flex-1"><Label>Language</Label><Input value={lang.name} onChange={e => handleLanguageChange(index, 'name', e.target.value)} /></div>
+                                      <div className="flex-1">
+                                          <Label>Level</Label>
+                                          <Select onValueChange={(value) => handleLanguageChange(index, 'level', value)} value={lang.level}>
+                                              <SelectTrigger><SelectValue/></SelectTrigger>
+                                              <SelectContent>{languageLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                                          </Select>
+                                      </div>
+                                      <Button variant="ghost" size="icon" onClick={() => removeLanguage(lang.id)}><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                  </div>
+                              ))}
+                             <Button variant="secondary" onClick={addLanguage}><Plus className="mr-2"/>Add Language</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'websites' && (
+                      <Card>
+                          <CardHeader><CardTitle>Websites & Social Links</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                               {resumeData.websites.map((site, index) => (
+                                  <div key={site.id} className="flex gap-2 items-end">
+                                      <div className="flex-1"><Label>Label</Label><Input value={site.label} onChange={e => handleWebsiteChange(index, 'label', e.target.value)} placeholder="e.g., LinkedIn, Portfolio" /></div>
+                                      <div className="flex-1"><Label>URL</Label><Input value={site.url} onChange={e => handleWebsiteChange(index, 'url', e.target.value)} /></div>
+                                      <Button variant="ghost" size="icon" onClick={() => removeWebsite(site.id)}><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                  </div>
+                              ))}
+                              <Button variant="secondary" onClick={addWebsite}><Plus className="mr-2"/>Add Link</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'custom' && (
+                      <Card>
+                          <CardHeader><CardTitle>Custom Section</CardTitle></CardHeader>
+                          <CardContent className="space-y-4">
+                              {resumeData.customSections.map((section, index) => (
+                                  <div key={section.id} className="p-4 border rounded-lg space-y-2 relative">
+                                      <Button variant="ghost" size="icon" onClick={() => removeCustomSection(section.id)} className="absolute top-2 right-2 h-7 w-7"><Trash2 className="text-destructive h-4 w-4"/></Button>
+                                      <div><Label>Title</Label><Input value={section.title} onChange={e => handleCustomSectionChange(index, 'title', e.target.value)} /></div>
+                                      <div><Label>Content</Label><Textarea value={section.content} onChange={e => handleCustomSectionChange(index, 'content', e.target.value)} /></div>
+                                  </div>
+                              ))}
+                              <Button variant="secondary" onClick={addCustomSection}><Plus className="mr-2"/>Add Custom Section</Button>
+                          </CardContent>
+                      </Card>
+                   )}
+                   {currentStep === 'references' && (
+                      <Card>
+                          <CardHeader><CardTitle>References</CardTitle></CardHeader>
+                          <CardContent>
+                              <div className="flex items-center gap-2 p-4 rounded-lg bg-secondary">
+                                  <Checkbox id="references" checked={resumeData.showReferences} onCheckedChange={(checked) => handleReferencesChange(Boolean(checked))} />
+                                  <Label htmlFor="references">Show "References available upon request" on my resume.</Label>
+                              </div>
+                          </CardContent>
+                      </Card>
+                   )}
+                </div>
+              );
+      }
+    };
 
-    if (currentStep === 'template') {
-      return renderContent();
+    if (!isBuilding) {
+        return (
+          <div className="w-full">
+            <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
+              <FileCheck2 className="w-16 h-16 mx-auto text-primary mb-6" />
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+                The AI-Powered Resume Builder
+              </h1>
+              <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+                Create a professional, ATS-friendly resume in minutes. Get AI-powered suggestions, choose from professional templates, and land your dream job.
+              </p>
+              <div className="mt-10">
+                <Button size="lg" className="text-lg h-14 px-10" onClick={() => setIsBuilding(true)}>
+                  Create My Resume
+                </Button>
+              </div>
+            </section>
+          </div>
+        );
     }
 
+    if (currentStep === 'template') {
+        return renderContent();
+    }
+  
     return (
-       <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
-            <main className="lg:col-span-7 w-full">
-              {renderContent()}
-              <div className="mt-8 pt-6 border-t flex justify-between">
-                <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
-                  <ArrowLeft className="mr-2" />
-                  Back
-                </Button>
-                  <Button onClick={nextStep}>
-                      Next
-                      <ArrowRight className="ml-2" />
-                  </Button>
-              </div>
-            </main>
-            <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24">
-              <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[1/1.414]">
-                <div ref={previewContentRef} className="w-[850px] bg-white">
-                  <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
+        <main className="lg:col-span-7 w-full">
+          {renderContent()}
+          <div className="mt-8 pt-6 border-t flex justify-between">
+            <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+              <ArrowLeft className="mr-2" />
+              Back
+            </Button>
+              <Button onClick={nextStep}>
+                  {currentStep === 'add-section' ? 'Finalize' : 'Next'}
+                  <ArrowRight className="ml-2" />
+              </Button>
+          </div>
+        </main>
+        <aside className="hidden lg:block lg:col-span-5 sticky top-24 self-start">
+            <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
+                <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
+                    <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                 </div>
-              </div>
-            </aside>
-        </div>
-    )
+            </div>
+        </aside>
+      </div>
+    );
   }
 
   return <div>{FullPageContent()}</div>;
