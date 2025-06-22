@@ -311,7 +311,8 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        const contentWidth = content.offsetWidth; // This is always 850px
+        // A4 aspect ratio on an 850px wide element
+        const contentWidth = 850; 
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
@@ -702,50 +703,46 @@ export default function ResumeBuilder() {
 
     setIsDownloading(true);
     try {
-      const originalScale = element.style.transform;
+      // Wait for fonts to be ready to avoid rendering with fallback fonts
+      await document.fonts.ready;
+      
+      // Temporarily remove the scaling transform to capture at full native resolution
+      const originalTransform = element.style.transform;
       element.style.transform = 'scale(1)';
-      await new Promise(resolve => setTimeout(resolve, 100)); // allow re-render
+      // Give the browser a moment to re-layout the element at its new scale
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 2, // Use a higher scale for better image quality in the PDF
         useCORS: true,
         backgroundColor: '#ffffff',
       });
       
-      element.style.transform = originalScale;
+      // Restore the original scaling transform after the capture is complete
+      element.style.transform = originalTransform;
 
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Initialize jsPDF with standard A4 settings in points
       const pdf = new jspdf({
         orientation: 'p',
-        unit: 'px',
+        unit: 'pt',
         format: 'a4',
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const canvasAspectRatio = canvasWidth / canvasHeight;
-      const pdfAspectRatio = pdfWidth / pdfHeight;
-
-      let renderWidth = pdfWidth;
-      let renderHeight = pdfHeight;
-
-      if (canvasAspectRatio > pdfAspectRatio) {
-        renderHeight = renderWidth / canvasAspectRatio;
-      } else {
-        renderWidth = renderHeight * canvasAspectRatio;
-      }
       
-      const xOffset = (pdfWidth - renderWidth) / 2;
-      const yOffset = (pdfHeight - renderHeight) / 2;
-
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xOffset, yOffset, renderWidth, renderHeight);
+      // Add the captured image to the PDF, fitting it to the full A4 page.
+      // This works because the source element is styled with an A4 aspect ratio.
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
       pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
     } catch (error) {
-      console.error(error);
+      console.error("PDF Download Error:", error);
       toast({
         title: "Download Failed",
-        description: "Could not generate PDF. Please try again.",
+        description: "An error occurred while generating the PDF. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -784,10 +781,10 @@ export default function ResumeBuilder() {
                       </div>
                     </div>
   
-                    <aside className="lg:col-span-4 lg:sticky top-8 self-start mt-8 lg:mt-0">
+                    <aside className="lg:col-span-4 lg:sticky top-24 self-start mt-8 lg:mt-0">
                       {selectedTemplate ? (
                         <>
-                          <div ref={previewContainerRef} className="w-full max-w-lg mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
+                          <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
                               <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
                                   <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
                               </div>
@@ -1259,6 +1256,43 @@ export default function ResumeBuilder() {
      </div>
   )
 
+  const BuilderLayout = () => {
+    const Editor = () => (
+      <div className="lg:col-span-7 w-full">
+        {renderContent()}
+        <div className="mt-8 pt-6 border-t flex justify-between">
+          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+            <ArrowLeft className="mr-2" />
+            Back
+          </Button>
+          <Button onClick={nextStep}>
+            {currentStep === 'add-section' ? 'Finalize' : 'Next'}
+            <ArrowRight className="ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  
+    const Preview = () => (
+      <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24 self-start">
+        <div ref={previewContainerRef} className="w-full max-w-full mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
+          <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+          </div>
+        </div>
+      </aside>
+    );
+
+    return (
+      <div className="min-h-screen">
+          <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 sm:p-6 md:p-8">
+            <Editor />
+            <Preview />
+          </div>
+      </div>
+    );
+  }
+
   if (isFinalizing) {
     return <FinalizeScreen />;
   }
@@ -1323,33 +1357,6 @@ export default function ResumeBuilder() {
       </div>
     );
   }
-
-  const BuilderLayout = () => (
-    <div className="min-h-screen">
-      <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 sm:p-6 md:p-8">
-        <main className="lg:col-span-7 w-full">
-          {renderContent()}
-          <div className="mt-8 pt-6 border-t flex justify-between">
-            <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
-              <ArrowLeft className="mr-2" />
-              Back
-            </Button>
-              <Button onClick={nextStep}>
-                  {currentStep === 'add-section' ? 'Finalize' : 'Next'}
-                  <ArrowRight className="ml-2" />
-              </Button>
-          </div>
-        </main>
-        <aside className="hidden lg:block lg:col-span-5 sticky top-8 self-start">
-            <div ref={previewContainerRef} className="w-full max-w-lg mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
-                <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-                    <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
-                </div>
-            </div>
-        </aside>
-      </div>
-    </div>
-  )
 
   if (currentStep === 'template') {
       return renderContent();
