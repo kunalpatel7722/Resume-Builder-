@@ -17,30 +17,17 @@ interface ReportSectionProps {
 
 const getSectionIcon = (title: string) => {
     const lowerCaseTitle = title.toLowerCase();
-    if (lowerCaseTitle.includes('content')) {
+    if (lowerCaseTitle.includes('content') || lowerCaseTitle.includes('tailoring')) {
         return <PenSquare className="h-6 w-6" />;
     }
-    if (lowerCaseTitle.includes('format')) {
+    if (lowerCaseTitle.includes('format') || lowerCaseTitle.includes('experience')) {
         return <Layout className="h-6 w-6" />;
     }
-    if (lowerCaseTitle.includes('file')) {
+    if (lowerCaseTitle.includes('ats') || lowerCaseTitle.includes('skills')) {
         return <FileText className="h-6 w-6" />;
     }
-    if (lowerCaseTitle.includes('ats')) {
-        return <FileText className="h-6 w-6" />;
-    }
-    if (lowerCaseTitle.includes('tailoring')) {
-        return <PenSquare className="h-6 w-6" />;
-    }
-    // Default icons for LinkedIn sections
     if (lowerCaseTitle.includes('headline')) {
         return <PenSquare className="h-6 w-6" />;
-    }
-    if (lowerCaseTitle.includes('experience')) {
-        return <Layout className="h-6 w-6" />;
-    }
-    if (lowerCaseTitle.includes('skills')) {
-        return <FileText className="h-6 w-6" />;
     }
      if (lowerCaseTitle.includes('completeness')) {
         return <CheckCircle2 className="h-6 w-6" />;
@@ -52,8 +39,8 @@ const ReportSection = ({ section, onClick, isActive }: ReportSectionProps) => {
   return (
     <Card 
         className={cn(
-            "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
-            isActive && "border-primary shadow-lg ring-2 ring-primary/20"
+            "cursor-pointer transition-all hover:bg-secondary",
+            isActive && "bg-secondary border-primary"
         )}
         onClick={onClick}
     >
@@ -63,8 +50,10 @@ const ReportSection = ({ section, onClick, isActive }: ReportSectionProps) => {
                     {getSectionIcon(section.title)}
                 </div>
                 <div className="flex-1">
-                    <CardTitle className="text-lg">{section.title}</CardTitle>
-                    <CardDescription className="mt-1 text-xs">{section.summary}</CardDescription>
+                    <CardTitle className="text-base font-semibold">{section.title}</CardTitle>
+                </div>
+                <div className="text-lg font-bold text-foreground">
+                    {section.score}
                 </div>
             </div>
         </CardHeader>

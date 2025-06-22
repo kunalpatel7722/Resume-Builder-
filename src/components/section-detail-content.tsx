@@ -24,16 +24,13 @@ const getStatusIcon = (status: 'pass' | 'fail' | 'warning') => {
 
 const SectionDetailContent = ({ checks }: SectionDetailContentProps) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {checks.map((check, index) => (
-        <div key={index}>
-            <div className="flex items-start gap-3">
-                {getStatusIcon(check.status)}
-                <div>
-                    <h4 className="font-semibold text-foreground leading-snug">{check.title}</h4>
-                    <p className="text-muted-foreground text-sm mt-0.5">{check.summary}</p>
-                    <p className="text-muted-foreground/80 text-xs mt-1">{check.details}</p>
-                </div>
+        <div key={index} className="flex items-start gap-4">
+            {getStatusIcon(check.status)}
+            <div>
+                <h4 className="font-semibold text-foreground leading-snug">{check.title}</h4>
+                <p className="text-muted-foreground text-sm mt-1">{check.details}</p>
             </div>
         </div>
       ))}

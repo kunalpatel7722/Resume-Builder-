@@ -10,21 +10,15 @@ interface OverallScoreDisplayProps {
 }
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return 'bg-green-500';
-  if (score >= 50) return 'bg-yellow-500';
-  return 'bg-red-500';
+  if (score >= 80) return 'text-green-500';
+  if (score >= 50) return 'text-yellow-500';
+  return 'text-red-500';
 };
 
-const getScoreRingColor = (score: number) => {
-  if (score >= 80) return 'ring-green-100';
-  if (score >= 50) return 'ring-yellow-100';
-  return 'ring-red-100';
-}
-
-const getScoreTextColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 50) return 'text-yellow-600';
-    return 'text-red-600';
+const getScoreBadgeColor = (score: number) => {
+    if (score >= 80) return 'bg-green-100 text-green-800';
+    if (score >= 50) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
 }
 
 const getScoreLabel = (score: number) => {
@@ -35,17 +29,14 @@ const getScoreLabel = (score: number) => {
   return "Needs Improvement";
 }
 
-
 const OverallScoreDisplay = ({ score, summary }: OverallScoreDisplayProps) => {
-  const scorePercentage = `${score}%`;
-
   return (
-    <Card className="shadow-sm">
-      <CardContent className="p-4 md:p-6 flex flex-col items-start gap-4">
-        <div className="relative h-28 w-28 md:h-32 md:w-32 flex-shrink-0">
+    <Card>
+      <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+        <div className="relative h-40 w-40">
           <svg className="h-full w-full" viewBox="0 0 100 100">
             <circle
-              className="text-muted/50"
+              className="text-secondary"
               strokeWidth="10"
               stroke="currentColor"
               fill="transparent"
@@ -54,7 +45,7 @@ const OverallScoreDisplay = ({ score, summary }: OverallScoreDisplayProps) => {
               cy="50"
             />
             <circle
-              className={cn('transform -rotate-90 origin-center', getScoreTextColor(score))}
+              className={cn('transform -rotate-90 origin-center transition-all duration-500', getScoreColor(score))}
               strokeWidth="10"
               strokeDasharray={`${score * 2.83}, 283`}
               strokeLinecap="round"
@@ -66,13 +57,14 @@ const OverallScoreDisplay = ({ score, summary }: OverallScoreDisplayProps) => {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl md:text-4xl font-bold text-foreground">{score}</span>
+            <span className="text-5xl font-bold text-foreground">{score}</span>
+            <span className="text-sm font-medium text-muted-foreground">out of 100</span>
           </div>
         </div>
-        <div className="text-left">
-            <Badge className={cn("mb-2", getScoreColor(score))}>{getScoreLabel(score)}</Badge>
-            <h2 className="text-lg md:text-xl font-semibold text-foreground">Overall Score</h2>
-            <p className="text-sm text-muted-foreground mt-1">{summary}</p>
+        <div className="text-center">
+            <Badge className={cn("mb-2 text-sm", getScoreBadgeColor(score))}>{getScoreLabel(score)}</Badge>
+            <h2 className="text-xl font-semibold text-foreground">Overall Score</h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{summary}</p>
         </div>
       </CardContent>
     </Card>

@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Loader2, BarChart, FileText, ArrowLeft, Search } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 import { resumeAtsCheck, type ResumeAtsCheckInput, type ResumeAtsCheckOutput } from "@/ai/flows/resume-ats-check";
 import ImprovementTips from "@/components/improvement-tips";
@@ -27,15 +26,12 @@ export default function ResumeChecker() {
   const { toast } = useToast();
   const [activeDetail, setActiveDetail] = useState<AnalysisResult['reportSections'][0] | { title: 'Extracted Resume Text' } | null>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
 
   const handleSectionClick = (section: AnalysisResult['reportSections'][0] | { title: 'Extracted Resume Text' }) => {
     setActiveDetail(section);
-    if (isMobile) {
-      setTimeout(() => {
-        detailContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
+    setTimeout(() => {
+      detailContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,11 +94,11 @@ export default function ResumeChecker() {
 
   if (isLoading) {
     return (
-      <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-8 bg-background">
-        <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md">
-          <Loader2 className="w-16 h-16 text-primary animate-spin" />
-          <h3 className="text-2xl font-bold text-foreground">Scanning Resume...</h3>
-          <p className="text-muted-foreground">The AI is checking your resume. This may take a moment.</p>
+      <div className="w-full flex flex-col items-center justify-center p-8">
+        <div className="flex flex-col items-center justify-center gap-4 text-center w-full max-w-md py-20">
+          <Loader2 className="w-12 h-12 text-primary animate-spin" />
+          <h3 className="text-2xl font-bold text-foreground">Scanning Your Resume...</h3>
+          <p className="text-muted-foreground">Our AI is checking for ATS compatibility and keyword matches. This may take a moment.</p>
         </div>
       </div>
     );
@@ -110,12 +106,12 @@ export default function ResumeChecker() {
 
   if (result) {
     return (
-       <div className="min-h-screen bg-muted/40">
-        <div className="max-w-7xl mx-auto p-4 md:p-8">
+       <div className="min-h-screen">
+        <div className="max-w-screen-xl mx-auto p-4 md:p-8">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">ATS Resume Scan Results</h1>
-                <p className="text-muted-foreground">Here's a detailed breakdown of your resume's match for the job.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">ATS Resume Scan Report</h1>
+                <p className="text-muted-foreground">Here's how your resume stacks up against the job description.</p>
               </div>
               <Button variant="outline" onClick={() => { setResult(null); setFile(null); setJobDescription(""); }}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -123,12 +119,12 @@ export default function ResumeChecker() {
               </Button>
             </header>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-8 lg:items-start">
-              {/* Left Column */}
-              <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-24">
+            <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-8 lg:items-start">
+              <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
                 <OverallScoreDisplay score={result.overallScore} summary={result.overallSummary} />
                 
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold px-4">Report Sections</h3>
                   {result.reportSections.map((section, index) => (
                     <ReportSection 
                       key={index} 
@@ -139,8 +135,8 @@ export default function ResumeChecker() {
                   ))}
                   <Card 
                       className={cn(
-                          "shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary",
-                          activeDetail?.title === 'Extracted Resume Text' && "border-primary shadow-lg ring-2 ring-primary/20"
+                          "cursor-pointer transition-all hover:bg-secondary",
+                          activeDetail?.title === 'Extracted Resume Text' && "bg-secondary border-primary"
                       )}
                       onClick={() => handleSectionClick({ title: 'Extracted Resume Text' })}
                   >
@@ -150,17 +146,16 @@ export default function ResumeChecker() {
                                   <FileText className="h-6 w-6" />
                               </div>
                               <div className="flex-1">
-                                  <CardTitle className="text-lg">Extracted Resume Text</CardTitle>
-                                  <CardDescription className="mt-1 text-xs">View the text our AI used for the analysis.</CardDescription>
+                                  <CardTitle className="text-base font-semibold">Extracted Resume Text</CardTitle>
+                                  <CardDescription className="text-xs">The text our AI analyzed.</CardDescription>
                               </div>
                           </div>
                       </CardHeader>
                   </Card>
                 </div>
-              </div>
+              </aside>
 
-              {/* Right Column */}
-              <div ref={detailContentRef} className="lg:col-span-2 space-y-8 mt-8 lg:mt-0">
+              <main ref={detailContentRef} className="lg:col-span-8 space-y-8 mt-8 lg:mt-0">
                 {result.keywordAnalysis && (
                   <KeywordAnalysis data={result.keywordAnalysis} />
                 )}
@@ -168,11 +163,11 @@ export default function ResumeChecker() {
                  {activeDetail && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>{activeDetail.title}</CardTitle>
+                            <CardTitle className="text-xl font-semibold">{activeDetail.title}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {activeDetail.title === 'Extracted Resume Text' ? (
-                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-muted/50 p-4 rounded-md">
+                                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-secondary p-4 rounded-md max-h-96 overflow-y-auto">
                                     {result.extractedText}
                                 </pre>
                             ) : (
@@ -181,7 +176,7 @@ export default function ResumeChecker() {
                         </CardContent>
                     </Card>
                 )}
-              </div>
+              </main>
             </div>
         </div>
       </div>
@@ -190,67 +185,65 @@ export default function ResumeChecker() {
 
 
   return (
-    <div className="bg-background min-h-[calc(100vh-4rem)]">
-      <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <header className="text-center mb-12">
-           <FileText className="w-12 h-12 mx-auto text-primary mb-4" />
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-            ATS Resume Checker
-          </h1>
-          <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-            Upload your resume and (optionally) a job description to see how well you match. Get an instant analysis of your resume's ATS-friendliness and keyword optimization.
-          </p>
-        </header>
+    <div className="w-full">
+       <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
+        <FileText className="w-16 h-16 mx-auto text-primary mb-6" />
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+          Beat the Robots: Check Your Resume's ATS Score
+        </h1>
+        <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+          See if your resume will pass the Applicant Tracking System (ATS). Upload your resume and the job description to get your match score and keyword analysis.
+        </p>
+      </section>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="shadow-lg">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><UploadCloud /> Upload Your Resume</CardTitle>
-                      <CardDescription>
-                          Upload your resume in PDF format to get started.
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                              <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span></p>
-                              <p className="text-xs text-muted-foreground">or drag and drop your resume PDF</p>
-                          </div>
-                          <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
-                      </label>
-                      {file && <p className="text-sm mt-2 text-muted-foreground">Selected: {file.name}</p>}
-                  </CardContent>
-              </Card>
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto px-4 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-3"><UploadCloud /> 1. Upload Your Resume</CardTitle>
+                    <CardDescription>
+                        Your resume must be in PDF format.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-secondary transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
+                        </div>
+                        <input id="file-upload" type="file" className="hidden" accept="application/pdf" onChange={handleFileChange} />
+                    </label>
+                    {file && <p className="text-sm mt-2 text-center text-muted-foreground">Selected: {file.name}</p>}
+                </CardContent>
+            </Card>
 
-              <Card className="shadow-lg">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2"><Search /> Job Description</CardTitle>
-                      <CardDescription>
-                          Paste the full job description here (optional).
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <Label htmlFor="job-description" className="sr-only">Job Description</Label>
-                      <Textarea 
-                          id="job-description"
-                          placeholder="Paste the job description here..."
-                          className="h-48"
-                          value={jobDescription}
-                          onChange={(e) => setJobDescription(e.target.value)}
-                          suppressHydrationWarning
-                      />
-                  </CardContent>
-              </Card>
-          </div>
-          <CardFooter className="mt-8 p-0">
-            <Button type="submit" className="w-full text-lg py-6" disabled={!file}>
-                <BarChart className="mr-2" />Analyze Resume
-            </Button>
-          </CardFooter>
-        </form>
-      </div>
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-3"><Search /> 2. Paste Job Description</CardTitle>
+                    <CardDescription>
+                        For the best results, paste the full job description (optional).
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Label htmlFor="job-description" className="sr-only">Job Description</Label>
+                    <Textarea 
+                        id="job-description"
+                        placeholder="Paste the job description here..."
+                        className="h-40"
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        suppressHydrationWarning
+                    />
+                </CardContent>
+            </Card>
+        </div>
+        <div className="mt-8">
+          <Button type="submit" size="lg" className="w-full text-lg h-14" disabled={!file || isLoading}>
+              {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <BarChart className="mr-2" />}
+              Analyze My Resume
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

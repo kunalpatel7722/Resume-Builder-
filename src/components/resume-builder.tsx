@@ -1,8 +1,6 @@
-
 "use client";
 
 import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +13,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil, CaseSensitive, FileSignature, SpellCheck, ArrowLeft } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil, CaseSensitive, FileSignature, SpellCheck, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -39,9 +37,6 @@ import { ProjectManagerTemplate } from './resume-templates/project-manager-templ
 import { CreativeWriterTemplate } from './resume-templates/creative-writer-template';
 import { DatePicker } from './ui/date-picker';
 import { Checkbox } from './ui/checkbox';
-import rehypeRaw from 'rehype-raw';
-import remarkGfm from 'remark-gfm';
-import ReactMarkdown from 'react-markdown';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ResumeThumbnail } from './resume-templates/resume-thumbnail';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -108,13 +103,9 @@ const initialResumeData: ResumeData = {
 };
 
 const coreSteps = [
-  { id: 'career-level', name: 'Career Level' },
-  { id: 'target-country', name: 'Target Country' },
-  { id: 'template', name: 'Choose Template' },
-  { id: 'select-method', name: 'Start' },
+  { id: 'template', name: 'Template' },
   { id: 'personal', name: 'Personal Info' },
-  { id: 'experience', name: 'Experience' },
-  { id: 'experience-description', name: 'Job Description' },
+  { id: 'experience', name: 'Work History' },
   { id: 'education', name: 'Education' },
   { id: 'skills', name: 'Skills' },
   { id: 'summary', name: 'Summary' },
@@ -134,18 +125,11 @@ const finalSteps = [
   { id: 'add-section', name: 'Add Section' },
 ];
 
-const finalizationSections = [
-    {id: 'summary', name: 'Summary', icon: FileSignature},
-    {id: 'skills', name: 'Skills', icon: CheckCircle},
-    {id: 'experience', name: 'Experience', icon: Briefcase},
-    {id: 'education', name: 'Education', icon: GraduationCap},
-];
-
 const colorOptions = [
-    { name: 'Indigo', color: '#4F46E5' },
-    { name: 'Blue', color: '#3B82F6' },
+    { name: 'Blue', color: '#3b82f6' },
     { name: 'Green', color: '#10B981' },
     { name: 'Red', color: '#EF4444' },
+    { name: 'Purple', color: '#8b5cf6' },
     { name: 'Gray', color: '#6B7280' },
     { name: 'Black', color: '#111827' },
 ];
@@ -181,24 +165,6 @@ const templates = [
   { id: 'creative-writer', name: 'Creative Writer' },
 ];
 
-const careerLevels = [
-  { title: 'No Experience', icon: Baby },
-  { title: 'Less than 3 years', icon: ChevronsUp },
-  { title: '3-5 years', icon: Briefcase },
-  { title: '5-10 years', icon: Building },
-  { title: '10+ years', icon: Trophy },
-  { title: 'Student / Intern', icon: GraduationCap },
-];
-
-const countries = [
-  { name: 'United States', icon: '🇺🇸' },
-  { name: 'United Kingdom', icon: '🇬🇧' },
-  { name: 'Canada', icon: '🇨🇦' },
-  { name: 'Australia', icon: '🇦🇺' },
-  { name: 'Germany', icon: '🇩🇪' },
-  { name: 'Other', icon: '🌍' },
-];
-
 const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -206,8 +172,6 @@ const months = [
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 70 }, (_, i) => (currentYear + 5 - i).toString());
-
-const fullWidthSteps = ['career-level', 'target-country', 'template', 'select-method'];
 
 const degreeLevels = [
   "High School Diploma",
@@ -232,8 +196,7 @@ const languageLevels = ["Native", "Fluent", "Proficient", "Conversational", "Bas
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
-  const [currentStep, setCurrentStep] = useState('career-level');
-  const [careerLevel, setCareerLevel] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState('template');
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
@@ -254,7 +217,6 @@ export default function ResumeBuilder() {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   
   const isMobile = useIsMobile();
-  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
   const [addedSections, setAddedSections] = useState<string[]>([]);
 
   const [isFinalizing, setIsFinalizing] = useState(false);
@@ -263,44 +225,6 @@ export default function ResumeBuilder() {
 
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const previewContentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = previewContainerRef.current;
-    const content = previewContentRef.current;
-
-    if (!container || !content) return;
-
-    const applyScale = () => {
-      const containerWidth = container.offsetWidth;
-      const contentWidth = content.offsetWidth;
-      if (container.offsetWidth > 0 && contentWidth > 0) {
-        const scale = containerWidth / contentWidth;
-        content.style.transform = `scale(${scale})`;
-        content.style.transformOrigin = 'top left';
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(() => {
-      applyScale();
-    });
-
-    resizeObserver.observe(container);
-
-    setTimeout(applyScale, 50);
-
-    return () => {
-      if (container) resizeObserver.unobserve(container);
-    };
-  }, [isFinalizing, isMobile, mobileView, selectedTemplate, resumeData, accentColor, fontSize]);
-
-
-  const showPreview = !fullWidthSteps.includes(currentStep);
-
-  const steps = [
-    ...coreSteps,
-    ...optionalStepsData.filter(s => addedSections.includes(s.id)),
-    ...finalSteps,
-  ];
 
   const templateComponents = {
     modern: ModernTemplate,
@@ -327,6 +251,48 @@ export default function ResumeBuilder() {
   };
   
   const TemplateComponent = templateComponents[selectedTemplate as keyof typeof templateComponents];
+
+  useEffect(() => {
+    const container = previewContainerRef.current;
+    const content = previewContentRef.current;
+
+    if (!container || !content) return;
+
+    const applyScale = () => {
+        const containerWidth = container.offsetWidth;
+        // A4 aspect ratio is approx 1/1.414. We use content's natural width (850px).
+        const contentWidth = 850;
+        
+        if (containerWidth > 0 && contentWidth > 0) {
+            const scale = containerWidth / contentWidth;
+            content.style.transform = `scale(${scale})`;
+            content.style.transformOrigin = 'top left';
+            // Adjust container height to match scaled content height
+            container.style.height = `${content.offsetHeight * scale}px`;
+        }
+    };
+
+    const resizeObserver = new ResizeObserver(applyScale);
+    if(container) {
+      resizeObserver.observe(container);
+    }
+    
+    // Initial scale
+    applyScale();
+
+    return () => {
+      if (container) {
+        resizeObserver.unobserve(container);
+      }
+    };
+  }, [isFinalizing, isMobile, selectedTemplate, resumeData, accentColor, fontSize]);
+
+
+  const steps = [
+    ...coreSteps,
+    ...optionalStepsData.filter(s => addedSections.includes(s.id)),
+    ...finalSteps,
+  ];
 
   useEffect(() => {
     // This is the cleanup function for the component unmount
@@ -574,53 +540,6 @@ export default function ResumeBuilder() {
     handleExperienceChange(experienceIndex, 'description', newDescription);
   };
 
-  const applyFormat = (index: number, format: 'bold' | 'italic' | 'underline' | 'bullet') => {
-    const expId = resumeData.experience[index].id;
-    const textareaId = `description-${expId}`;
-    const textarea = document.getElementById(textareaId) as HTMLTextAreaElement;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selectedText = text.substring(start, end);
-
-    let newValue;
-    let newStart;
-    let newEnd;
-
-    switch (format) {
-      case 'bold':
-        newValue = `${text.substring(0, start)}**${selectedText || 'text'}**${text.substring(end)}`;
-        newStart = start + 2;
-        newEnd = newStart + (selectedText || 'text').length;
-        break;
-      case 'italic':
-        newValue = `${text.substring(0, start)}*${selectedText || 'text'}*${text.substring(end)}`;
-        newStart = start + 1;
-        newEnd = newStart + (selectedText || 'text').length;
-        break;
-      case 'underline':
-        newValue = `${text.substring(0, start)}<u>${selectedText || 'text'}</u>${text.substring(end)}`;
-        newStart = start + 3;
-        newEnd = newStart + (selectedText || 'text').length;
-        break;
-      case 'bullet':
-        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-        newValue = `${text.substring(0, lineStart)}* ${text.substring(lineStart)}`;
-        newStart = start + 2;
-        newEnd = newStart;
-        break;
-      default:
-        return;
-    }
-    
-    handleExperienceChange(index, 'description', newValue);
-
-    setEditorFocus({ id: textareaId, start: newStart, end: newEnd });
-  };
-
-
   const handleAddSkill = (skill: string) => {
     if (!resumeData.skills.includes(skill)) {
       setResumeData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
@@ -639,7 +558,7 @@ export default function ResumeBuilder() {
         setSummarySuggestions(result.summaries);
     } catch (error) {
         console.error(error);
-        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again. Please try again.', variant: 'destructive' });
+        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again.', variant: 'destructive' });
     } finally {
         setIsGeneratingSummary(false);
     }
@@ -657,13 +576,7 @@ export default function ResumeBuilder() {
       return;
     }
     if (currentIndex < steps.length - 1) {
-      if (currentStep === 'experience' && resumeData.experience.every(exp => exp.role)) {
-        setCurrentStep('experience-description');
-      } else if (currentStep === 'experience') {
-        toast({ title: 'Role is required', description: 'Please enter a role for each experience before proceeding.', variant: 'destructive' });
-      } else {
-        setCurrentStep(steps[currentIndex + 1].id);
-      }
+      setCurrentStep(steps[currentIndex + 1].id);
     }
   };
   
@@ -674,9 +587,7 @@ export default function ResumeBuilder() {
     }
     const currentIndex = steps.findIndex(step => step.id === currentStep);
     if (currentIndex > 0) {
-       if (currentStep === 'experience-description') {
-        setCurrentStep('experience');
-      } else if (addedSections.includes(currentStep)) {
+       if (addedSections.includes(currentStep)) {
         setCurrentStep('add-section');
       }
       else {
@@ -689,16 +600,6 @@ export default function ResumeBuilder() {
     setCurrentStep(stepId);
     setIsFinalizing(false);
   }
-
-  const handleCareerLevelSelect = (level: string) => {
-    setCareerLevel(level);
-    nextStep();
-  };
-
-  const handleCountrySelect = (country: string) => {
-    setResumeData(prev => ({ ...prev, targetCountry: country }));
-    nextStep();
-  };
 
   const handleAddSection = (sectionId: string) => {
     if (!addedSections.includes(sectionId)) {
@@ -728,18 +629,14 @@ export default function ResumeBuilder() {
 
   const handleDownloadPdf = async () => {
     const element = previewContentRef.current;
-    if (!element) {
-        if(isMobile) {
-            toast({ title: "Preview not visible", description: "Please switch to the Preview tab to download the PDF.", variant: "destructive" });
-        }
-        return;
-    }
+    if (!element) return;
 
     setIsDownloading(true);
     try {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
+        backgroundColor: '#ffffff',
       });
 
       const pdf = new jspdf({
@@ -764,59 +661,30 @@ export default function ResumeBuilder() {
 
   if (!isBuilding) {
     return (
-      <div className="bg-background min-h-[calc(100vh-4rem)]">
-        <div className="w-full max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-          <header className="text-center mb-12">
-            <FileCheck2 className="w-12 h-12 mx-auto text-primary mb-4" />
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-              Create a Job-Winning Resume in Minutes
-            </h1>
-            <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-              Our intuitive builder and AI-powered tools make resume writing fast and simple.
-            </p>
-          </header>
-
-          <div className="grid md:grid-cols-3 gap-8 text-center mb-12">
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
-                <Palette className="h-8 w-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">1. Follow Guided Steps</h3>
-              <p className="text-muted-foreground">Our guided steps allow you to create a polished, professional resume faster.</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
-                <Wand2 className="h-8 w-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">2. Get AI Suggestions</h3>
-              <p className="text-muted-foreground">Search by job title to find pre-written, impactful descriptions for your resume.</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
-                <Edit className="h-8 w-8" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">3. Fine-Tune & Download</h3>
-              <p className="text-muted-foreground">Quickly generate each section, fine-tune the details, and download your new resume.</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <Button size="lg" className="text-lg py-7 px-10" onClick={() => setIsBuilding(true)}>
-              Create My Resume Now
+      <div className="w-full">
+        <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
+          <FileCheck2 className="w-16 h-16 mx-auto text-primary mb-6" />
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+            The AI-Powered Resume Builder
+          </h1>
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+            Create a professional, ATS-friendly resume in minutes. Get AI-powered suggestions, choose from professional templates, and land your dream job.
+          </p>
+          <div className="mt-10">
+            <Button size="lg" className="text-lg h-14 px-10" onClick={() => setIsBuilding(true)}>
+              Create My Resume
             </Button>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
 
-  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
-  const nextStepName = currentStepIndex < steps.length - 1 ? steps[currentStepIndex + 1].name : '';
-
   if (isFinalizing) {
     return (
-        <div className="grid lg:grid-cols-12 lg:gap-8 lg:items-start bg-muted/40 p-4 lg:p-8">
-            <aside className="lg:col-span-3 border-r bg-background p-4 lg:p-6 rounded-lg shadow-sm lg:sticky lg:top-24">
-                <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-4">
+        <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
+            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky lg:top-24">
+                <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-6">
                     <ArrowLeft className="mr-2" />
                     Back to Editor
                 </Button>
@@ -839,47 +707,17 @@ export default function ResumeBuilder() {
                         </div>
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Color</h3>
+                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Accent Color</h3>
                         <div className="flex flex-wrap gap-3">
                             {colorOptions.map(option => (
                                 <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
                             ))}
                         </div>
                     </div>
-                    <div>
-                         <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><CaseSensitive size={20}/> Font Size</h3>
-                        <div className="flex items-center gap-2">
-                            {fontSizes.map(size => (
-                                <Button key={size.id} variant={fontSize === size.id ? 'default' : 'outline'} onClick={() => setFontSize(size.id as 'sm'|'md'|'lg')}>{size.name}</Button>
-                            ))}
-                        </div>
-                    </div>
-                     <div>
-                         <h3 className="font-semibold text-lg mb-4">Resume Sections</h3>
-                        <div className="space-y-2">
-                            {finalizationSections.map(section => (
-                                <Button key={section.id} variant="ghost" className="w-full justify-start" onClick={() => handleGoToStep(section.id)}>
-                                    <section.icon className="mr-2" />
-                                    {section.name}
-                                </Button>
-                            ))}
-                             <Button variant="ghost" className="w-full justify-start" onClick={() => handleGoToStep('add-section')}>
-                                <Plus className="mr-2" />
-                                Add a section
-                            </Button>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-lg mb-4">Proofread</h3>
-                         <Button variant="outline" className="w-full justify-start" disabled>
-                            <SpellCheck className="mr-2" />
-                            Spell Check (Coming Soon)
-                        </Button>
-                    </div>
                 </div>
             </aside>
-            <main className="lg:col-span-9 flex flex-col items-center justify-start mt-8 lg:mt-0">
-                 <div className="flex justify-end w-full max-w-md mb-4">
+            <main className="lg:col-span-8 flex flex-col items-center justify-start mt-8 lg:mt-0">
+                 <div className="flex justify-end w-full max-w-[450px] mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -887,9 +725,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-md shadow-xl ring-1 ring-black/5"
+                    className="w-full max-w-[450px] shadow-lg ring-1 ring-black/5"
                   >
-                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
+                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -899,169 +737,39 @@ export default function ResumeBuilder() {
 }
 
   return (
-    <div className={cn(
-        "bg-background",
-        showPreview
-            ? "lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start"
-            : ""
-    )}>
-      
-      <main className={cn(
-          "w-full p-4 sm:p-6 lg:p-8",
-          showPreview
-              ? "lg:col-span-7"
-              : "max-w-4xl mx-auto py-16"
-      )}>
-        <div className="lg:hidden">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Resume Builder</h2>
-              <Button variant="outline" size="sm" onClick={() => setIsBuilding(false)}>Exit</Button>
-            </div>
-            <div className="flex items-center justify-between mb-8 space-x-1 sm:space-x-2 text-xs">
-              {steps.map((step, index) => {
-                  const stepIndex = steps.findIndex(s => s.id === currentStep);
-                  const isActive = step.id === currentStep;
-                  const isCompleted = stepIndex > index;
-                  return (
-                      <React.Fragment key={step.id}>
-                          <div className="flex flex-col items-center text-center w-12">
-                             <button onClick={() => setCurrentStep(step.id)} className={cn("w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors text-xs", 
-                                  isActive ? 'bg-primary text-primary-foreground' : isCompleted ? 'bg-green-500 text-white' : 'bg-card border'
-                             )}
-                             disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
-                             >
-                                  {isCompleted ? <FileCheck2 size={14}/> : index + 1}
-                             </button>
-                             <p className={cn("mt-2 text-center text-[10px] leading-tight", isActive && "font-bold text-primary")}>{step.name}</p>
-                          </div>
-                          {index < steps.length - 1 && <div className="flex-1 h-0.5 bg-border -mt-4"></div>}
-                      </React.Fragment>
-                  );
-              })}
-          </div>
-        </div>
-
-        {showPreview && (
-            <div className="lg:hidden sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-2 mb-4 border-b">
-                <div className="flex justify-center rounded-md bg-muted p-1 max-w-xs mx-auto">
-                    <Button 
-                        onClick={() => setMobileView('edit')}
-                        variant={mobileView === 'edit' ? 'default' : 'ghost'}
-                        className="flex-1"
-                        size="sm"
-                    >
-                        Edit
-                    </Button>
-                    <Button 
-                        onClick={() => setMobileView('preview')}
-                        variant={mobileView === 'preview' ? 'default' : 'ghost'}
-                        className="flex-1"
-                        size="sm"
-                    >
-                        Preview
-                    </Button>
-                </div>
-            </div>
-        )}
-
-        <div className={cn(
-            "",
-            showPreview ? "max-w-xl mx-auto lg:mx-0" : "max-w-4xl mx-auto",
-            isMobile && mobileView === 'preview' ? 'hidden' : 'block'
-        )}>
-          {currentStep === 'career-level' && (
-            <div className="space-y-4">
-                <h3 className="text-2xl font-semibold">What's your career level?</h3>
-                <p className="text-muted-foreground">This helps us tailor suggestions for you.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                    {careerLevels.map((level) => (
-                        <Card 
-                            key={level.title}
-                            onClick={() => handleCareerLevelSelect(level.title)}
-                            className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
-                        >
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <level.icon className="h-8 w-8 text-primary" />
-                                <span className="text-lg font-medium">{level.title}</span>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-          )}
-          {currentStep === 'target-country' && (
-            <div className="space-y-4">
-                <h3 className="text-2xl font-semibold">Where are you applying for jobs?</h3>
-                <p className="text-muted-foreground">This helps us format your resume correctly for the region.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                    {countries.map((country) => (
-                        <Card 
-                            key={country.name}
-                            onClick={() => handleCountrySelect(country.name)}
-                            className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
-                        >
-                            <CardContent className="p-6 flex items-center gap-4">
-                                <span className="text-2xl">{country.icon}</span>
-                                <span className="text-lg font-medium">{country.name}</span>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-          )}
+    <div className="grid lg:grid-cols-12 lg:gap-8 items-start">
+      <main className="lg:col-span-7 w-full p-4 sm:p-6 lg:p-8">
+        <div className="max-w-xl mx-auto">
           {currentStep === 'template' && (
             <div className="space-y-4">
-                <h3 className="text-2xl font-semibold">Choose Your Template</h3>
-                <p className="text-muted-foreground">Select a template to get started. Your content will be automatically transferred.</p>
+                <h3 className="text-3xl font-bold">Choose a template to get started</h3>
+                <p className="text-muted-foreground">You can change it any time.</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
                     {templates.map((template) => (
                         <div 
                             key={template.id}
-                            onClick={() => setSelectedTemplate(template.id)}
-                            className={cn(
-                                "cursor-pointer rounded-lg border-2 p-1 transition-all",
-                                selectedTemplate === template.id ? "border-primary shadow-lg" : "border-transparent hover:border-primary/50"
-                            )}
+                            onClick={() => {setSelectedTemplate(template.id); nextStep();}}
+                            className="cursor-pointer group"
                         >
-                            <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                            <p className="text-center text-sm font-medium mt-2">{template.name}</p>
+                            <div className={cn(
+                                "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
+                                selectedTemplate === template.id ? "border-primary" : "border-card"
+                            )}>
+                              <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                            </div>
+                            <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
                         </div>
                     ))}
                 </div>
             </div>
           )}
-          {currentStep === 'select-method' && (
-            <div className="space-y-4">
-                <h3 className="text-2xl font-semibold">How would you like to start?</h3>
-                <p className="text-muted-foreground">You can either build a new resume from scratch or upload an existing one.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                    <Card 
-                        onClick={() => nextStep()}
-                        className="cursor-pointer hover:border-primary hover:shadow-lg transition-all"
-                    >
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-                            <FilePlus2 className="h-12 w-12 text-primary" />
-                            <h4 className="text-lg font-semibold">Create a new resume</h4>
-                            <p className="text-sm text-muted-foreground">Build your resume from scratch with our step-by-step resume builder.</p>
-                        </CardContent>
-                    </Card>
-                    <Card 
-                        className="cursor-not-allowed bg-muted/50 border-dashed"
-                    >
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-                            <UploadCloud className="h-12 w-12 text-muted-foreground" />
-                            <h4 className="text-lg font-semibold text-muted-foreground">Upload an existing resume</h4>
-                            <p className="text-sm text-muted-foreground">This feature is coming soon. We'll parse your resume and fill in the details automatically.</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-          )}
           {currentStep === 'personal' && (
-              <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold">What's the best way for employers to contact you?</h3>
-                  <p className="text-muted-foreground">We suggest including an email and phone number.</p>
-                  <div className="space-y-4 pt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                  <CardDescription>What's the best way for employers to contact you?</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
                         <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
@@ -1076,19 +784,21 @@ export default function ResumeBuilder() {
                         <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
                         <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
                     </div>
-                  </div>
-              </div>
+                </CardContent>
+              </Card>
           )}
           {currentStep === 'experience' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Tell us about your most recent job</h3>
-                <p className="text-muted-foreground">We’ll start with your most recent job and go back from there.</p>
-                
-                {resumeData.experience.map((exp, index) => (
-                  <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative">
-                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
-                      
-                      <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Work History</CardTitle>
+                    <CardDescription>Tell us about your most recent job and we’ll go from there.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.experience.map((exp, index) => (
+                      <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
+                          
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative">
                                 <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
@@ -1106,7 +816,7 @@ export default function ResumeBuilder() {
                                             {suggestionsLoadingFor === index ? (
                                                 <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Loading suggestions...
+                                                    Loading...
                                                 </div>
                                             ) : jobTitleSuggestions.length > 0 ? (
                                                 <ul className="space-y-1">
@@ -1114,7 +824,7 @@ export default function ResumeBuilder() {
                                                         <li key={sIndex}>
                                                             <button
                                                                 type="button"
-                                                                className="w-full text-left p-2 rounded-md hover:bg-muted text-sm"
+                                                                className="w-full text-left p-2 rounded-md hover:bg-secondary text-sm"
                                                                 onMouseDown={() => handleSuggestionClick(suggestion, index)}
                                                             >
                                                                 {suggestion}
@@ -1122,274 +832,112 @@ export default function ResumeBuilder() {
                                                         </li>
                                                     ))}
                                                 </ul>
-                                            ) : (
-                                                <div className="p-4 text-center text-sm text-muted-foreground">
-                                                    No suggestions found.
-                                                </div>
-                                            )}
+                                            ) : ( <div className="p-4 text-center text-sm text-muted-foreground">No suggestions.</div> )}
                                         </CardContent>
                                     </Card>
                                 )}
                             </div>
                             <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
                           </div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div><Label htmlFor={`city-${exp.id}`}>City</Label><Input id={`city-${exp.id}`} name="city" value={exp.city} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                              <div><Label htmlFor={`state-${exp.id}`}>State</Label><Input id={`state-${exp.id}`} name="state" value={exp.state} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                          <div>
+                            <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                            <Textarea id={`description-${exp.id}`} name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} placeholder="Describe your responsibilities and achievements..." />
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                  <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
-                                  <DatePicker
-                                      date={exp.startDate ?? undefined}
-                                      setDate={(date) => handleExperienceChange(index, 'startDate', date)}
-                                  />
+                          <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                              AI Suggestions for '{exp.role || "this role"}'
+                          </Button>
+                          {aiSuggestions && suggestionsForIndex === index && (
+                              <div className="space-y-1 max-h-40 overflow-y-auto">
+                                {aiSuggestions.responsibilities.map((resp, i) => (
+                                  <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
+                                    <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
+                                    <span className="text-xs">{resp}</span>
+                                  </button>
+                                ))}
                               </div>
-                              <div>
-                                  <Label htmlFor={`endDate-${exp.id}`}>End Date</Label>
-                                  <DatePicker
-                                      date={exp.endDate ?? undefined}
-                                      setDate={(date) => handleExperienceChange(index, 'endDate', date)}
-                                      disabled={exp.isCurrentJob}
-                                  />
-                              </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                              <Checkbox
-                                  id={`currentJob-${exp.id}`}
-                                  checked={exp.isCurrentJob}
-                                  onCheckedChange={(checked) => {
-                                      const isChecked = checked === true;
-                                      handleExperienceChange(index, 'isCurrentJob', isChecked);
-                                      if (isChecked) {
-                                          handleExperienceChange(index, 'endDate', null);
-                                      }
-                                  }}
-                              />
-                              <Label htmlFor={`currentJob-${exp.id}`} className="font-normal">
-                                  I currently work here
-                              </Label>
-                          </div>
+                          )}
                       </div>
-                  </div>
-                ))}
-                <Button variant="outline" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
+                    ))}
+                    <Button variant="secondary" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
+                  </CardContent>
+                </Card>
               </div>
           )}
-          {currentStep === 'experience-description' && (
-            <div className="space-y-6">
-              {resumeData.experience.map((exp, index) => (
-                <div key={exp.id} className="space-y-4 p-4 border rounded-lg">
-                   <h3 className="text-xl font-semibold">Next, write about what you did as a {exp.role || '...'}</h3>
-                  <p className="text-muted-foreground">Pick from our ready-to-use phrases or write your own and get AI writing help.</p>
-
-                  <div>
-                    <div className="flex items-center gap-2 border border-input rounded-t-md p-1 bg-muted/50">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bold')}><Bold size={16}/></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'italic')}><Italic size={16}/></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'underline')}><Underline size={16}/></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => applyFormat(index, 'bullet')}><List size={16}/></Button>
-                    </div>
-                    <Textarea 
-                        id={`description-${exp.id}`}
-                        name="description" 
-                        value={exp.description} 
-                        onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} 
-                        className="h-24 rounded-t-none border-t-0" 
-                        placeholder="Use the toolbar to add formatting."
-                      />
-                  </div>
-                   <Card className="bg-muted/50">
-                    <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-base flex items-center gap-2">
-                            <Wand2 className="h-5 w-5 text-primary" />
-                             AI Content Helper for '{exp.role}'
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                         <Button onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                              Get Suggestions
-                          </Button>
-                    </CardContent>
-                  </Card>
-
-                  {aiSuggestions && suggestionsForIndex === index && (
-                    <Card className="bg-muted/50">
-                      <CardHeader className='p-3'>
-                        <CardTitle className='text-sm'>AI Suggestions for '{resumeData.experience[suggestionsForIndex as number].role}'</CardTitle>
-                      </CardHeader>
-                      <CardContent className='p-3 pt-0'>
-                        <p className="text-xs text-muted-foreground mb-2">Click to add a bullet point to the description above.</p>
-                        <div className="space-y-1 max-h-40 overflow-y-auto">
-                          {aiSuggestions.responsibilities.map((resp, i) => (
-                            <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
-                              <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
-                              <span className="text-xs">{resp}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
            {currentStep === 'education' && (
-               <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold">Tell us about your education</h3>
-                  <p className="text-muted-foreground">Include every school, even if you're still there or didn't graduate.</p>
-                  
+              <Card>
+                <CardHeader>
+                  <CardTitle>Education</CardTitle>
+                  <CardDescription>Tell us about your education.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   {resumeData.education.map((edu, index) => (
-                      <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative">
-                          <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
+                      <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
                           <div className="space-y-4">
-                              <div>
-                                  <Label htmlFor={`school-${edu.id}`}>School Name</Label>
-                                  <Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
-                              </div>
-                               <div>
-                                  <Label htmlFor={`location-${edu.id}`}>School Location</Label>
-                                  <Input id={`location-${edu.id}`} name="location" value={edu.location} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
-                              </div>
-                              <div>
-                                  <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
-                                  <Select 
-                                      onValueChange={(value) => handleEducationChange(index, 'degree', value)} 
-                                      value={edu.degree}>
-                                    <SelectTrigger id={`degree-${edu.id}`}>
-                                      <SelectValue placeholder="Select" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {degreeLevels.map(level => (
-                                            <SelectItem key={level} value={level}>{level}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                  </Select>
-                              </div>
-                               <div>
-                                  <Label htmlFor={`fieldOfStudy-${edu.id}`}>Field of Study</Label>
-                                  <Input id={`fieldOfStudy-${edu.id}`} name="fieldOfStudy" value={edu.fieldOfStudy} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} />
-                              </div>
-                              <div>
-                                <Label>Graduation Date</Label>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <Select 
-                                    onValueChange={(value) => handleEducationChange(index, 'graduationMonth', value)} 
-                                    value={edu.graduationMonth}
-                                    disabled={edu.isStillEnrolled}
-                                    >
-                                    <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-                                    <SelectContent>
-                                      {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                   <Select 
-                                     onValueChange={(value) => handleEducationChange(index, 'graduationYear', value)} 
-                                     value={edu.graduationYear}
-                                     disabled={edu.isStillEnrolled}
-                                     >
-                                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                                    <SelectContent>
-                                      {years.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox 
-                                  id={`stillEnrolled-${edu.id}`}
-                                  checked={edu.isStillEnrolled}
-                                  onCheckedChange={(checked) => handleEducationChange(index, 'isStillEnrolled', checked === true)}
-                                />
-                                <Label htmlFor={`stillEnrolled-${edu.id}`} className="font-normal">
-                                    I am still enrolled
-                                </Label>
-                             </div>
+                              <div><Label htmlFor={`school-${edu.id}`}>School Name</Label><Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                              <div><Label htmlFor={`degree-${edu.id}`}>Degree</Label><Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
                           </div>
                       </div>
                   ))}
-                  <Button variant="outline" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
-              </div>
+                  <Button variant="secondary" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
+                </CardContent>
+              </Card>
           )}
            {currentStep === 'skills' && (
-              <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold">What skills would you like to highlight?</h3>
-                  <p className="text-muted-foreground">We’ve chosen the following skills based on your job title to get you started.</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Skills</CardTitle>
+                  <CardDescription>Highlight your top skills.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <Textarea 
                       placeholder="e.g., React, Project Management, SEO, Public Speaking"
                       value={resumeData.skills.join(', ')}
                       onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
                   />
                   {generatingSkills ? (
-                    <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 text-muted-foreground p-4 bg-secondary rounded-lg">
                         <Loader2 className="animate-spin h-5 w-5" />
-                        <span>Loading AI skill suggestions based on your experience...</span>
+                        <span>Loading AI skill suggestions...</span>
                     </div>
                   ) : aiSuggestions && (
-                        <Card className="bg-muted/50">
-                          <CardHeader className='p-3'>
-                            <CardTitle className='text-sm flex items-center gap-2'>
-                              <Wand2 className="h-4 w-4 text-primary" />
-                              <span>Top skills for a {suggestionsForRole || 'role'}</span>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className='p-3 pt-0'>
-                            <p className="text-xs text-muted-foreground mb-2">Click to add a skill.</p>
-                            <div className="flex flex-wrap gap-2">
-                              {aiSuggestions.skills.map((skill, i) => (
-                                <Button key={i} size="sm" variant="secondary" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
-                                  <Plus size={14} className="mr-1" />{skill}
-                                </Button>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <div className="p-4 bg-secondary rounded-lg">
+                          <h4 className="font-semibold text-sm mb-2">Suggestions for a {suggestionsForRole || 'role'}</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {aiSuggestions.skills.map((skill, i) => (
+                              <Button key={i} size="sm" variant="outline" className="bg-white" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
+                                <Plus size={14} className="mr-1" />{skill}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
                   )}
-              </div>
+                </CardContent>
+              </Card>
           )}
            {currentStep === 'summary' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-semibold">Almost there! Let’s write your summary.</h3>
-                  <p className="text-sm text-muted-foreground">Write a brief, 2-4 sentence summary of your career, key achievements, and professional goals.</p>
-                </div>
-                <Textarea 
-                  className="h-32" 
-                  value={resumeData.summary} 
-                  onChange={handleSummaryChange} 
-                  placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
-                />
-                <Card className="bg-muted/50">
-                  <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-base flex items-center gap-2">
-                          <Wand2 className="h-5 w-5 text-primary" />
-                            AI Summary Writer
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        Use the information you've already provided to get a custom-written summary.
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                        <Button onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
-                            {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                            Write with AI
-                        </Button>
-                  </CardContent>
-                </Card>
-
+              <Card>
+                <CardHeader>
+                  <CardTitle>Summary</CardTitle>
+                  <CardDescription>Write a brief 2-4 sentence summary about your career.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Textarea 
+                    className="h-32" 
+                    value={resumeData.summary} 
+                    onChange={handleSummaryChange} 
+                    placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
+                  />
+                  <Button variant="outline" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                      {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                      Generate with AI
+                  </Button>
                   {summarySuggestions.length > 0 && (
-                  <Card>
-                    <CardHeader className='p-4 pb-2'>
-                      <CardTitle className='text-base'>AI Suggestions</CardTitle>
-                      <CardDescription className="text-xs">Click a summary to use it.</CardDescription>
-                    </CardHeader>
-                    <CardContent className='p-4 pt-0'>
                       <div className="space-y-3">
                         {summarySuggestions.map((suggestion, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                            <p className="text-sm text-muted-foreground flex-1">{suggestion}</p>
+                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
+                            <p className="text-sm text-foreground flex-1">{suggestion}</p>
                             <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
                               <ClipboardPaste className="mr-2 h-4 w-4" />
                               Use
@@ -1397,222 +945,35 @@ export default function ResumeBuilder() {
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-          )}
-          {currentStep === 'certifications' && (
-            <div className="space-y-6">
-              <h3 className="text-2xl font-semibold">Do you have any certifications?</h3>
-              <p className="text-muted-foreground">Add any relevant certifications you have earned.</p>
-              
-              {resumeData.certifications.map((cert, index) => (
-                <div key={cert.id} className="space-y-4 p-4 border rounded-lg relative">
-                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeCertification(cert.id)}><Trash2 size={16}/></Button>
-                    <div className="space-y-4">
-                        <div><Label htmlFor={`certName-${cert.id}`}>Certification Name</Label><Input id={`certName-${cert.id}`} name="name" value={cert.name} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} /></div>
-                        <div><Label htmlFor={`certIssuer-${cert.id}`}>Issuing Organization</Label><Input id={`certIssuer-${cert.id}`} name="issuer" value={cert.issuer} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} /></div>
-                        <div><Label htmlFor={`certDate-${cert.id}`}>Date Earned</Label><Input id={`certDate-${cert.id}`} name="date" value={cert.date} onChange={(e) => handleCertificationChange(index, e.target.name, e.target.value)} placeholder="e.g., May 2023" /></div>
-                    </div>
-                </div>
-              ))}
-              <Button variant="outline" onClick={addCertification}><Plus className="mr-2" />Add Another Certification</Button>
-            </div>
-          )}
-           {currentStep === 'languages' && (
-            <div className="space-y-6">
-              <h3 className="text-2xl font-semibold">Which languages do you speak?</h3>
-              <p className="text-muted-foreground">Add any languages you speak and your proficiency level.</p>
-              
-              {resumeData.languages.map((lang, index) => (
-                <div key={lang.id} className="space-y-4 p-4 border rounded-lg relative">
-                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeLanguage(lang.id)}><Trash2 size={16}/></Button>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label htmlFor={`langName-${lang.id}`}>Language</Label><Input id={`langName-${lang.id}`} name="name" value={lang.name} onChange={(e) => handleLanguageChange(index, e.target.name, e.target.value)} /></div>
-                        <div>
-                            <Label htmlFor={`langLevel-${lang.id}`}>Proficiency</Label>
-                            <Select onValueChange={(value) => handleLanguageChange(index, 'level', value)} value={lang.level}>
-                                <SelectTrigger id={`langLevel-${lang.id}`}><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    {languageLevels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </div>
-              ))}
-              <Button variant="outline" onClick={addLanguage}><Plus className="mr-2" />Add Another Language</Button>
-            </div>
-          )}
-          {currentStep === 'activities' && (
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">What are your main activities or hobbies?</h3>
-                <p className="text-muted-foreground">List a few key activities that show your personality.</p>
-                {resumeData.activities.map((activity, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                        <Input 
-                            value={activity}
-                            onChange={(e) => handleActivityChange(index, e.target.value)}
-                            placeholder="e.g., Volunteer Soccer Coach"
-                        />
-                        <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}><Trash2 size={16} className="text-destructive"/></Button>
-                    </div>
-                ))}
-                 <Button variant="outline" onClick={addActivity}><Plus className="mr-2" />Add Activity</Button>
-            </div>
-          )}
-          {currentStep === 'awards' && (
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Have you received any awards or accomplishments?</h3>
-                <p className="text-muted-foreground">Showcase your achievements and recognition.</p>
-                {resumeData.awards.map((award, index) => (
-                    <div key={award.id} className="space-y-4 p-4 border rounded-lg relative">
-                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeAward(award.id)}><Trash2 size={16}/></Button>
-                        <div><Label htmlFor={`awardName-${award.id}`}>Award/Accomplishment</Label><Input id={`awardName-${award.id}`} name="name" value={award.name} onChange={(e) => handleAwardChange(index, e.target.name, e.target.value)} /></div>
-                        <div><Label htmlFor={`awardDate-${award.id}`}>Date Received</Label><Input id={`awardDate-${award.id}`} name="date" value={award.date} onChange={(e) => handleAwardChange(index, e.target.name, e.target.value)} placeholder="e.g., June 2024" /></div>
-                        <div><Label htmlFor={`awardDesc-${award.id}`}>Description</Label><Textarea id={`awardDesc-${award.id}`} name="description" value={award.description} onChange={(e) => handleAwardChange(index, 'description', e.target.value)} /></div>
-                    </div>
-                ))}
-                 <Button variant="outline" onClick={addAward}><Plus className="mr-2" />Add Award</Button>
-            </div>
-          )}
-           {currentStep === 'websites' && (
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Add your websites or social links</h3>
-                <p className="text-muted-foreground">Link to your portfolio, GitHub, LinkedIn, etc.</p>
-                {resumeData.websites.map((website, index) => (
-                    <div key={website.id} className="space-y-4 p-4 border rounded-lg relative">
-                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeWebsite(website.id)}><Trash2 size={16}/></Button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><Label htmlFor={`websiteLabel-${website.id}`}>Label</Label><Input id={`websiteLabel-${website.id}`} name="label" value={website.label} onChange={(e) => handleWebsiteChange(index, e.target.name, e.target.value)} placeholder="e.g., Portfolio" /></div>
-                            <div><Label htmlFor={`websiteUrl-${website.id}`}>URL</Label><Input id={`websiteUrl-${website.id}`} name="url" value={website.url} onChange={(e) => handleWebsiteChange(index, e.target.name, e.target.value)} placeholder="https://..." /></div>
-                        </div>
-                    </div>
-                ))}
-                <Button variant="outline" onClick={addWebsite}><Plus className="mr-2" />Add Link</Button>
-            </div>
-          )}
-          {currentStep === 'custom' && (
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold">Create a custom section</h3>
-                <p className="text-muted-foreground">Add a section with your own title and content.</p>
-                {resumeData.customSections.map((section, index) => (
-                    <div key={section.id} className="space-y-4 p-4 border rounded-lg relative">
-                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeCustomSection(section.id)}><Trash2 size={16}/></Button>
-                        <div><Label htmlFor={`customTitle-${section.id}`}>Section Title</Label><Input id={`customTitle-${section.id}`} name="title" value={section.title} onChange={(e) => handleCustomSectionChange(index, e.target.name, e.target.value)} placeholder="e.g., Volunteer Experience" /></div>
-                        <div><Label htmlFor={`customContent-${section.id}`}>Content</Label><Textarea id={`customContent-${section.id}`} name="content" value={section.content} onChange={(e) => handleCustomSectionChange(index, 'content', e.target.value)} placeholder="Describe your experience..." /></div>
-                    </div>
-                ))}
-                <Button variant="outline" onClick={addCustomSection}><Plus className="mr-2" />Add Custom Section</Button>
-            </div>
-          )}
-          {currentStep === 'references' && (
-            <div className="space-y-4">
-                <h3 className="text-2xl font-semibold">References</h3>
-                <p className="text-muted-foreground">It's standard practice to make references available upon request rather than listing them directly on your resume. Check the box to add this line to your resume.</p>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                    <Checkbox
-                        id="showReferences"
-                        checked={resumeData.showReferences}
-                        onCheckedChange={(checked) => handleReferencesChange(checked === true)}
-                    />
-                    <Label htmlFor="showReferences" className="font-normal text-base">
-                        Show "References available upon request" on my resume.
-                    </Label>
-                </div>
-            </div>
-          )}
-           {currentStep === 'add-section' && (
-            <div className="space-y-4">
-              <h3 className="text-2xl font-semibold">Do you want to add any other sections?</h3>
-              <p className="text-muted-foreground">Employers are impressed by a thorough resume. Add any of the sections below.</p>
-              <Card>
-                <CardContent className="p-4 space-y-2">
-                    {optionalStepsData.map((section) => {
-                        const isAdded = addedSections.includes(section.id);
-                        return (
-                            <div key={section.id} className="flex items-start gap-4 p-3 rounded-md bg-muted/50">
-                                <section.icon className={cn("h-6 w-6 mt-1 flex-shrink-0", isAdded ? "text-primary" : "text-muted-foreground")} />
-                                <div className="flex-1">
-                                    <span className={cn("font-semibold", isAdded && "text-foreground")}>{section.name}</span>
-                                    <p className="text-xs text-muted-foreground">{section.description}</p>
-                                </div>
-                                <div className="ml-auto flex items-center gap-2 self-center">
-                                {isAdded ? (
-                                    <>
-                                        <Button variant="ghost" size="sm" onClick={() => handleRemoveSection(section.id)}>Remove</Button>
-                                        <Button variant="outline" size="sm" onClick={() => setCurrentStep(section.id)}>Edit</Button>
-                                    </>
-                                ) : (
-                                    <Button variant="secondary" size="sm" onClick={() => handleAddSection(section.id)}>
-                                        <Plus className="mr-2 h-4 w-4" /> Add
-                                    </Button>
-                                )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                  )}
                 </CardContent>
               </Card>
-            </div>
-           )}
+          )}
+          <div className="mt-8 pt-6 border-t flex justify-between">
+            <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+              <ArrowLeft className="mr-2" />
+              Back
+            </Button>
+            {currentStep !== 'template' ? (
+                <Button onClick={nextStep}>
+                    Next
+                    <ArrowRight className="ml-2" />
+                </Button>
+            ) : null}
+          </div>
         </div>
-        
-        <div className={cn("mt-8 pt-6 border-t flex", 
-          showPreview ? "justify-between max-w-xl mx-auto lg:mx-0" : "justify-between max-w-4xl mx-auto",
-          isMobile && mobileView === 'preview' ? 'hidden' : 'block'
-        )}>
-          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'career-level'}>Previous</Button>
-           {currentStep === 'add-section' ? (
-              <Button onClick={nextStep}>
-                  Finish & Next
-              </Button>
-          ) : currentStep !== 'career-level' && currentStep !== 'target-country' && currentStep !== 'select-method' ? (
-              <Button onClick={nextStep}>
-                  Next: {nextStepName}
-              </Button>
-          ) : null}
-         </div>
-
-        {showPreview && isMobile && mobileView === 'preview' && (
-            <div className="space-y-4">
-                <div className="bg-muted p-2 -mx-4 -mt-4">
-                    <div 
-                        ref={previewContainerRef} 
-                        className="w-full shadow-xl ring-1 ring-black/5"
-                    >
-                       <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
-                            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
-                        </div>
-                    </div>
-                </div>
-                {isFinalizing && (
-                    <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading} className="w-full">
-                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
-                        Download PDF
-                    </Button>
-                )}
-            </div>
-        )}
       </main>
       
-      {showPreview && !isMobile && (
-        <aside className="hidden lg:block lg:col-span-5">
-          <div className="sticky top-24 p-8">
-            <div 
-              ref={previewContainerRef}
-              className="w-full max-w-md mx-auto shadow-xl ring-1 ring-black/5"
-            >
-              <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
-                  <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
-              </div>
+      <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24">
+          <div 
+            ref={previewContainerRef}
+            className="w-full max-w-[450px] mx-auto shadow-2xl ring-1 ring-black/10"
+          >
+            <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
             </div>
           </div>
-        </aside>
-      )}
+      </aside>
     </div>
   );
 }
-
-    
