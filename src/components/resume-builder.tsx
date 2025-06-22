@@ -14,7 +14,7 @@ import { generateResumeSummary } from '@/ai/flows/generate-resume-summary';
 import { ModernTemplate } from '@/components/resume-templates/modern-template';
 import jspdf from 'jspdf';
 import html2canvas from 'html2canvas';
-import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil, CaseSensitive, FileSignature, SpellCheck, ArrowLeft, ArrowRight } from 'lucide-react';
+import { FileCheck2, Bot, Plus, Trash2, Loader2, Download, Wand2, Palette, Edit, Baby, ChevronsUp, Briefcase, Building, Trophy, GraduationCap, Globe, FileImage, FilePlus2, UploadCloud, Bold, Italic, List, Underline, ClipboardPaste, Award, Info, Languages, Users, FileText, CheckCircle, Activity, Link as LinkIcon, Pencil, CaseSensitive, FileSignature, SpellCheck, ArrowLeft, ArrowRight, ClipboardCheck, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClassicTemplate } from './resume-templates/classic-template';
 import { CreativeTemplate } from './resume-templates/creative-template';
@@ -311,9 +311,9 @@ export default function ResumeBuilder() {
     if (!container || !content) return;
 
     const applyScale = () => {
+        container.style.height = `${content.getBoundingClientRect().height}px`;
         const containerWidth = container.offsetWidth;
-        // Using 850px as a base width for high-resolution rendering.
-        const contentWidth = 850; 
+        const contentWidth = content.offsetWidth;
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
@@ -327,7 +327,6 @@ export default function ResumeBuilder() {
       resizeObserver.observe(container);
     }
     
-    // Initial scale
     const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
@@ -756,64 +755,7 @@ export default function ResumeBuilder() {
     }
   };
 
-  const FullPageContent = () => {
-    if (isFinalizing) {
-      return (
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8 p-4 lg:p-8">
-            <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky top-24 self-start">
-                <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-6">
-                    <ArrowLeft className="mr-2" />
-                    Back to Editor
-                </Button>
-                <div className="space-y-6">
-                    <div>
-                        <h3 className="font-semibold text-lg mb-4">Template</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                             {templates.map((template) => (
-                                <div 
-                                    key={template.id}
-                                    onClick={() => setSelectedTemplate(template.id)}
-                                    className={cn(
-                                        "cursor-pointer rounded-md border-2 p-0.5 transition-all",
-                                        selectedTemplate === template.id ? "border-primary" : "border-transparent hover:border-primary/50"
-                                    )}
-                                >
-                                    <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Accent Color</h3>
-                        <div className="flex flex-wrap gap-3">
-                            {colorOptions.map(option => (
-                                <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </aside>
-            <main className="lg:col-span-8 flex flex-col mt-8 lg:mt-0 items-center">
-                 <div className="flex justify-end w-full max-w-md mb-4">
-                     <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
-                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
-                        Download PDF
-                    </Button>
-                 </div>
-                 <div 
-                    ref={previewContainerRef}
-                    className="w-full max-w-md shadow-lg ring-1 ring-black/5 aspect-[210/297]"
-                  >
-                    <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
-                        <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
-                    </div>
-                  </div>
-            </main>
-        </div>
-      )
-    }
-  
-    const renderContent = () => {
+  const renderContent = () => {
       switch (currentStep) {
           case 'template':
               return (
@@ -823,7 +765,7 @@ export default function ResumeBuilder() {
                     <p className="text-muted-foreground mt-2">You can change it any time.</p>
                   </div>
   
-                  <div className="grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
+                  <div className="lg:grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
                     <div className="lg:col-span-8">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {templates.map((template) => (
@@ -844,11 +786,11 @@ export default function ResumeBuilder() {
                       </div>
                     </div>
   
-                    <aside className="lg:col-span-4 lg:sticky top-24">
+                    <aside className="lg:col-span-4 lg:sticky top-24 self-start">
                       {selectedTemplate ? (
                         <>
-                          <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
-                            <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
+                          <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden">
+                            <div ref={previewContentRef} className="w-[850px] bg-white">
                                 <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
                             </div>
                           </div>
@@ -1256,36 +1198,138 @@ export default function ResumeBuilder() {
                 </div>
               );
       }
-    };
-
-    if (!isBuilding) {
-        return (
-          <div className="w-full">
-            <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
-              <FileCheck2 className="w-16 h-16 mx-auto text-primary mb-6" />
-              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-                The AI-Powered Resume Builder
-              </h1>
-              <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
-                Create a professional, ATS-friendly resume in minutes. Get AI-powered suggestions, choose from professional templates, and land your dream job.
-              </p>
-              <div className="mt-10">
-                <Button size="lg" className="text-lg h-14 px-10" onClick={() => setIsBuilding(true)}>
-                  Create My Resume
-                </Button>
-              </div>
-            </section>
-          </div>
-        );
-    }
-
-    if (currentStep === 'template') {
-        return renderContent();
-    }
+  };
   
+  const FinalizeScreen = () => (
+     <div className="min-h-screen p-4 sm:p-6 md:p-8">
+        <div className="grid lg:grid-cols-12 lg:gap-8">
+             <main className="lg:col-span-8 flex flex-col items-center">
+                 <div className="flex justify-between w-full max-w-xl mb-4">
+                     <Button variant="outline" onClick={() => setIsFinalizing(false)}>
+                        <ArrowLeft className="mr-2" />
+                        Back to Editor
+                    </Button>
+                     <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
+                        Download PDF
+                    </Button>
+                 </div>
+                 <div 
+                    ref={previewContainerRef}
+                    className="w-full max-w-xl shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden"
+                  >
+                    <div ref={previewContentRef} className="w-[850px] bg-white">
+                        <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                    </div>
+                  </div>
+            </main>
+            <aside className="lg:col-span-4 mt-8 lg:mt-0 space-y-6 lg:sticky top-8 self-start">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Final Touches</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                      <div>
+                          <h3 className="font-semibold text-lg mb-4">Template</h3>
+                          <div className="grid grid-cols-3 gap-2">
+                               {templates.map((template) => (
+                                  <div 
+                                      key={template.id}
+                                      onClick={() => setSelectedTemplate(template.id)}
+                                      className={cn(
+                                          "cursor-pointer rounded-md border-2 p-0.5 transition-all",
+                                          selectedTemplate === template.id ? "border-primary" : "border-transparent hover:border-primary/50"
+                                      )}
+                                  >
+                                      <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                      <div>
+                          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Accent Color</h3>
+                          <div className="flex flex-wrap gap-3">
+                              {colorOptions.map(option => (
+                                  <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
+                              ))}
+                          </div>
+                      </div>
+                  </CardContent>
+                </Card>
+            </aside>
+        </div>
+     </div>
+  )
+
+  if (isFinalizing) {
+    return <FinalizeScreen />;
+  }
+
+  if (!isBuilding) {
     return (
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
-        <main className="lg:col-span-8 w-full">
+      <div className="w-full">
+        <section className="text-center py-20 px-4 sm:px-6 lg:px-8">
+          <FileCheck2 className="w-16 h-16 mx-auto text-primary mb-6" />
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+            The AI-Powered Resume Builder
+          </h1>
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+            Create a professional, ATS-friendly resume in minutes. Get AI-powered suggestions, choose from professional templates, and land your dream job.
+          </p>
+          <div className="mt-10">
+            <Button size="lg" className="text-lg h-14 px-10" onClick={() => setIsBuilding(true)}>
+              Create My Resume
+            </Button>
+          </div>
+        </section>
+
+        <section className="bg-background py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">Why Choose AI Resume Pro?</h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                We provide the tools and expertise you need to craft a standout resume that gets results.
+              </p>
+            </div>
+            <div className="mt-16 grid md:grid-cols-3 gap-12">
+              <div className="text-center">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary mx-auto">
+                  <ClipboardCheck className="h-6 w-6" />
+                </div>
+                <h3 className="mt-6 text-lg font-semibold text-foreground">Impressive Resumes, Made Easy</h3>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Win over employers and recruiters by using one of our 20+ elegant, professionally-tested resume templates.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary mx-auto">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <h3 className="mt-6 text-lg font-semibold text-foreground">ATS-Friendly & Recruiter-Approved</h3>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Our resume templates are designed to get you past applicant tracking systems (ATS) and into the hands of a real person.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary mx-auto">
+                  <Lightbulb className="h-6 w-6" />
+                </div>
+                <h3 className="mt-6 text-lg font-semibold text-foreground">Expert Tips & Guidance</h3>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Get the help you need to create a professional resume in minutes. No more writer's block or formatting struggles!
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  const BuilderLayout = () => (
+    <div className="min-h-screen">
+      <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 sm:p-6 md:p-8">
+        <main className="lg:col-span-7 w-full">
           {renderContent()}
           <div className="mt-8 pt-6 border-t flex justify-between">
             <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
@@ -1298,16 +1342,20 @@ export default function ResumeBuilder() {
               </Button>
           </div>
         </main>
-        <aside className="hidden lg:block lg:col-span-4 sticky top-24 self-start">
-            <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
-                <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
+        <aside className="hidden lg:block lg:col-span-5 sticky top-8 self-start">
+            <div ref={previewContainerRef} className="w-full max-w-xl mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden">
+                <div ref={previewContentRef} className="w-[850px] bg-white">
                     <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                 </div>
             </div>
         </aside>
       </div>
-    );
+    </div>
+  )
+
+  if (currentStep === 'template') {
+      return renderContent();
   }
 
-  return <div>{FullPageContent()}</div>;
+  return <BuilderLayout />;
 }
