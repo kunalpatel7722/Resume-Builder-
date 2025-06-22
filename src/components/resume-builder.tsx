@@ -794,7 +794,7 @@ export default function ResumeBuilder() {
                 </div>
             </aside>
             <main className="lg:col-span-8 flex flex-col mt-8 lg:mt-0 items-center">
-                 <div className="flex justify-end w-full max-w-lg mb-4">
+                 <div className="flex justify-end w-full max-w-md mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -802,7 +802,7 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-lg shadow-lg ring-1 ring-black/5 aspect-[210/297]"
+                    className="w-full max-w-md shadow-lg ring-1 ring-black/5 aspect-[210/297]"
                   >
                     <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
@@ -824,7 +824,7 @@ export default function ResumeBuilder() {
                   </div>
   
                   <div className="grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
-                    <div className="lg:col-span-7">
+                    <div className="lg:col-span-8">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {templates.map((template) => (
                           <div 
@@ -844,7 +844,7 @@ export default function ResumeBuilder() {
                       </div>
                     </div>
   
-                    <aside className="lg:col-span-5 lg:sticky top-24">
+                    <aside className="lg:col-span-4 lg:sticky top-24">
                       {selectedTemplate ? (
                         <>
                           <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
@@ -1285,7 +1285,7 @@ export default function ResumeBuilder() {
   
     return (
       <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
-        <main className="lg:col-span-7 w-full">
+        <main className="lg:col-span-8 w-full">
           {renderContent()}
           <div className="mt-8 pt-6 border-t flex justify-between">
             <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
@@ -1298,8 +1298,8 @@ export default function ResumeBuilder() {
               </Button>
           </div>
         </main>
-        <aside className="hidden lg:block lg:col-span-5 sticky top-24 self-start">
-            <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
+        <aside className="hidden lg:block lg:col-span-4 sticky top-24 self-start">
+            <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297]">
                 <div ref={previewContentRef} className="w-[850px] aspect-[210/297] bg-white">
                     <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                 </div>
