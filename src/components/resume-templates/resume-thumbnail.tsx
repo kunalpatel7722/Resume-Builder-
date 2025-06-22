@@ -14,7 +14,7 @@ const ModernThumbnail: React.FC = () => (
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
             <div className="h-1.5 w-full bg-gray-300 rounded-sm" />
         </div>
-        <div className="w-[4px] bg-blue-500 rounded-sm" />
+        <div className="w-[4px] bg-blue-500" />
         <div className="w-[70%] p-1.5 space-y-2">
             <div className="h-4 w-3/4 bg-blue-500 rounded-sm" />
             <div className="h-2 w-1/2 bg-gray-400 rounded-sm" />
@@ -313,7 +313,6 @@ const CreativeWriterThumbnail: React.FC = () => (
         <div className="h-6 w-full bg-gray-300 rounded-sm" />
     </div>
 );
-
 
 const templates = {
     modern: <ModernThumbnail />,

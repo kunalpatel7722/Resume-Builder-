@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -26,7 +25,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasTools = hasContent(tools, 'content');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
@@ -64,9 +63,8 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
           ) : <p className="leading-relaxed text-center text-gray-400 italic">Your professional summary will appear here.</p>}
         </section>
 
-        <Section title="Professional Experience">
-          {hasExperience ? (
-            experience.map(job => (
+        <Section title="Professional Experience" show={hasExperience}>
+            {experience.map(job => (
               <div key={job.id}>
                  <div className="flex justify-between items-baseline">
                   <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -78,24 +76,21 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
                   {job.description || '* Your job description will appear here.'}
                 </ReactMarkdown>
               </div>
-            ))
-          ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+            ))}
         </Section>
         
         <div className="grid grid-cols-2 gap-8">
-            <Section title="Education">
-                {hasEducation ? (
-                  education.map(edu => (
+            <Section title="Education" show={hasEducation}>
+                  {education.map(edu => (
                       <div key={edu.id}>
                           <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                           <p className="font-semibold">{edu.degree || 'Degree'}</p>
                           <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                       </div>
-                  ))
-                ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+                  ))}
             </Section>
 
-            <Section title="Skills & Tools">
+            <Section title="Skills & Tools" show={hasSkills || hasTools}>
                 {hasSkills && (
                     <div className="mb-3">
                         <h3 className="font-bold mb-1">Core Skills</h3>
@@ -112,7 +107,6 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
                         </ReactMarkdown>
                     </div>
                 )}
-                 {!hasSkills && !hasTools && <p className="text-gray-400 italic">Your skills and tools will appear here.</p>}
             </Section>
         </div>
       </main>

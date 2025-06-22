@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -15,8 +14,9 @@ export interface TemplateProps {
 }
 
 export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, awards, websites, projects } = data;
+  const { personalInfo, summary, experience, education, skills, awards, websites, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
+  const projects = customSections.filter(s => s.title.toLowerCase().includes('project'));
 
   const palette = { accent: '#FF6B35', accentSoft: '#FFE9E2', text: '#1A1A1A', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -25,7 +25,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasAwards = hasContent(awards, 'name');
   const hasWebsites = hasContent(websites, 'url');
   const hasProjects = hasContent(projects, 'content');
@@ -75,28 +75,22 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
           </div>
         </LeftColumnSection>
 
-        <LeftColumnSection title="Skills">
-          {hasSkills ? (
+        <LeftColumnSection title="Skills" show={hasSkills}>
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white px-3 py-1 rounded-full">{skill}</span>)}
             </div>
-          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your skills will appear here.</p>}
         </LeftColumnSection>
 
-        <LeftColumnSection title="Links">
-          {hasWebsites ? (
+        <LeftColumnSection title="Links" show={hasWebsites}>
             <div className="space-y-1 text-[var(--fs-small)]">
               {websites.map(site => <div key={site.id} className="flex items-center gap-2"><LinkIcon size={14} style={{color: accentColor}} /><a href={site.url} className="hover:underline truncate" style={{color: palette.text}}>{site.label || site.url}</a></div>)}
             </div>
-          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your links will appear here.</p>}
         </LeftColumnSection>
 
-        <LeftColumnSection title="Awards">
-          {hasAwards ? (
+        <LeftColumnSection title="Awards" show={hasAwards}>
             <ul className="text-[var(--fs-small)] list-disc list-inside">
               {awards.map(award => <li key={award.id}>{award.name}</li>)}
             </ul>
-          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your awards will appear here.</p>}
         </LeftColumnSection>
       </aside>
 
@@ -112,18 +106,18 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
           )}
         </RightColumnSection>
 
-        <RightColumnSection title="Projects">
-          {hasProjects ? projects.map(p => (
+        <RightColumnSection title="Projects" show={hasProjects}>
+          {projects.map(p => (
             <div key={p.id}>
               <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
                 {p.content || '* Details about your key projects.'}
               </ReactMarkdown>
             </div>
-          )) : <p className="text-gray-400 italic">Your projects will appear here.</p>}
+          ))}
         </RightColumnSection>
         
-        <RightColumnSection title="Experience">
-          {hasExperience ? experience.map(job => (
+        <RightColumnSection title="Experience" show={hasExperience}>
+          {experience.map(job => (
             <div key={job.id}>
               <div className="flex justify-between items-baseline">
                 <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -134,17 +128,17 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
                 {job.description || '* Your job description will appear here.'}
               </ReactMarkdown>
             </div>
-          )) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+          ))}
         </RightColumnSection>
         
-        <RightColumnSection title="Education">
-            {hasEducation ? education.map(edu => (
+        <RightColumnSection title="Education" show={hasEducation}>
+            {education.map(edu => (
                 <div key={edu.id}>
                     <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                     <p className="font-semibold">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                     <p className="text-[var(--fs-small)]" style={{ color: palette.muted }}>{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                 </div>
-            )) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+            ))}
         </RightColumnSection>
       </main>
     </div>

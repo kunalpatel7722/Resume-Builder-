@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -25,7 +24,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasCerts = hasContent(certifications, 'name');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
@@ -72,9 +71,9 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
           )}
         </Section>
         
-        <Section title="Experience">
+        <Section title="Experience" show={hasExperience}>
           <div className="space-y-4">
-            {hasExperience ? experience.map((job) => {
+            {experience.map((job) => {
               const location = [job.city, job.state].filter(Boolean).join(', ');
               return (
                 <div key={job.id}>
@@ -90,13 +89,13 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
                   </ReactMarkdown>
                 </div>
               );
-            }) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+            })}
           </div>
         </Section>
 
-        <Section title="Education">
+        <Section title="Education" show={hasEducation}>
           <div className="space-y-2">
-            {hasEducation ? education.map((edu) => {
+            {education.map((edu) => {
               const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
               return (
                 <div key={edu.id}>
@@ -107,32 +106,28 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
                   <p className="italic">{edu.degree || 'Degree'}{edu.fieldOfStudy && ` in ${edu.fieldOfStudy}`}</p>
                 </div>
               );
-            }) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+            })}
           </div>
         </Section>
         
         <div className="grid grid-cols-2 gap-4">
-            <Section title="Skills">
-                {hasSkills ? (
-                    <div className="flex flex-wrap justify-center gap-2">
-                        {skills.map((skill, i) => (
-                            <span key={i} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
-                            {skill}
-                            </span>
-                        ))}
-                    </div>
-                ) : <p className="text-gray-400 italic text-center">Your skills will appear here.</p>}
+            <Section title="Skills" show={hasSkills}>
+                <div className="flex flex-wrap justify-center gap-2">
+                    {skills.map((skill, i) => (
+                        <span key={i} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                        {skill}
+                        </span>
+                    ))}
+                </div>
             </Section>
-            <Section title="Certifications">
-                 {hasCerts ? (
-                    <div className="flex flex-wrap justify-center gap-2">
-                        {certifications.map((cert) => (
-                            <span key={cert.id} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
-                            {cert.name}
-                            </span>
-                        ))}
-                    </div>
-                 ) : <p className="text-gray-400 italic text-center">Your certifications will appear here.</p>}
+            <Section title="Certifications" show={hasCerts}>
+                 <div className="flex flex-wrap justify-center gap-2">
+                     {certifications.map((cert) => (
+                         <span key={cert.id} className="text-[var(--fs-small)] border rounded-full px-3 py-1" style={{ borderColor: palette.line }}>
+                         {cert.name}
+                         </span>
+                     ))}
+                 </div>
             </Section>
         </div>
       </main>

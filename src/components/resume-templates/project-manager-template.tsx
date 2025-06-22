@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -15,11 +14,12 @@ export interface TemplateProps {
 }
 
 export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, projects, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const PMP = certifications.find(c => c.name.toLowerCase().includes('pmp'));
-  const tools = customSections.filter(s => s.title.toLowerCase().includes('tool'));
-  const milestones = customSections.filter(s => s.title.toLowerCase().includes('milestone'));
+  const PMP = Array.isArray(certifications) && certifications.find(c => c.name.toLowerCase().includes('pmp'));
+  const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
+  const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
+  const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
 
   const palette = { accent: '#C2185B', accentSoft: '#FFE7F0', text: '#202020', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -28,7 +28,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasTools = hasContent(tools, 'content');
   const hasMilestones = hasContent(milestones, 'content');
   const hasProjects = hasContent(projects, 'content');
@@ -80,17 +80,16 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
               ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
             </MainSection>
             
-            <MainSection title="Key Projects">
-                 {hasProjects ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                      {projects[0]?.content}
+            <MainSection title="Key Projects" show={hasProjects}>
+                 {projects.map(p => (
+                    <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                      {p.content}
                     </ReactMarkdown>
-                 ) : <p className="text-gray-400 italic">Details about your key projects.</p>}
+                  ))}
             </MainSection>
 
-            <MainSection title="Professional Experience">
-              {hasExperience ? (
-                experience.map(job => (
+            <MainSection title="Professional Experience" show={hasExperience}>
+              {experience.map(job => (
                   <div key={job.id}>
                     <div className="flex justify-between items-baseline">
                       <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -101,43 +100,35 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                       {job.description || '* Your job description will appear here.'}
                     </ReactMarkdown>
                   </div>
-                ))
-              ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+                ))}
             </MainSection>
             
-            <MainSection title="Education">
-                {hasEducation ? (
-                  education.map(edu => (
+            <MainSection title="Education" show={hasEducation}>
+                {education.map(edu => (
                       <div key={edu.id}>
                           <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                           <p className="font-semibold">{edu.degree || 'Degree'}</p>
                           <p className="text-[var(--fs-small)]" style={{color: palette.muted}}>{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                       </div>
-                  ))
-                ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+                  ))}
             </MainSection>
         </div>
       </main>
 
       <aside className="w-[28%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
-        <SidebarSection title="Tools">
-          {hasTools ? (
+        <SidebarSection title="Tools" show={hasTools}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
               {tools[0]?.content}
             </ReactMarkdown>
-          ) : <p className="text-gray-400 italic text-sm">Your tools will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Skills">
-          {hasSkills ? (
+        <SidebarSection title="Skills" show={hasSkills}>
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white border px-2 py-0.5 rounded">{skill}</span>)}
             </div>
-          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Milestones">
-          {hasMilestones ? (
+        <SidebarSection title="Milestones" show={hasMilestones}>
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]} 
               rehypePlugins={[rehypeRaw]}
@@ -149,7 +140,6 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
             >
               {milestones[0]?.content}
             </ReactMarkdown>
-          ) : <p className="text-gray-400 italic text-sm">Your milestones will appear here.</p>}
         </SidebarSection>
       </aside>
     </div>

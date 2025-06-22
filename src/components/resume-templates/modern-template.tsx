@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -15,20 +14,21 @@ export interface TemplateProps {
 }
 
 export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, projects, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const PMP = certifications.find(c => c.name.toLowerCase().includes('pmp'));
-  const tools = customSections.filter(s => s.title.toLowerCase().includes('tool'));
-  const milestones = customSections.filter(s => s.title.toLowerCase().includes('milestone'));
+  const PMP = Array.isArray(certifications) && certifications.find(c => c.name.toLowerCase().includes('pmp'));
+  const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
+  const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
+  const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
   
   const palette = { accent: '#3358FF', accentSoft: '#ECF1FF', text: '#121212', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
   const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
-
+  
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasCerts = hasContent(certifications, 'name');
   const hasProjects = hasContent(projects, 'content');
   const hasTools = hasContent(tools, 'content');
@@ -43,6 +43,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   };
   
   const SidebarSection: React.FC<{ title: string; children: React.ReactNode; show?: boolean, icon: React.ElementType }> = ({ title, children, show = true, icon: Icon }) => {
+    if(!show) return null;
     return (
       <section>
         <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{color: accentColor}}>
@@ -55,7 +56,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   };
   
   return (
-    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-sans", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')} style={{color: palette.text}}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-inter", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')} style={{color: palette.text}}>
       <aside className="w-[18rem] bg-gray-50 p-6 flex flex-col gap-6" style={{backgroundColor: palette.accentSoft}}>
         <SidebarSection title="Contact" icon={MapPin}>
           <div className="space-y-1 text-[var(--fs-small)]" style={{ color: palette.muted }}>
@@ -64,8 +65,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
           </div>
         </SidebarSection>
 
-        <SidebarSection title="Skills" icon={Star}>
-          {hasSkills ? (
+        <SidebarSection title="Skills" icon={Star} show={hasSkills}>
             <ul className="text-[var(--fs-small)] font-semibold space-y-2">
               {skills.map((skill, i) => (
                   <li key={i}>
@@ -74,19 +74,15 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
                   </li>
               ))}
             </ul>
-          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </SidebarSection>
 
-        <SidebarSection title="Tools" icon={Code}>
-            {hasTools ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {tools[0]?.content}
-              </ReactMarkdown>
-            ) : <p className="text-gray-400 italic text-sm">Your tools will appear here.</p>}
+        <SidebarSection title="Tools" icon={Code} show={hasTools}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                {tools[0]?.content}
+            </ReactMarkdown>
         </SidebarSection>
         
-        <SidebarSection title="Certifications" icon={Award}>
-          {hasCerts ? (
+        <SidebarSection title="Certifications" icon={Award} show={hasCerts}>
             <div className="space-y-2 text-[var(--fs-small)]">
               {certifications.map(cert => (
                 <div key={cert.id}>
@@ -95,15 +91,12 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
                 </div>
               ))}
             </div>
-          ) : <p className="text-gray-400 italic text-sm">Your certifications will appear here.</p>}
         </SidebarSection>
 
-        <SidebarSection title="Milestones" icon={CheckCircle}>
-            {hasMilestones ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                  {milestones[0]?.content}
-              </ReactMarkdown>
-            ) : <p className="text-gray-400 italic text-sm">Your milestones will appear here.</p>}
+        <SidebarSection title="Milestones" icon={CheckCircle} show={hasMilestones}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                {milestones[0]?.content}
+            </ReactMarkdown>
         </SidebarSection>
       </aside>
       

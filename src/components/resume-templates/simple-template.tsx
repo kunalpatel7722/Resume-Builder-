@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -14,7 +13,7 @@ export interface TemplateProps {
 }
 
 export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, tools } = data;
+  const { personalInfo, summary, experience, education, skills } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
@@ -25,7 +24,7 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.some(s => s);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -60,9 +59,8 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
           ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
         </Section>
 
-        <Section title="Experience">
-          {hasExperience ? (
-            experience.map(job => (
+        <Section title="Experience" show={hasExperience}>
+            {experience.map(job => (
               <div key={job.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -73,13 +71,11 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
                   {job.description || '* Your job description will appear here.'}
                 </ReactMarkdown>
               </div>
-            ))
-          ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+            ))}
         </Section>
         
-        <Section title="Education">
-            {hasEducation ? (
-              education.map(edu => (
+        <Section title="Education" show={hasEducation}>
+            {education.map(edu => (
                   <div key={edu.id} className="flex justify-between items-baseline">
                       <div>
                           <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
@@ -87,12 +83,11 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
                       </div>
                       <p className="text-[var(--fs-small)]" style={{color: palette.muted}}>{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                   </div>
-              ))
-            ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+              ))}
         </Section>
         
-        <Section title="Skills">
-            {hasSkills ? <p>{skills.join(' | ')}</p> : <p className="text-gray-400 italic">Your skills will appear here.</p>}
+        <Section title="Skills" show={hasSkills}>
+            <p>{skills.join(' | ')}</p>
         </Section>
       </main>
     </div>
