@@ -52,6 +52,7 @@ export interface ResumeData {
     city: string;
     state: string;
     zipCode: string;
+    photoUrl?: string;
   };
   summary: string;
   experience: {
@@ -87,7 +88,7 @@ export interface ResumeData {
 }
 
 const initialResumeData: ResumeData = {
-  personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '' },
+  personalInfo: { firstName: '', lastName: '', email: '', phone: '', streetAddress: '', city: '', state: '', zipCode: '', photoUrl: '' },
   summary: '',
   experience: [{ id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }],
   education: [{ id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }],
@@ -100,6 +101,37 @@ const initialResumeData: ResumeData = {
   customSections: [],
   showReferences: false,
   targetCountry: '',
+};
+
+const sampleResumeData: ResumeData = {
+  personalInfo: {
+    firstName: 'Jane',
+    lastName: 'Doe',
+    email: 'jane.doe@example.com',
+    phone: '555-123-4567',
+    streetAddress: '123 Main Street',
+    city: 'Anytown',
+    state: 'CA',
+    zipCode: '12345',
+    photoUrl: 'https://placehold.co/120x120.png',
+  },
+  summary: 'A highly motivated and results-oriented professional with 5+ years of experience in project management and software development. Proven ability to lead cross-functional teams and deliver projects on time and within budget.',
+  experience: [
+    { id: 1, company: 'Tech Solutions Inc.', role: 'Senior Project Manager', startDate: new Date('2020-01-15'), endDate: null, isCurrentJob: true, description: '* Led a team of 10 developers in the successful launch of a new SaaS product.\n* Managed project budgets exceeding $1M.\n* Improved team productivity by 20% through Agile methodologies.', city: 'San Francisco', state: 'CA' },
+    { id: 2, company: 'Innovate Corp.', role: 'Software Engineer', startDate: new Date('2018-06-01'), endDate: new Date('2020-01-10'), isCurrentJob: false, description: '* Developed and maintained key features for a high-traffic e-commerce platform.\n* Collaborated with product managers to define feature requirements.', city: 'Palo Alto', state: 'CA' },
+  ],
+  education: [
+    { id: 1, school: 'State University', location: 'Anytown, USA', degree: 'Bachelor of Science', fieldOfStudy: 'Computer Science', graduationMonth: 'May', graduationYear: '2018', isStillEnrolled: false }
+  ],
+  skills: ['Project Management', 'Agile Methodologies', 'Scrum', 'JIRA', 'React', 'Node.js', 'TypeScript', 'Risk Management'],
+  languages: [{ id: 1, name: 'English', level: 'Native' }, { id: 2, name: 'Spanish', level: 'Conversational' }],
+  certifications: [{ id: 1, name: 'PMP - Project Management Professional', issuer: 'PMI', date: '2021' }],
+  activities: ['Member of Women in Tech', 'Volunteer at local animal shelter'],
+  awards: [{id: 1, name: 'Best Project Delivery', date: '2022', description: 'Awarded for delivering the project 20% under budget'}],
+  websites: [{ id: 1, label: 'LinkedIn', url: 'linkedin.com/in/janedoe' }],
+  customSections: [],
+  showReferences: false,
+  targetCountry: 'USA',
 };
 
 const coreSteps = [
@@ -197,7 +229,7 @@ export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [currentStep, setCurrentStep] = useState('template');
-  const [selectedTemplate, setSelectedTemplate] = useState('modern');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   
@@ -250,7 +282,7 @@ export default function ResumeBuilder() {
     'creative-writer': CreativeWriterTemplate,
   };
   
-  const TemplateComponent = templateComponents[selectedTemplate as keyof typeof templateComponents];
+  const TemplateComponent = selectedTemplate ? templateComponents[selectedTemplate as keyof typeof templateComponents] : ModernTemplate;
 
   useEffect(() => {
     const container = previewContainerRef.current;
@@ -260,14 +292,11 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        // A4 aspect ratio is approx 1/1.414. We use content's natural width (850px).
-        const contentWidth = 850;
+        const contentWidth = content.offsetWidth;
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
             content.style.transform = `scale(${scale})`;
-            content.style.transformOrigin = 'top left';
-            // Adjust container height to match scaled content height
             container.style.height = `${content.offsetHeight * scale}px`;
         }
     };
@@ -277,15 +306,15 @@ export default function ResumeBuilder() {
       resizeObserver.observe(container);
     }
     
-    // Initial scale
-    applyScale();
+    const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       if (container) {
         resizeObserver.unobserve(container);
       }
     };
-  }, [isFinalizing, isMobile, selectedTemplate, resumeData, accentColor, fontSize]);
+  }, [isFinalizing, selectedTemplate, isMobile, resumeData, accentColor, fontSize]);
 
 
   const steps = [
@@ -295,7 +324,6 @@ export default function ResumeBuilder() {
   ];
 
   useEffect(() => {
-    // This is the cleanup function for the component unmount
     return () => {
         if (debounceTimeoutRef.current) {
             clearTimeout(debounceTimeoutRef.current);
@@ -336,7 +364,7 @@ export default function ResumeBuilder() {
       } catch (error) {
         console.error(error);
         toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setSuggestionsForRole(null); // Allow refetch on error
+        setSuggestionsForRole(null);
       } finally {
         setGeneratingSkills(false);
       }
@@ -571,6 +599,10 @@ export default function ResumeBuilder() {
 
   const nextStep = () => {
     const currentIndex = steps.findIndex(step => step.id === currentStep);
+    if (currentStep === 'template' && !selectedTemplate) {
+      toast({ title: 'No Template Selected', description: 'Please select a template to continue.', variant: 'destructive' });
+      return;
+    }
     if (currentStep === 'add-section') {
       setIsFinalizing(true);
       return;
@@ -583,6 +615,7 @@ export default function ResumeBuilder() {
   const prevStep = () => {
     if (isFinalizing) {
         setIsFinalizing(false);
+        setCurrentStep('add-section');
         return;
     }
     const currentIndex = steps.findIndex(step => step.id === currentStep);
@@ -633,19 +666,36 @@ export default function ResumeBuilder() {
 
     setIsDownloading(true);
     try {
+      element.style.transform = 'scale(1)';
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
       });
-
+      
       const pdf = new jspdf({
         orientation: 'p',
         unit: 'px',
-        format: [canvas.width, canvas.height]
+        format: 'a4',
       });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / canvasHeight;
+      const pdfRatio = pdfWidth / pdfHeight;
 
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+      let finalWidth, finalHeight;
+      if (ratio > pdfRatio) {
+          finalWidth = pdfWidth;
+          finalHeight = pdfWidth / ratio;
+      } else {
+          finalHeight = pdfHeight;
+          finalWidth = pdfHeight * ratio;
+      }
+
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, finalWidth, finalHeight);
       pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
     } catch (error) {
       console.error(error);
@@ -656,6 +706,12 @@ export default function ResumeBuilder() {
       });
     } finally {
       setIsDownloading(false);
+       // Re-apply scale after download
+      const container = previewContainerRef.current;
+      if (container && element) {
+        const scale = container.offsetWidth / element.offsetWidth;
+        element.style.transform = `scale(${scale})`;
+      }
     }
   };
 
@@ -679,6 +735,277 @@ export default function ResumeBuilder() {
       </div>
     );
   }
+
+  const renderContent = () => {
+    switch (currentStep) {
+        case 'template':
+            return (
+              <div className="w-full">
+                <div className="text-center py-12 px-4">
+                  <h3 className="text-3xl font-bold">Choose a template to get started</h3>
+                  <p className="text-muted-foreground mt-2">You can change it any time.</p>
+                </div>
+
+                <div className="grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
+                  <div className="lg:col-span-7">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {templates.map((template) => (
+                        <div 
+                          key={template.id}
+                          onClick={() => setSelectedTemplate(template.id)}
+                          className="cursor-pointer group"
+                        >
+                          <div className={cn(
+                            "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
+                            selectedTemplate === template.id ? "border-primary" : "border-card"
+                          )}>
+                            <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                          </div>
+                          <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-5 lg:sticky lg:top-24">
+                    {selectedTemplate ? (
+                      <>
+                        <div ref={previewContainerRef} className="w-full max-w-[450px] mx-auto shadow-lg ring-1 ring-black/5">
+                          <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                              <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
+                          </div>
+                        </div>
+                        <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
+                          Continue with this template <ArrowRight className="ml-2" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="hidden lg:flex items-center justify-center h-96 border-2 border-dashed rounded-lg bg-secondary/50">
+                        <p className="text-muted-foreground">Click a template to preview</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+        default:
+            return (
+              <div className="grid lg:grid-cols-12 lg:gap-8 items-start">
+                  <main className="lg:col-span-7 w-full p-4 sm:p-6 lg:p-8">
+                    <div className="max-w-xl mx-auto">
+                        {currentStep === 'personal' && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Personal Information</CardTitle>
+                              <CardDescription>What's the best way for employers to contact you?</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
+                                    <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
+                                    <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
+                                </div>
+                                <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
+                                    <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
+                                    <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
+                                </div>
+                            </CardContent>
+                          </Card>
+                      )}
+                      {currentStep === 'experience' && (
+                          <div className="space-y-6">
+                            <Card>
+                              <CardHeader>
+                                <CardTitle>Work History</CardTitle>
+                                <CardDescription>Tell us about your most recent job and we’ll go from there.</CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                {resumeData.experience.map((exp, index) => (
+                                  <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
+                                      
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="relative">
+                                            <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
+                                            <Input 
+                                                id={`role-${exp.id}`} 
+                                                name="role" 
+                                                value={exp.role} 
+                                                onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)}
+                                                onBlur={() => setTimeout(() => setActiveSuggestionBox(null), 150)}
+                                                autoComplete="off"
+                                            />
+                                            {activeSuggestionBox === index && (
+                                                <Card className="absolute top-full z-10 w-full mt-1 shadow-lg">
+                                                    <CardContent className="p-2 max-h-60 overflow-y-auto">
+                                                        {suggestionsLoadingFor === index ? (
+                                                            <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                Loading...
+                                                            </div>
+                                                        ) : jobTitleSuggestions.length > 0 ? (
+                                                            <ul className="space-y-1">
+                                                                {jobTitleSuggestions.map((suggestion, sIndex) => (
+                                                                    <li key={sIndex}>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="w-full text-left p-2 rounded-md hover:bg-secondary text-sm"
+                                                                            onMouseDown={() => handleSuggestionClick(suggestion, index)}
+                                                                        >
+                                                                            {suggestion}
+                                                                        </button>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        ) : ( <div className="p-4 text-center text-sm text-muted-foreground">No suggestions.</div> )}
+                                                    </CardContent>
+                                                </Card>
+                                            )}
+                                        </div>
+                                        <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                                      </div>
+                                      <div>
+                                        <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                                        <Textarea id={`description-${exp.id}`} name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} placeholder="Describe your responsibilities and achievements..." />
+                                      </div>
+                                      <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
+                                          {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                          AI Suggestions for '{exp.role || "this role"}'
+                                      </Button>
+                                      {aiSuggestions && suggestionsForIndex === index && (
+                                          <div className="space-y-1 max-h-40 overflow-y-auto">
+                                            {aiSuggestions.responsibilities.map((resp, i) => (
+                                              <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
+                                                <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
+                                                <span className="text-xs">{resp}</span>
+                                              </button>
+                                            ))}
+                                          </div>
+                                      )}
+                                  </div>
+                                ))}
+                                <Button variant="secondary" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
+                              </CardContent>
+                            </Card>
+                          </div>
+                      )}
+                       {currentStep === 'education' && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Education</CardTitle>
+                              <CardDescription>Tell us about your education.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              {resumeData.education.map((edu, index) => (
+                                  <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
+                                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
+                                      <div className="space-y-4">
+                                          <div><Label htmlFor={`school-${edu.id}`}>School Name</Label><Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                                          <div><Label htmlFor={`degree-${edu.id}`}>Degree</Label><Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
+                                      </div>
+                                  </div>
+                              ))}
+                              <Button variant="secondary" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
+                            </CardContent>
+                          </Card>
+                      )}
+                       {currentStep === 'skills' && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Skills</CardTitle>
+                              <CardDescription>Highlight your top skills.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <Textarea 
+                                  placeholder="e.g., React, Project Management, SEO, Public Speaking"
+                                  value={resumeData.skills.join(', ')}
+                                  onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
+                              />
+                              {generatingSkills ? (
+                                <div className="flex items-center gap-2 text-muted-foreground p-4 bg-secondary rounded-lg">
+                                    <Loader2 className="animate-spin h-5 w-5" />
+                                    <span>Loading AI skill suggestions...</span>
+                                </div>
+                              ) : aiSuggestions && (
+                                    <div className="p-4 bg-secondary rounded-lg">
+                                      <h4 className="font-semibold text-sm mb-2">Suggestions for a {suggestionsForRole || 'role'}</h4>
+                                      <div className="flex flex-wrap gap-2">
+                                        {aiSuggestions.skills.map((skill, i) => (
+                                          <Button key={i} size="sm" variant="outline" className="bg-white" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
+                                            <Plus size={14} className="mr-1" />{skill}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                    </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                      )}
+                       {currentStep === 'summary' && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Summary</CardTitle>
+                              <CardDescription>Write a brief 2-4 sentence summary about your career.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <Textarea 
+                                className="h-32" 
+                                value={resumeData.summary} 
+                                onChange={handleSummaryChange} 
+                                placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
+                              />
+                              <Button variant="outline" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
+                                  {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                  Generate with AI
+                              </Button>
+                              {summarySuggestions.length > 0 && (
+                                  <div className="space-y-3">
+                                    {summarySuggestions.map((suggestion, i) => (
+                                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
+                                        <p className="text-sm text-foreground flex-1">{suggestion}</p>
+                                        <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
+                                          <ClipboardPaste className="mr-2 h-4 w-4" />
+                                          Use
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                      )}
+                      <div className="mt-8 pt-6 border-t flex justify-between">
+                        <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+                          <ArrowLeft className="mr-2" />
+                          Back
+                        </Button>
+                          <Button onClick={nextStep}>
+                              Next
+                              <ArrowRight className="ml-2" />
+                          </Button>
+                      </div>
+                    </div>
+                  </main>
+                  
+                  <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24">
+                      <div 
+                        ref={previewContainerRef}
+                        className="w-full max-w-[450px] mx-auto shadow-2xl ring-1 ring-black/10"
+                      >
+                        <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                        </div>
+                      </div>
+                  </aside>
+              </div>
+            );
+    }
+  };
 
   if (isFinalizing) {
     return (
@@ -734,246 +1061,7 @@ export default function ResumeBuilder() {
             </main>
         </div>
     );
-}
+  }
 
-  return (
-    <div className="grid lg:grid-cols-12 lg:gap-8 items-start">
-      <main className="lg:col-span-7 w-full p-4 sm:p-6 lg:p-8">
-        <div className="max-w-xl mx-auto">
-          {currentStep === 'template' && (
-            <div className="space-y-4">
-                <h3 className="text-3xl font-bold">Choose a template to get started</h3>
-                <p className="text-muted-foreground">You can change it any time.</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
-                    {templates.map((template) => (
-                        <div 
-                            key={template.id}
-                            onClick={() => {setSelectedTemplate(template.id); nextStep();}}
-                            className="cursor-pointer group"
-                        >
-                            <div className={cn(
-                                "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
-                                selectedTemplate === template.id ? "border-primary" : "border-card"
-                            )}>
-                              <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                            </div>
-                            <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-          )}
-          {currentStep === 'personal' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>What's the best way for employers to contact you?</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label htmlFor="firstName">First Name</Label><Input id="firstName" name="firstName" value={resumeData.personalInfo.firstName} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="lastName">Last Name</Label><Input id="lastName" name="lastName" value={resumeData.personalInfo.lastName} onChange={handlePersonalChange} /></div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" value={resumeData.personalInfo.email} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="phone">Phone Number</Label><Input id="phone" name="phone" value={resumeData.personalInfo.phone} onChange={handlePersonalChange} /></div>
-                    </div>
-                    <div><Label htmlFor="streetAddress">Street Address</Label><Input id="streetAddress" name="streetAddress" value={resumeData.personalInfo.streetAddress} onChange={handlePersonalChange} /></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><Label htmlFor="city">City</Label><Input id="city" name="city" value={resumeData.personalInfo.city} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="state">State / Province</Label><Input id="state" name="state" value={resumeData.personalInfo.state} onChange={handlePersonalChange} /></div>
-                        <div><Label htmlFor="zipCode">Zip / Postal Code</Label><Input id="zipCode" name="zipCode" value={resumeData.personalInfo.zipCode} onChange={handlePersonalChange} /></div>
-                    </div>
-                </CardContent>
-              </Card>
-          )}
-          {currentStep === 'experience' && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Work History</CardTitle>
-                    <CardDescription>Tell us about your most recent job and we’ll go from there.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {resumeData.experience.map((exp, index) => (
-                      <div key={exp.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
-                          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 size={16}/></Button>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="relative">
-                                <Label htmlFor={`role-${exp.id}`}>Job Title</Label>
-                                <Input 
-                                    id={`role-${exp.id}`} 
-                                    name="role" 
-                                    value={exp.role} 
-                                    onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)}
-                                    onBlur={() => setTimeout(() => setActiveSuggestionBox(null), 150)}
-                                    autoComplete="off"
-                                />
-                                {activeSuggestionBox === index && (
-                                    <Card className="absolute top-full z-10 w-full mt-1 shadow-lg">
-                                        <CardContent className="p-2 max-h-60 overflow-y-auto">
-                                            {suggestionsLoadingFor === index ? (
-                                                <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Loading...
-                                                </div>
-                                            ) : jobTitleSuggestions.length > 0 ? (
-                                                <ul className="space-y-1">
-                                                    {jobTitleSuggestions.map((suggestion, sIndex) => (
-                                                        <li key={sIndex}>
-                                                            <button
-                                                                type="button"
-                                                                className="w-full text-left p-2 rounded-md hover:bg-secondary text-sm"
-                                                                onMouseDown={() => handleSuggestionClick(suggestion, index)}
-                                                            >
-                                                                {suggestion}
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : ( <div className="p-4 text-center text-sm text-muted-foreground">No suggestions.</div> )}
-                                        </CardContent>
-                                    </Card>
-                                )}
-                            </div>
-                            <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
-                          </div>
-                          <div>
-                            <Label htmlFor={`description-${exp.id}`}>Description</Label>
-                            <Textarea id={`description-${exp.id}`} name="description" value={exp.description} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} placeholder="Describe your responsibilities and achievements..." />
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => handleAiGenerate(index)} disabled={generatingIndex === index}>
-                              {generatingIndex === index ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                              AI Suggestions for '{exp.role || "this role"}'
-                          </Button>
-                          {aiSuggestions && suggestionsForIndex === index && (
-                              <div className="space-y-1 max-h-40 overflow-y-auto">
-                                {aiSuggestions.responsibilities.map((resp, i) => (
-                                  <button key={i} onClick={() => handleAddResponsibility(resp, index)} className="flex items-start gap-2 text-left p-1.5 rounded hover:bg-primary/10 w-full">
-                                    <Plus size={14} className="mt-1 text-primary flex-shrink-0" />
-                                    <span className="text-xs">{resp}</span>
-                                  </button>
-                                ))}
-                              </div>
-                          )}
-                      </div>
-                    ))}
-                    <Button variant="secondary" onClick={addExperience}><Plus className="mr-2" />Add Another Position</Button>
-                  </CardContent>
-                </Card>
-              </div>
-          )}
-           {currentStep === 'education' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Education</CardTitle>
-                  <CardDescription>Tell us about your education.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {resumeData.education.map((edu, index) => (
-                      <div key={edu.id} className="space-y-4 p-4 border rounded-lg relative bg-background">
-                          <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 size={16}/></Button>
-                          <div className="space-y-4">
-                              <div><Label htmlFor={`school-${edu.id}`}>School Name</Label><Input id={`school-${edu.id}`} name="school" value={edu.school} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
-                              <div><Label htmlFor={`degree-${edu.id}`}>Degree</Label><Input id={`degree-${edu.id}`} name="degree" value={edu.degree} onChange={(e) => handleEducationChange(index, e.target.name, e.target.value)} /></div>
-                          </div>
-                      </div>
-                  ))}
-                  <Button variant="secondary" onClick={addEducation}><Plus className="mr-2" />Add Another School</Button>
-                </CardContent>
-              </Card>
-          )}
-           {currentStep === 'skills' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skills</CardTitle>
-                  <CardDescription>Highlight your top skills.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea 
-                      placeholder="e.g., React, Project Management, SEO, Public Speaking"
-                      value={resumeData.skills.join(', ')}
-                      onChange={(e) => handleSkillsChange(e.target.value.split(',').map(s => s.trim()))}
-                  />
-                  {generatingSkills ? (
-                    <div className="flex items-center gap-2 text-muted-foreground p-4 bg-secondary rounded-lg">
-                        <Loader2 className="animate-spin h-5 w-5" />
-                        <span>Loading AI skill suggestions...</span>
-                    </div>
-                  ) : aiSuggestions && (
-                        <div className="p-4 bg-secondary rounded-lg">
-                          <h4 className="font-semibold text-sm mb-2">Suggestions for a {suggestionsForRole || 'role'}</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {aiSuggestions.skills.map((skill, i) => (
-                              <Button key={i} size="sm" variant="outline" className="bg-white" onClick={() => handleAddSkill(skill)} disabled={resumeData.skills.includes(skill)}>
-                                <Plus size={14} className="mr-1" />{skill}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                  )}
-                </CardContent>
-              </Card>
-          )}
-           {currentStep === 'summary' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                  <CardDescription>Write a brief 2-4 sentence summary about your career.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea 
-                    className="h-32" 
-                    value={resumeData.summary} 
-                    onChange={handleSummaryChange} 
-                    placeholder="e.g., Results-driven Software Engineer with 5+ years of experience..."
-                  />
-                  <Button variant="outline" onClick={handleGenerateSummary} disabled={isGeneratingSummary}>
-                      {isGeneratingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                      Generate with AI
-                  </Button>
-                  {summarySuggestions.length > 0 && (
-                      <div className="space-y-3">
-                        {summarySuggestions.map((suggestion, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-secondary">
-                            <p className="text-sm text-foreground flex-1">{suggestion}</p>
-                            <Button size="sm" variant="ghost" onClick={() => handleApplySummary(suggestion)}>
-                              <ClipboardPaste className="mr-2 h-4 w-4" />
-                              Use
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                  )}
-                </CardContent>
-              </Card>
-          )}
-          <div className="mt-8 pt-6 border-t flex justify-between">
-            <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
-              <ArrowLeft className="mr-2" />
-              Back
-            </Button>
-            {currentStep !== 'template' ? (
-                <Button onClick={nextStep}>
-                    Next
-                    <ArrowRight className="ml-2" />
-                </Button>
-            ) : null}
-          </div>
-        </div>
-      </main>
-      
-      <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24">
-          <div 
-            ref={previewContainerRef}
-            className="w-full max-w-[450px] mx-auto shadow-2xl ring-1 ring-black/10"
-          >
-            <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
-                <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
-            </div>
-          </div>
-      </aside>
-    </div>
-  );
+  return <div>{renderContent()}</div>;
 }

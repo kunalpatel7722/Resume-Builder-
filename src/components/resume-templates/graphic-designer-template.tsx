@@ -64,7 +64,11 @@ export const GraphicDesignerTemplate: React.FC<TemplateProps> = ({ data, accentC
     <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-raleway text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <aside className="w-[36%] bg-gray-100 p-6 flex flex-col gap-6">
         <div className="w-32 h-32 rounded-full mx-auto bg-gray-300 shadow-md flex items-center justify-center">
-            <span className="text-5xl font-bold text-gray-500">{personalInfo.firstName?.[0] || 'A'}{personalInfo.lastName?.[0] || 'A'}</span>
+            {personalInfo.photoUrl ? (
+                <img src={personalInfo.photoUrl} alt={fullName} className="rounded-full w-full h-full object-cover" data-ai-hint="person face" />
+            ) : (
+                <span className="text-5xl font-bold text-gray-500">{personalInfo.firstName?.[0] || 'A'}{personalInfo.lastName?.[0] || 'A'}</span>
+            )}
         </div>
         <SidebarSection title="Contact">
           <div className="space-y-1.5 text-[var(--fs-small)] text-gray-700">

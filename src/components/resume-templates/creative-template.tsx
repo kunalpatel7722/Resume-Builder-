@@ -66,7 +66,11 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
       <aside className="w-[40%] text-black p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <div className="text-center mt-4">
           <div className="w-24 h-24 rounded-full mx-auto bg-white mb-4 shadow-md flex items-center justify-center border-4" style={{borderColor: accentColor}}>
-             <span className="text-4xl font-bold" style={{color: accentColor}}>{personalInfo.firstName?.[0] || 'A'}{personalInfo.lastName?.[0] || 'A'}</span>
+             {personalInfo.photoUrl ? (
+                <img src={personalInfo.photoUrl} alt={fullName} className="rounded-full w-full h-full object-cover" data-ai-hint="person face" />
+              ) : (
+                <span className="text-4xl font-bold" style={{color: accentColor}}>{personalInfo.firstName?.[0] || 'A'}{personalInfo.lastName?.[0] || 'A'}</span>
+              )}
           </div>
         </div>
 
