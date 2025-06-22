@@ -894,7 +894,7 @@ export default function ResumeBuilder() {
                     ref={previewContainerRef}
                     className="w-full max-w-xl shadow-xl ring-1 ring-black/5"
                   >
-                    <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+                    <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -912,7 +912,7 @@ export default function ResumeBuilder() {
     )}>
       
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 lg:sticky lg:top-24">
+        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 sticky top-24">
           <h2 className="text-xl font-bold text-foreground">Resume Builder</h2>
           <div className="space-y-1">
             {steps.map((step, index) => {
@@ -1620,7 +1620,7 @@ export default function ResumeBuilder() {
                         ref={previewContainerRef} 
                         className="w-full shadow-xl ring-1 ring-black/5"
                     >
-                       <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+                       <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
                             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                         </div>
                     </div>
@@ -1636,12 +1636,12 @@ export default function ResumeBuilder() {
       </main>
 
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex lg:col-span-5 bg-muted p-8 items-start justify-center lg:sticky lg:top-24">
+        <aside className="hidden lg:flex flex-col lg:col-span-5 bg-muted p-8 items-start justify-center sticky top-24">
           <div 
             ref={previewContainerRef}
             className="w-full max-w-xl shadow-xl ring-1 ring-black/5"
           >
-             <div ref={previewContentRef} className="w-[850px] origin-top-left bg-white">
+             <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
                 <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
             </div>
           </div>
