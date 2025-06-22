@@ -271,12 +271,12 @@ export default function ResumeBuilder() {
     if (!container || !content) return;
 
     const applyScale = () => {
+      const containerWidth = container.offsetWidth;
       const contentWidth = content.offsetWidth;
       if (container.offsetWidth > 0 && contentWidth > 0) {
-        const scale = container.offsetWidth / contentWidth;
+        const scale = containerWidth / contentWidth;
         content.style.transform = `scale(${scale})`;
         content.style.transformOrigin = 'top left';
-        // Use aspect-ratio on content div to manage height
       }
     };
 
@@ -814,7 +814,7 @@ export default function ResumeBuilder() {
 
   if (isFinalizing) {
     return (
-        <div className="grid lg:grid-cols-12 lg:gap-8 lg:items-start min-h-[calc(100vh-4rem)] bg-muted/40 p-4 lg:p-8">
+        <div className="grid lg:grid-cols-12 lg:gap-8 lg:items-start bg-muted/40 p-4 lg:p-8">
             <aside className="lg:col-span-3 border-r bg-background p-4 lg:p-6 rounded-lg shadow-sm lg:sticky lg:top-24">
                 <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-4">
                     <ArrowLeft className="mr-2" />
@@ -879,7 +879,7 @@ export default function ResumeBuilder() {
                 </div>
             </aside>
             <main className="lg:col-span-9 flex flex-col items-center justify-start mt-8 lg:mt-0">
-                 <div className="flex justify-end w-full max-w-lg mb-4">
+                 <div className="flex justify-end w-full max-w-md mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -887,9 +887,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
+                    className="w-full max-w-md shadow-xl ring-1 ring-black/5"
                   >
-                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -907,12 +907,12 @@ export default function ResumeBuilder() {
     )}>
       
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-5 bg-muted p-8 sticky top-0 items-center justify-center h-screen">
+        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-5 bg-muted p-8 sticky top-24 items-center">
           <div 
             ref={previewContainerRef}
-            className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
+            className="w-full max-w-md shadow-xl ring-1 ring-black/5"
           >
-             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
                 <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
             </div>
           </div>
@@ -920,7 +920,7 @@ export default function ResumeBuilder() {
       )}
 
       <main className={cn(
-          "w-full p-4 sm:p-6 lg:p-8 min-h-screen",
+          "w-full p-4 sm:p-6 lg:p-8",
           showPreview
               ? "lg:col-span-7"
               : "max-w-4xl mx-auto py-16"
@@ -1595,7 +1595,7 @@ export default function ResumeBuilder() {
                         ref={previewContainerRef} 
                         className="w-full shadow-xl ring-1 ring-black/5"
                     >
-                       <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                       <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
                             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                         </div>
                     </div>
@@ -1611,12 +1611,12 @@ export default function ResumeBuilder() {
       </main>
 
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex flex-col lg:col-span-5 bg-muted p-8 sticky top-0 items-center justify-center h-screen">
+        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-5 bg-muted p-8 sticky top-24 items-center">
           <div 
             ref={previewContainerRef}
-            className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
+            className="w-full max-w-md shadow-xl ring-1 ring-black/5"
           >
-             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297] origin-top-left">
                 <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
             </div>
           </div>
@@ -1625,3 +1625,5 @@ export default function ResumeBuilder() {
     </div>
   );
 }
+
+    
