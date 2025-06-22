@@ -312,13 +312,14 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        // A4 aspect ratio is ~1/1.414, so content width is known
-        const contentWidth = 850; 
+        const contentWidth = 850;
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
             content.style.transform = `scale(${scale})`;
-            container.style.height = `${content.offsetHeight * scale}px`;
+            content.style.transformOrigin = 'top left';
+            const scaledHeight = content.getBoundingClientRect().height;
+            container.style.height = `${scaledHeight}px`;
         }
     };
 
@@ -327,7 +328,6 @@ export default function ResumeBuilder() {
       resizeObserver.observe(container);
     }
     
-    // Initial scale calculation
     const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
@@ -705,23 +705,44 @@ export default function ResumeBuilder() {
 
     setIsDownloading(true);
     try {
+      const originalScale = element.style.transform;
       element.style.transform = 'scale(1)';
+      await new Promise(resolve => setTimeout(resolve, 100)); // allow re-render
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
       });
       
+      element.style.transform = originalScale;
+
       const pdf = new jspdf({
         orientation: 'p',
         unit: 'px',
-        format: [canvas.width, canvas.height],
+        format: 'a4',
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const canvasAspectRatio = canvasWidth / canvasHeight;
+      const pdfAspectRatio = pdfWidth / pdfHeight;
+
+      let renderWidth = pdfWidth;
+      let renderHeight = pdfHeight;
+
+      if (canvasAspectRatio > pdfAspectRatio) {
+        renderHeight = renderWidth / canvasAspectRatio;
+      } else {
+        renderWidth = renderHeight * canvasAspectRatio;
+      }
       
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const xOffset = (pdfWidth - renderWidth) / 2;
+      const yOffset = (pdfHeight - renderHeight) / 2;
+
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xOffset, yOffset, renderWidth, renderHeight);
       pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
     } catch (error) {
       console.error(error);
@@ -732,11 +753,6 @@ export default function ResumeBuilder() {
       });
     } finally {
       setIsDownloading(false);
-      const container = previewContainerRef.current;
-      if (container && element) {
-        const scale = container.offsetWidth / element.offsetWidth;
-        element.style.transform = `scale(${scale})`;
-      }
     }
   };
 
@@ -792,11 +808,11 @@ export default function ResumeBuilder() {
                     </div>
                   </div>
 
-                  <div className="lg:col-span-5 lg:sticky lg:top-24">
+                  <aside className="lg:col-span-5 lg:sticky top-24">
                     {selectedTemplate ? (
                       <>
-                        <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5">
-                          <div ref={previewContentRef} className="w-[850px] aspect-[1/1.414] origin-top-left bg-white">
+                        <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[1/1.414]">
+                          <div ref={previewContentRef} className="w-[850px] bg-white">
                               <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
                           </div>
                         </div>
@@ -809,7 +825,7 @@ export default function ResumeBuilder() {
                         <p className="text-muted-foreground">Click a template to preview</p>
                       </div>
                     )}
-                  </div>
+                  </aside>
                 </div>
               </div>
             );
@@ -904,6 +920,20 @@ export default function ResumeBuilder() {
                                             )}
                                         </div>
                                         <div><Label htmlFor={`company-${exp.id}`}>Company</Label><Input id={`company-${exp.id}`} name="company" value={exp.company} onChange={(e) => handleExperienceChange(index, e.target.name, e.target.value)} /></div>
+                                      </div>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div>
+                                              <Label>Start Date</Label>
+                                              <DatePicker date={exp.startDate || undefined} setDate={(date) => handleExperienceChange(index, 'startDate', date)} />
+                                          </div>
+                                           <div>
+                                              <Label>End Date</Label>
+                                              <DatePicker date={exp.endDate || undefined} setDate={(date) => handleExperienceChange(index, 'endDate', date)} disabled={exp.isCurrentJob} />
+                                          </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Checkbox id={`current-${exp.id}`} checked={exp.isCurrentJob} onCheckedChange={(checked) => handleExperienceChange(index, 'isCurrentJob', checked)} />
+                                        <Label htmlFor={`current-${exp.id}`}>I currently work here</Label>
                                       </div>
                                       <div>
                                         <Label htmlFor={`description-${exp.id}`}>Description</Label>
@@ -1021,9 +1051,9 @@ export default function ResumeBuilder() {
                   <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24">
                       <div 
                         ref={previewContainerRef}
-                        className="w-full max-w-md mx-auto shadow-2xl ring-1 ring-black/10"
+                        className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[1/1.414]"
                       >
-                        <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                        <div ref={previewContentRef} className="w-[850px] bg-white">
                             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                         </div>
                       </div>
@@ -1036,7 +1066,7 @@ export default function ResumeBuilder() {
   const FullPageContent = () => {
     if (isFinalizing) {
       return (
-        <div className="grid lg:grid-cols-12 lg:gap-8 p-4 lg:p-8">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-8 p-4 lg:p-8">
             <aside className="lg:col-span-4 border bg-card p-4 lg:p-6 rounded-lg shadow-sm lg:sticky top-24">
                 <Button variant="outline" size="sm" onClick={() => setIsFinalizing(false)} className="mb-6">
                     <ArrowLeft className="mr-2" />
@@ -1071,7 +1101,7 @@ export default function ResumeBuilder() {
                 </div>
             </aside>
             <main className="lg:col-span-8 flex flex-col items-center mt-8 lg:mt-0">
-                 <div className="flex justify-end w-full max-w-md mb-4">
+                 <div className="flex justify-end w-full max-w-2xl mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -1079,9 +1109,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-md shadow-lg ring-1 ring-black/5"
+                    className="w-full max-w-2xl shadow-lg ring-1 ring-black/5 aspect-[1/1.414]"
                   >
-                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                    <div ref={previewContentRef} className="w-[850px] bg-white">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -1095,7 +1125,7 @@ export default function ResumeBuilder() {
     }
 
     return (
-       <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
+       <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start p-4 lg:p-8">
             <main className="lg:col-span-7 w-full">
               {renderContent()}
               <div className="mt-8 pt-6 border-t flex justify-between">
@@ -1110,8 +1140,8 @@ export default function ResumeBuilder() {
               </div>
             </main>
             <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24">
-              <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5">
-                <div ref={previewContentRef} className="w-[850px] aspect-[1/1.414] origin-top-left bg-white">
+              <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[1/1.414]">
+                <div ref={previewContentRef} className="w-[850px] bg-white">
                   <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                 </div>
               </div>
@@ -1122,4 +1152,3 @@ export default function ResumeBuilder() {
 
   return <div>{FullPageContent()}</div>;
 }
-
