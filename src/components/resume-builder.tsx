@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
+import React, { useState, useRef, ChangeEvent, useEffect, useCallback, createContext, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -239,43 +239,7 @@ const degreeLevels = [
 
 const languageLevels = ["Native", "Fluent", "Proficient", "Conversational", "Basic"];
 
-export default function ResumeBuilder() {
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
-  const [debouncedResumeData, setDebouncedResumeData] = useState<ResumeData>(initialResumeData);
-  const debouncePreviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [currentStep, setCurrentStep] = useState('template');
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [isDownloading, setIsDownloading] = useState(false);
-  const { toast } = useToast();
-  
-  const [aiSuggestions, setAiSuggestions] = useState<GenerateResumeContentOutput | null>(null);
-  const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
-  const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
-  const [editorFocus, setEditorFocus] = useState<{ id: string; start: number; end: number } | null>(null);
-  const [generatingSkills, setGeneratingSkills] = useState(false);
-  const [suggestionsForRole, setSuggestionsForRole] = useState<string | null>(null);
-  
-  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([]);
-  const [suggestionsLoadingFor, setSuggestionsLoadingFor] = useState<number | null>(null);
-  const [activeSuggestionBox, setActiveSuggestionBox] = useState<number | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [summarySuggestions, setSummarySuggestions] = useState<string[]>([]);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  
-  const isMobile = useIsMobile();
-  const [addedSections, setAddedSections] = useState<string[]>([]);
-
-  const [isFinalizing, setIsFinalizing] = useState(false);
-  const [accentColor, setAccentColor] = useState(colorOptions[0].color);
-  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
-
-  const previewContainerRef = useRef<HTMLDivElement>(null);
-  const previewContentRef = useRef<HTMLDivElement>(null);
-
-  const templateComponents = {
+const templateComponents = {
     modern: ModernTemplate,
     classic: ClassicTemplate,
     creative: CreativeTemplate,
@@ -303,519 +267,111 @@ export default function ResumeBuilder() {
     folio: FolioTemplate,
     impact: ImpactTemplate,
     onyx: OnyxTemplate,
-  };
-  
-  const TemplateComponent = selectedTemplate ? templateComponents[selectedTemplate as keyof typeof templateComponents] : ModernTemplate;
-  
-  useEffect(() => {
-    if (debouncePreviewTimeoutRef.current) {
-      clearTimeout(debouncePreviewTimeoutRef.current);
+};
+
+type ResumeBuilderContextType = {
+    resumeData: ResumeData;
+    setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>;
+    debouncedResumeData: ResumeData;
+    currentStep: string;
+    setCurrentStep: React.Dispatch<React.SetStateAction<string>>;
+    selectedTemplate: string;
+    setSelectedTemplate: React.Dispatch<React.SetStateAction<string>>;
+    isDownloading: boolean;
+    toast: (options: { title: string; description: string; variant?: "default" | "destructive" }) => void;
+    aiSuggestions: GenerateResumeContentOutput | null;
+    generatingIndex: number | null;
+    suggestionsForIndex: number | null;
+    generatingSkills: boolean;
+    suggestionsForRole: string | null;
+    jobTitleSuggestions: string[];
+    suggestionsLoadingFor: number | null;
+    activeSuggestionBox: number | null;
+    summarySuggestions: string[];
+    isGeneratingSummary: boolean;
+    isMobile: boolean;
+    addedSections: string[];
+    isFinalizing: boolean;
+    setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
+    accentColor: string;
+    setAccentColor: React.Dispatch<React.SetStateAction<string>>;
+    fontSize: 'sm' | 'md' | 'lg';
+    setFontSize: React.Dispatch<React.SetStateAction<'sm' | 'md' | 'lg'>>;
+    previewContainerRef: React.RefObject<HTMLDivElement>;
+    previewContentRef: React.RefObject<HTMLDivElement>;
+    TemplateComponent: React.FC<any>;
+    steps: { id: string, name: string }[];
+    handlePersonalChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleSummaryChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+    fetchJobTitleSuggestions: (query: string, index: number) => Promise<void>;
+    handleExperienceChange: (index: number, name: string, value: any) => void;
+    handleSuggestionClick: (suggestion: string, index: number) => void;
+    setActiveSuggestionBox: React.Dispatch<React.SetStateAction<number | null>>;
+    addExperience: () => void;
+    removeExperience: (id: number) => void;
+    handleEducationChange: (index: number, name: string, value: any) => void;
+    addEducation: () => void;
+    removeEducation: (id: number) => void;
+    handleSkillsChange: (newSkills: string[]) => void;
+    addCertification: () => void;
+    removeCertification: (id: number) => void;
+    handleCertificationChange: (index: number, name: string, value: string) => void;
+    addLanguage: () => void;
+    removeLanguage: (id: number) => void;
+    handleLanguageChange: (index: number, name: string, value: string) => void;
+    addActivity: () => void;
+    removeActivity: (index: number) => void;
+    handleActivityChange: (index: number, value: string) => void;
+    addAward: () => void;
+    removeAward: (id: number) => void;
+    handleAwardChange: (index: number, name: string, value: string) => void;
+    addWebsite: () => void;
+    removeWebsite: (id: number) => void;
+    handleWebsiteChange: (index: number, name: string, value: string) => void;
+    addCustomSection: () => void;
+    removeCustomSection: (id: number) => void;
+    handleCustomSectionChange: (index: number, name: string, value: string) => void;
+    handleReferencesChange: (checked: boolean) => void;
+    handlePhotoUpload: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleAiGenerate: (index: number) => Promise<void>;
+    handleAddResponsibility: (responsibility: string, experienceIndex: number) => void;
+    handleAddSkill: (skill: string) => void;
+    handleGenerateSummary: () => Promise<void>;
+    handleApplySummary: (summary: string) => void;
+    nextStep: () => void;
+    prevStep: () => void;
+    handleGoToStep: (stepId: string) => void;
+    handleAddSection: (sectionId: string) => void;
+    handleRemoveSection: (sectionId: string) => void;
+    handleDownloadPdf: () => Promise<void>;
+};
+
+const ResumeBuilderContext = createContext<ResumeBuilderContextType | null>(null);
+
+const useResumeBuilder = () => {
+    const context = useContext(ResumeBuilderContext);
+    if (!context) {
+        throw new Error("useResumeBuilder must be used within a ResumeBuilderProvider");
     }
-    debouncePreviewTimeoutRef.current = setTimeout(() => {
-      setDebouncedResumeData(resumeData);
-    }, 300);
+    return context;
+}
 
-    return () => {
-      if (debouncePreviewTimeoutRef.current) {
-        clearTimeout(debouncePreviewTimeoutRef.current);
-      }
-    };
-  }, [resumeData]);
+const Editor = () => {
+    const {
+        currentStep, prevStep, nextStep, resumeData, handlePersonalChange, handlePhotoUpload,
+        addExperience, removeExperience, handleExperienceChange, activeSuggestionBox, setActiveSuggestionBox,
+        suggestionsLoadingFor, jobTitleSuggestions, handleSuggestionClick, handleAiGenerate, generatingIndex,
+        aiSuggestions, suggestionsForIndex, handleAddResponsibility, addEducation, removeEducation, handleEducationChange,
+        handleSkillsChange, handleAddSkill, suggestionsForRole, generatingSkills, handleSummaryChange, handleGenerateSummary,
+        isGeneratingSummary, summarySuggestions, handleApplySummary, addedSections, optionalStepsData, handleRemoveSection,
+        handleAddSection, activities, handleActivityChange, removeActivity, addActivity, awards, handleAwardChange,
+        removeAward, addAward, certifications, handleCertificationChange, removeCertification, addCertification, languages,
+        handleLanguageChange, removeLanguage, addLanguage, websites, handleWebsiteChange, removeWebsite, addWebsite,
+        customSections, handleCustomSectionChange, removeCustomSection, addCustomSection, handleReferencesChange
+    } = useResumeBuilder();
 
-  useEffect(() => {
-    const container = previewContainerRef.current;
-    const content = previewContentRef.current;
-    if (!container || !content) return;
-
-    const applyScale = () => {
-        const containerWidth = container.offsetWidth;
-        const contentWidth = 850; 
-        
-        if (containerWidth > 0 && contentWidth > 0) {
-            const scale = containerWidth / contentWidth;
-            content.style.transform = `scale(${scale})`;
-            content.style.transformOrigin = 'top left';
-            container.style.height = `${content.getBoundingClientRect().height}px`; 
-        }
-    };
-
-    const resizeObserver = new ResizeObserver(applyScale);
-    resizeObserver.observe(container);
-    
-    const timeoutId = setTimeout(applyScale, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-      resizeObserver.unobserve(container);
-    };
-}, [isFinalizing, selectedTemplate, isMobile, debouncedResumeData, accentColor, fontSize, currentStep]);
-
-
-
-  const steps = [
-    ...coreSteps,
-    ...optionalStepsData.filter(s => addedSections.includes(s.id)),
-    ...finalSteps,
-  ];
-
-  useEffect(() => {
-    return () => {
-        if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
-        }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (editorFocus) {
-      const el = document.getElementById(editorFocus.id) as HTMLTextAreaElement;
-      if (el) {
-        el.focus();
-        el.setSelectionRange(editorFocus.start, editorFocus.end);
-      }
-      setEditorFocus(null);
-    }
-  }, [editorFocus, resumeData.experience]);
-
-  useEffect(() => {
-    const fetchSkillSuggestions = async () => {
-      const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
-      const latestRole = lastExperienceWithRole?.role;
-  
-      if (!latestRole || latestRole === suggestionsForRole) {
-        if (!latestRole) {
-            setAiSuggestions(null);
-            setSuggestionsForRole(null);
-        }
-        return;
-      }
-      
-      setGeneratingSkills(true);
-      setSuggestionsForRole(latestRole);
-      
-      try {
-        const result = await generateResumeContent({ jobTitle: latestRole });
-        setAiSuggestions(result);
-      } catch (error) {
-        console.error(error);
-        toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
-        setSuggestionsForRole(null);
-      } finally {
-        setGeneratingSkills(false);
-      }
-    };
-  
-    if(currentStep === 'skills') {
-      fetchSkillSuggestions();
-    }
-  }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
-
-
-  const handlePersonalChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setResumeData(prev => ({...prev, personalInfo: {...prev.personalInfo, [name]: value}}));
-  };
-  
-  const handleSummaryChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setResumeData(prev => ({...prev, summary: e.target.value}));
-  };
-
-  const fetchJobTitleSuggestions = async (query: string, index: number) => {
-    try {
-        const result = await suggestJobTitles({ query });
-        setJobTitleSuggestions(result.titles);
-    } catch (error) {
-        console.error("Failed to fetch job title suggestions:", error);
-        setJobTitleSuggestions([]);
-    } finally {
-        setSuggestionsLoadingFor(null);
-    }
-  };
-  
-  const handleExperienceChange = (index: number, name: string, value: any) => {
-    const newExperience = [...resumeData.experience];
-    (newExperience[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, experience: newExperience }));
-
-    if (name === 'role') {
-        if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
-        }
-        if (value.length < 3) {
-            setJobTitleSuggestions([]);
-            setActiveSuggestionBox(null);
-            return;
-        }
-        
-        setActiveSuggestionBox(index);
-        setJobTitleSuggestions([]); 
-        setSuggestionsLoadingFor(index); 
-
-        debounceTimeoutRef.current = setTimeout(() => {
-            fetchJobTitleSuggestions(value, index);
-        }, 300);
-    }
-  };
-
-  const handleSuggestionClick = (suggestion: string, index: number) => {
-    if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-    }
-    const newExperience = [...resumeData.experience];
-    newExperience[index].role = suggestion;
-    setResumeData(prev => ({ ...prev, experience: newExperience }));
-    setJobTitleSuggestions([]);
-    setActiveSuggestionBox(null);
-  };
-
-  const addExperience = () => {
-    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }]}));
-  };
-  
-  const removeExperience = (id: number) => {
-    setResumeData(prev => ({ ...prev, experience: prev.experience.filter(exp => exp.id !== id) }));
-  };
-  
-  const handleEducationChange = (index: number, name: string, value: any) => {
-    const newEducation = [...resumeData.education];
-    (newEducation[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, education: newEducation }));
-  };
-
-
-  const addEducation = () => {
-    setResumeData(prev => ({ ...prev, education: [...prev.education, { id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }]}));
-  };
-
-  const removeEducation = (id: number) => {
-    setResumeData(prev => ({ ...prev, education: prev.education.filter(edu => edu.id !== id) }));
-  };
-
-  const handleSkillsChange = (newSkills: string[]) => {
-    setResumeData(prev => ({ ...prev, skills: newSkills }));
-  };
-
-  const addCertification = () => {
-    setResumeData(prev => ({ ...prev, certifications: [...prev.certifications, { id: Date.now(), name: '', issuer: '', date: '' }]}));
-  };
-  const removeCertification = (id: number) => {
-    setResumeData(prev => ({ ...prev, certifications: prev.certifications.filter(c => c.id !== id) }));
-  };
-  const handleCertificationChange = (index: number, name: string, value: string) => {
-    const newCerts = [...resumeData.certifications];
-    (newCerts[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, certifications: newCerts }));
-  };
-
-  const addLanguage = () => {
-    setResumeData(prev => ({ ...prev, languages: [...prev.languages, { id: Date.now(), name: '', level: 'Proficient' }]}));
-  };
-  const removeLanguage = (id: number) => {
-    setResumeData(prev => ({ ...prev, languages: prev.languages.filter(l => l.id !== id) }));
-  };
-  const handleLanguageChange = (index: number, name: string, value: string) => {
-    const newLangs = [...resumeData.languages];
-    (newLangs[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, languages: newLangs }));
-  };
-
-  const addActivity = () => {
-    setResumeData(prev => ({ ...prev, activities: [...prev.activities, ''] }));
-  };
-  const removeActivity = (index: number) => {
-    setResumeData(prev => ({ ...prev, activities: prev.activities.filter((_, i) => i !== index) }));
-  };
-  const handleActivityChange = (index: number, value: string) => {
-    const newActivities = [...resumeData.activities];
-    newActivities[index] = value;
-    setResumeData(prev => ({ ...prev, activities: newActivities }));
-  };
-
-  const addAward = () => {
-    setResumeData(prev => ({...prev, awards: [...prev.awards, { id: Date.now(), name: '', date: '', description: '' }]}));
-  };
-  const removeAward = (id: number) => {
-    setResumeData(prev => ({ ...prev, awards: prev.awards.filter(a => a.id !== id) }));
-  };
-  const handleAwardChange = (index: number, name: string, value: string) => {
-    const newAwards = [...resumeData.awards];
-    (newAwards[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, awards: newAwards }));
-  };
-  
-  const addWebsite = () => {
-    setResumeData(prev => ({ ...prev, websites: [...prev.websites, { id: Date.now(), label: '', url: '' }]}));
-  };
-  const removeWebsite = (id: number) => {
-    setResumeData(prev => ({ ...prev, websites: prev.websites.filter(w => w.id !== id) }));
-  };
-  const handleWebsiteChange = (index: number, name: string, value: string) => {
-    const newWebsites = [...resumeData.websites];
-    (newWebsites[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, websites: newWebsites }));
-  };
-  
-  const addCustomSection = () => {
-    setResumeData(prev => ({ ...prev, customSections: [...prev.customSections, { id: Date.now(), title: '', content: '' }]}));
-  };
-  const removeCustomSection = (id: number) => {
-    setResumeData(prev => ({ ...prev, customSections: prev.customSections.filter(c => c.id !== id) }));
-  };
-  const handleCustomSectionChange = (index: number, name: string, value: string) => {
-    const newCustomSections = [...resumeData.customSections];
-    (newCustomSections[index] as any)[name] = value;
-    setResumeData(prev => ({ ...prev, customSections: newCustomSections }));
-  };
-  
-  const handleReferencesChange = (checked: boolean) => {
-    setResumeData(prev => ({ ...prev, showReferences: checked }));
-  };
-
-  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setResumeData(prev => ({
-          ...prev,
-          personalInfo: {
-            ...prev.personalInfo,
-            photoUrl: reader.result as string,
-          },
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  const handleAiGenerate = async (index: number) => {
-    const jobTitle = resumeData.experience[index].role;
-    if (!jobTitle) {
-      toast({ title: 'Role is missing', description: 'Please enter a role for this experience to get AI suggestions.', variant: 'destructive' });
-      return;
-    }
-    setGeneratingIndex(index);
-    if (jobTitle !== suggestionsForRole) {
-        setAiSuggestions(null);
-    }
-    setSuggestionsForIndex(index);
-
-    try {
-      const result = await generateResumeContent({ jobTitle });
-      setAiSuggestions(result);
-      setSuggestionsForRole(jobTitle);
-    } catch (error) {
-      console.error(error);
-      toast({ title: 'AI Generation Failed', description: 'Could not generate suggestions. Please try again.', variant: 'destructive' });
-    } finally {
-      setGeneratingIndex(null);
-    }
-  };
-
-  const handleAddResponsibility = (responsibility: string, experienceIndex: number) => {
-    const newExperience = [...resumeData.experience];
-    const currentDescription = newExperience[experienceIndex].description;
-    const newDescription = (currentDescription ? currentDescription + '\n' : '') + `* ${responsibility}`;
-    
-    handleExperienceChange(experienceIndex, 'description', newDescription);
-  };
-
-  const handleAddSkill = (skill: string) => {
-    if (!resumeData.skills.includes(skill)) {
-      setResumeData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
-    }
-  };
-
-  const handleGenerateSummary = async () => {
-    setIsGeneratingSummary(true);
-    setSummarySuggestions([]);
-    try {
-        const relevantExperience = resumeData.experience.map(({ role, company, description }) => ({ role: role || '', company: company || '', description: description || '' }));
-        const result = await generateResumeSummary({
-            experience: relevantExperience,
-            skills: resumeData.skills,
-        });
-        setSummarySuggestions(result.summaries);
-    } catch (error) {
-        console.error(error);
-        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again.', variant: 'destructive' });
-    } finally {
-        setIsGeneratingSummary(false);
-    }
-  };
-
-  const handleApplySummary = (summary: string) => {
-    setResumeData(prev => ({...prev, summary: summary}));
-    toast({ title: 'Summary Applied', description: 'The AI-generated summary has been added to the editor.'});
-  };
-
-  const nextStep = () => {
-    const currentIndex = steps.findIndex(step => step.id === currentStep);
-    if (currentStep === 'template' && !selectedTemplate) {
-      toast({ title: 'No Template Selected', description: 'Please select a template to continue.', variant: 'destructive' });
-      return;
-    }
-    if (currentStep === 'add-section') {
-      setIsFinalizing(true);
-      return;
-    }
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1].id);
-    }
-  };
-  
-  const prevStep = () => {
-    if (isFinalizing) {
-        setIsFinalizing(false);
-        setCurrentStep('add-section');
-        return;
-    }
-    const currentIndex = steps.findIndex(step => step.id === currentStep);
-    if (currentIndex > 0) {
-       if (addedSections.includes(currentStep)) {
-        setCurrentStep('add-section');
-      }
-      else {
-        setCurrentStep(steps[currentIndex - 1].id);
-      }
-    }
-  };
-  
-  const handleGoToStep = (stepId: string) => {
-    setCurrentStep(stepId);
-    setIsFinalizing(false);
-  }
-
-  const handleAddSection = (sectionId: string) => {
-    if (!addedSections.includes(sectionId)) {
-        setAddedSections(prev => [...prev, sectionId]);
-        setCurrentStep(sectionId);
-    }
-  };
-
-  const handleRemoveSection = (sectionId: string) => {
-    setAddedSections(prev => prev.filter(id => id !== sectionId));
-    
-    const resetFunctions: { [key: string]: () => void } = {
-        certifications: () => setResumeData(prev => ({ ...prev, certifications: [] })),
-        languages: () => setResumeData(prev => ({ ...prev, languages: [] })),
-        activities: () => setResumeData(prev => ({ ...prev, activities: [] })),
-        awards: () => setResumeData(prev => ({ ...prev, awards: [] })),
-        websites: () => setResumeData(prev => ({ ...prev, websites: [] })),
-        custom: () => setResumeData(prev => ({ ...prev, customSections: [] })),
-        references: () => setResumeData(prev => ({ ...prev, showReferences: false })),
-    };
-
-    if (resetFunctions[sectionId]) {
-        resetFunctions[sectionId]();
-    }
-  };
-
-
-  const handleDownloadPdf = async () => {
-    // Force update the debounced data to ensure the latest version is downloaded
-    setDebouncedResumeData(resumeData);
-    
-    // Give react a tick to render the update
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    const element = previewContentRef.current;
-    if (!element) return;
-
-    setIsDownloading(true);
-    try {
-      await document.fonts.ready;
-      
-      const originalTransform = element.style.transform;
-      element.style.transform = 'scale(1)';
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-      });
-      
-      element.style.transform = originalTransform;
-
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jspdf({
-        orientation: 'p',
-        unit: 'pt',
-        format: 'a4',
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
-    } catch (error) {
-      console.error("PDF Download Error:", error);
-      toast({
-        title: "Download Failed",
-        description: "An error occurred while generating the PDF. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const renderContent = () => {
+    const renderContent = () => {
       switch (currentStep) {
-          case 'template':
-              return (
-                <div className="w-full">
-                  <div className="text-center py-12 px-4">
-                    <h3 className="text-3xl font-bold">Choose a template to get started</h3>
-                    <p className="text-muted-foreground mt-2">You can change it any time.</p>
-                  </div>
-  
-                  <div className="lg:grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
-                    <div className="lg:col-span-7 xl:col-span-8">
-                      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {templates.map((template) => (
-                          <div 
-                            key={template.id}
-                            onClick={() => setSelectedTemplate(template.id)}
-                            className="cursor-pointer group"
-                          >
-                            <div className={cn(
-                              "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
-                              selectedTemplate === template.id ? "border-primary" : "border-card"
-                            )}>
-                              <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                            </div>
-                            <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-  
-                    <aside className="lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start mt-8 lg:mt-0">
-                      {selectedTemplate ? (
-                        <>
-                           <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
-                              <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-                                  <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
-                              </div>
-                          </div>
-                          <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
-                            Continue with this template <ArrowRight className="ml-2" />
-                          </Button>
-                        </>
-                      ) : (
-                        <div className="hidden lg:flex items-center justify-center h-96 border-2 border-dashed rounded-lg bg-secondary/50">
-                          <p className="text-muted-foreground">Click a template to preview</p>
-                        </div>
-                      )}
-                    </aside>
-                  </div>
-                </div>
-              );
           case 'personal':
             return (
                <Card>
@@ -1207,96 +763,39 @@ export default function ResumeBuilder() {
                 </div>
               );
       }
-  };
-  
-  const FinalizeScreen = () => (
-     <div className="min-h-screen p-4 sm:p-6 md:p-8">
-        <div className="grid lg:grid-cols-12 lg:gap-8">
-             <main className="lg:col-span-7 xl:col-span-8 flex flex-col items-center">
-                 <div className="flex justify-between w-full max-w-xl mb-4">
-                     <Button variant="outline" onClick={() => setIsFinalizing(false)}>
-                        <ArrowLeft className="mr-2" />
-                        Back to Editor
-                    </Button>
-                     <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
-                        {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
-                        Download PDF
-                    </Button>
-                 </div>
-                 <div 
-                    ref={previewContainerRef}
-                    className="w-full max-w-xl shadow-lg ring-1 ring-black/5 overflow-hidden"
-                  >
-                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-                        <TemplateComponent data={debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
-                    </div>
-                  </div>
-            </main>
-            <aside className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0 space-y-6 lg:sticky top-8 self-start">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Final Touches</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                      <div>
-                          <h3 className="font-semibold text-lg mb-4">Template</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                               {templates.map((template) => (
-                                  <div 
-                                      key={template.id}
-                                      onClick={() => setSelectedTemplate(template.id)}
-                                      className={cn(
-                                          "cursor-pointer rounded-md border-2 p-0.5 transition-all",
-                                          selectedTemplate === template.id ? "border-primary" : "border-transparent hover:border-primary/50"
-                                      )}
-                                  >
-                                      <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                      <div>
-                          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Accent Color</h3>
-                          <div className="flex flex-wrap gap-3">
-                              {colorOptions.map(option => (
-                                  <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
-                              ))}
-                          </div>
-                      </div>
-                  </CardContent>
-                </Card>
-            </aside>
+    };
+    
+    return (
+        <div className="lg:col-span-7 xl:col-span-8 w-full">
+            {renderContent()}
+            <div className="mt-8 pt-6 border-t flex justify-between">
+                <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
+                    <ArrowLeft className="mr-2" />
+                    Back
+                </Button>
+                <Button onClick={nextStep}>
+                    {currentStep === 'add-section' ? 'Finalize' : 'Next'}
+                    <ArrowRight className="ml-2" />
+                </Button>
+            </div>
         </div>
-     </div>
-  )
-
-  const BuilderLayout = () => {
-    const Editor = () => (
-      <div className="lg:col-span-7 xl:col-span-8 w-full">
-        {renderContent()}
-        <div className="mt-8 pt-6 border-t flex justify-between">
-          <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
-            <ArrowLeft className="mr-2" />
-            Back
-          </Button>
-          <Button onClick={nextStep}>
-            {currentStep === 'add-section' ? 'Finalize' : 'Next'}
-            <ArrowRight className="ml-2" />
-          </Button>
-        </div>
-      </div>
     );
+};
   
-    const Preview = () => (
-      <aside className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start">
-        <div ref={previewContainerRef} className="w-full max-w-full mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
-           <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-            <TemplateComponent data={debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
-          </div>
-        </div>
-      </aside>
+const Preview = () => {
+    const { debouncedResumeData, TemplateComponent, accentColor, fontSize, previewContainerRef, previewContentRef } = useResumeBuilder();
+    return (
+        <aside className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start">
+            <div ref={previewContainerRef} className="w-full max-w-full mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
+                <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+                    <TemplateComponent data={debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
+                </div>
+            </div>
+        </aside>
     );
+};
 
+const BuilderLayout = () => {
     return (
       <div className="min-h-screen">
           <div className="grid lg:grid-cols-12 lg:gap-8 items-start p-4 sm:p-6 md:p-8">
@@ -1305,11 +804,527 @@ export default function ResumeBuilder() {
           </div>
       </div>
     );
-  }
+};
 
-  if (isFinalizing) {
-    return <FinalizeScreen />;
-  }
+export default function ResumeBuilder() {
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
+  const [debouncedResumeData, setDebouncedResumeData] = useState<ResumeData>(initialResumeData);
+  const debouncePreviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [currentStep, setCurrentStep] = useState('template');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
+  
+  const [aiSuggestions, setAiSuggestions] = useState<GenerateResumeContentOutput | null>(null);
+  const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  const [suggestionsForIndex, setSuggestionsForIndex] = useState<number | null>(null);
+  const [generatingSkills, setGeneratingSkills] = useState(false);
+  const [suggestionsForRole, setSuggestionsForRole] = useState<string | null>(null);
+  
+  const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([]);
+  const [suggestionsLoadingFor, setSuggestionsLoadingFor] = useState<number | null>(null);
+  const [activeSuggestionBox, setActiveSuggestionBox] = useState<number | null>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [summarySuggestions, setSummarySuggestions] = useState<string[]>([]);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  
+  const isMobile = useIsMobile();
+  const [addedSections, setAddedSections] = useState<string[]>([]);
+
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [accentColor, setAccentColor] = useState(colorOptions[0].color);
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewContentRef = useRef<HTMLDivElement>(null);
+
+  
+  const TemplateComponent = selectedTemplate ? templateComponents[selectedTemplate as keyof typeof templateComponents] : ModernTemplate;
+  
+  useEffect(() => {
+    if (debouncePreviewTimeoutRef.current) {
+      clearTimeout(debouncePreviewTimeoutRef.current);
+    }
+    debouncePreviewTimeoutRef.current = setTimeout(() => {
+      setDebouncedResumeData(resumeData);
+    }, 300);
+
+    return () => {
+      if (debouncePreviewTimeoutRef.current) {
+        clearTimeout(debouncePreviewTimeoutRef.current);
+      }
+    };
+  }, [resumeData]);
+
+  useEffect(() => {
+    const container = previewContainerRef.current;
+    const content = previewContentRef.current;
+    if (!container || !content) return;
+
+    const applyScale = () => {
+        const containerWidth = container.offsetWidth;
+        const contentWidth = 850; 
+        
+        if (containerWidth > 0 && contentWidth > 0) {
+            const scale = containerWidth / contentWidth;
+            content.style.transform = `scale(${scale})`;
+            content.style.transformOrigin = 'top left';
+            container.style.height = `${content.getBoundingClientRect().height}px`; 
+        }
+    };
+
+    const resizeObserver = new ResizeObserver(applyScale);
+    resizeObserver.observe(container);
+    
+    const timeoutId = setTimeout(applyScale, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.unobserve(container);
+    };
+}, [isFinalizing, selectedTemplate, isMobile, debouncedResumeData, accentColor, fontSize, currentStep]);
+
+
+
+  const steps = [
+    ...coreSteps,
+    ...optionalStepsData.filter(s => addedSections.includes(s.id)),
+    ...finalSteps,
+  ];
+
+  useEffect(() => {
+    return () => {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchSkillSuggestions = async () => {
+      const lastExperienceWithRole = [...resumeData.experience].reverse().find(exp => exp.role);
+      const latestRole = lastExperienceWithRole?.role;
+  
+      if (!latestRole || latestRole === suggestionsForRole) {
+        if (!latestRole) {
+            setAiSuggestions(null);
+            setSuggestionsForRole(null);
+        }
+        return;
+      }
+      
+      setGeneratingSkills(true);
+      setSuggestionsForRole(latestRole);
+      
+      try {
+        const result = await generateResumeContent({ jobTitle: latestRole });
+        setAiSuggestions(result);
+      } catch (error) {
+        console.error(error);
+        toast({ title: 'AI Suggestion Failed', description: 'Could not load skill suggestions.', variant: 'destructive' });
+        setSuggestionsForRole(null);
+      } finally {
+        setGeneratingSkills(false);
+      }
+    };
+  
+    if(currentStep === 'skills') {
+      fetchSkillSuggestions();
+    }
+  }, [currentStep, resumeData.experience, suggestionsForRole, toast]);
+
+
+  const handlePersonalChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setResumeData(prev => ({...prev, personalInfo: {...prev.personalInfo, [name]: value}}));
+  }, []);
+  
+  const handleSummaryChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
+    setResumeData(prev => ({...prev, summary: e.target.value}));
+  }, []);
+
+  const fetchJobTitleSuggestions = useCallback(async (query: string, index: number) => {
+    try {
+        const result = await suggestJobTitles({ query });
+        setJobTitleSuggestions(result.titles);
+    } catch (error) {
+        console.error("Failed to fetch job title suggestions:", error);
+        setJobTitleSuggestions([]);
+    } finally {
+        setSuggestionsLoadingFor(null);
+    }
+  }, []);
+  
+  const handleExperienceChange = useCallback((index: number, name: string, value: any) => {
+    setResumeData(prev => {
+        const newExperience = [...prev.experience];
+        (newExperience[index] as any)[name] = value;
+        return { ...prev, experience: newExperience };
+    });
+
+    if (name === 'role') {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+        if (value.length < 3) {
+            setJobTitleSuggestions([]);
+            setActiveSuggestionBox(null);
+            return;
+        }
+        
+        setActiveSuggestionBox(index);
+        setJobTitleSuggestions([]); 
+        setSuggestionsLoadingFor(index); 
+
+        debounceTimeoutRef.current = setTimeout(() => {
+            fetchJobTitleSuggestions(value, index);
+        }, 300);
+    }
+  }, [fetchJobTitleSuggestions]);
+
+  const handleSuggestionClick = useCallback((suggestion: string, index: number) => {
+    if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+    }
+    setResumeData(prev => {
+        const newExperience = [...prev.experience];
+        newExperience[index].role = suggestion;
+        return { ...prev, experience: newExperience };
+    });
+    setJobTitleSuggestions([]);
+    setActiveSuggestionBox(null);
+  }, []);
+
+  const addExperience = useCallback(() => {
+    setResumeData(prev => ({ ...prev, experience: [...prev.experience, { id: Date.now(), company: '', role: '', startDate: null, endDate: null, isCurrentJob: false, description: '', city: '', state: '' }]}));
+  }, []);
+  
+  const removeExperience = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, experience: prev.experience.filter(exp => exp.id !== id) }));
+  }, []);
+  
+  const handleEducationChange = useCallback((index: number, name: string, value: any) => {
+    setResumeData(prev => {
+        const newEducation = [...prev.education];
+        (newEducation[index] as any)[name] = value;
+        return { ...prev, education: newEducation };
+    });
+  }, []);
+
+
+  const addEducation = useCallback(() => {
+    setResumeData(prev => ({ ...prev, education: [...prev.education, { id: Date.now(), school: '', location: '', degree: '', fieldOfStudy: '', graduationMonth: '', graduationYear: '', isStillEnrolled: false }]}));
+  }, []);
+
+  const removeEducation = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, education: prev.education.filter(edu => edu.id !== id) }));
+  }, []);
+
+  const handleSkillsChange = useCallback((newSkills: string[]) => {
+    setResumeData(prev => ({ ...prev, skills: newSkills }));
+  }, []);
+
+  const addCertification = useCallback(() => {
+    setResumeData(prev => ({ ...prev, certifications: [...prev.certifications, { id: Date.now(), name: '', issuer: '', date: '' }]}));
+  }, []);
+  const removeCertification = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, certifications: prev.certifications.filter(c => c.id !== id) }));
+  }, []);
+  const handleCertificationChange = useCallback((index: number, name: string, value: string) => {
+    setResumeData(prev => {
+        const newCerts = [...prev.certifications];
+        (newCerts[index] as any)[name] = value;
+        return { ...prev, certifications: newCerts };
+    });
+  }, []);
+
+  const addLanguage = useCallback(() => {
+    setResumeData(prev => ({ ...prev, languages: [...prev.languages, { id: Date.now(), name: '', level: 'Proficient' }]}));
+  }, []);
+  const removeLanguage = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, languages: prev.languages.filter(l => l.id !== id) }));
+  }, []);
+  const handleLanguageChange = useCallback((index: number, name: string, value: string) => {
+    setResumeData(prev => {
+        const newLangs = [...prev.languages];
+        (newLangs[index] as any)[name] = value;
+        return { ...prev, languages: newLangs };
+    });
+  }, []);
+
+  const addActivity = useCallback(() => {
+    setResumeData(prev => ({ ...prev, activities: [...prev.activities, ''] }));
+  }, []);
+  const removeActivity = useCallback((index: number) => {
+    setResumeData(prev => ({ ...prev, activities: prev.activities.filter((_, i) => i !== index) }));
+  }, []);
+  const handleActivityChange = useCallback((index: number, value: string) => {
+    setResumeData(prev => {
+        const newActivities = [...prev.activities];
+        newActivities[index] = value;
+        return { ...prev, activities: newActivities };
+    });
+  }, []);
+
+  const addAward = useCallback(() => {
+    setResumeData(prev => ({...prev, awards: [...prev.awards, { id: Date.now(), name: '', date: '', description: '' }]}));
+  }, []);
+  const removeAward = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, awards: prev.awards.filter(a => a.id !== id) }));
+  }, []);
+  const handleAwardChange = useCallback((index: number, name: string, value: string) => {
+    setResumeData(prev => {
+        const newAwards = [...prev.awards];
+        (newAwards[index] as any)[name] = value;
+        return { ...prev, awards: newAwards };
+    });
+  }, []);
+  
+  const addWebsite = useCallback(() => {
+    setResumeData(prev => ({ ...prev, websites: [...prev.websites, { id: Date.now(), label: '', url: '' }]}));
+  }, []);
+  const removeWebsite = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, websites: prev.websites.filter(w => w.id !== id) }));
+  }, []);
+  const handleWebsiteChange = useCallback((index: number, name: string, value: string) => {
+    setResumeData(prev => {
+        const newWebsites = [...prev.websites];
+        (newWebsites[index] as any)[name] = value;
+        return { ...prev, websites: newWebsites };
+    });
+  }, []);
+  
+  const addCustomSection = useCallback(() => {
+    setResumeData(prev => ({ ...prev, customSections: [...prev.customSections, { id: Date.now(), title: '', content: '' }]}));
+  }, []);
+  const removeCustomSection = useCallback((id: number) => {
+    setResumeData(prev => ({ ...prev, customSections: prev.customSections.filter(c => c.id !== id) }));
+  }, []);
+  const handleCustomSectionChange = useCallback((index: number, name: string, value: string) => {
+    setResumeData(prev => {
+        const newCustomSections = [...prev.customSections];
+        (newCustomSections[index] as any)[name] = value;
+        return { ...prev, customSections: newCustomSections };
+    });
+  }, []);
+  
+  const handleReferencesChange = useCallback((checked: boolean) => {
+    setResumeData(prev => ({ ...prev, showReferences: checked }));
+  }, []);
+
+  const handlePhotoUpload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResumeData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            photoUrl: reader.result as string,
+          },
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+  
+  const handleAiGenerate = useCallback(async (index: number) => {
+    const jobTitle = resumeData.experience[index].role;
+    if (!jobTitle) {
+      toast({ title: 'Role is missing', description: 'Please enter a role for this experience to get AI suggestions.', variant: 'destructive' });
+      return;
+    }
+    setGeneratingIndex(index);
+    if (jobTitle !== suggestionsForRole) {
+        setAiSuggestions(null);
+    }
+    setSuggestionsForIndex(index);
+
+    try {
+      const result = await generateResumeContent({ jobTitle });
+      setAiSuggestions(result);
+      setSuggestionsForRole(jobTitle);
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'AI Generation Failed', description: 'Could not generate suggestions. Please try again.', variant: 'destructive' });
+    } finally {
+      setGeneratingIndex(null);
+    }
+  }, [resumeData.experience, suggestionsForRole, toast]);
+
+  const handleAddResponsibility = useCallback((responsibility: string, experienceIndex: number) => {
+    setResumeData(prev => {
+        const newExperience = [...prev.experience];
+        const currentDescription = newExperience[experienceIndex].description;
+        newExperience[experienceIndex].description = (currentDescription ? currentDescription + '\n' : '') + `* ${responsibility}`;
+        return { ...prev, experience: newExperience };
+    });
+  }, []);
+
+  const handleAddSkill = useCallback((skill: string) => {
+    setResumeData(prev => {
+        if (!prev.skills.includes(skill)) {
+            return { ...prev, skills: [...prev.skills, skill] };
+        }
+        return prev;
+    });
+  }, []);
+
+  const handleGenerateSummary = useCallback(async () => {
+    setIsGeneratingSummary(true);
+    setSummarySuggestions([]);
+    try {
+        const relevantExperience = resumeData.experience.map(({ role, company, description }) => ({ role: role || '', company: company || '', description: description || '' }));
+        const result = await generateResumeSummary({
+            experience: relevantExperience,
+            skills: resumeData.skills,
+        });
+        setSummarySuggestions(result.summaries);
+    } catch (error) {
+        console.error(error);
+        toast({ title: 'AI Summary Failed', description: 'Could not generate summary suggestions. Please try again.', variant: 'destructive' });
+    } finally {
+        setIsGeneratingSummary(false);
+    }
+  }, [resumeData.experience, resumeData.skills, toast]);
+
+  const handleApplySummary = useCallback((summary: string) => {
+    setResumeData(prev => ({...prev, summary: summary}));
+    toast({ title: 'Summary Applied', description: 'The AI-generated summary has been added to the editor.'});
+  }, [toast]);
+
+  const nextStep = useCallback(() => {
+    const currentIndex = steps.findIndex(step => step.id === currentStep);
+    if (currentStep === 'template' && !selectedTemplate) {
+      toast({ title: 'No Template Selected', description: 'Please select a template to continue.', variant: 'destructive' });
+      return;
+    }
+    if (currentStep === 'add-section') {
+      setIsFinalizing(true);
+      return;
+    }
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1].id);
+    }
+  }, [currentStep, selectedTemplate, steps, toast]);
+  
+  const prevStep = useCallback(() => {
+    if (isFinalizing) {
+        setIsFinalizing(false);
+        setCurrentStep('add-section');
+        return;
+    }
+    const currentIndex = steps.findIndex(step => step.id === currentStep);
+    if (currentIndex > 0) {
+       if (addedSections.includes(currentStep)) {
+        setCurrentStep('add-section');
+      }
+      else {
+        setCurrentStep(steps[currentIndex - 1].id);
+      }
+    }
+  }, [isFinalizing, currentStep, steps, addedSections]);
+  
+  const handleGoToStep = useCallback((stepId: string) => {
+    setCurrentStep(stepId);
+    setIsFinalizing(false);
+  }, []);
+
+  const handleAddSection = useCallback((sectionId: string) => {
+    if (!addedSections.includes(sectionId)) {
+        setAddedSections(prev => [...prev, sectionId]);
+        setCurrentStep(sectionId);
+    }
+  }, [addedSections]);
+
+  const handleRemoveSection = useCallback((sectionId: string) => {
+    setAddedSections(prev => prev.filter(id => id !== sectionId));
+    
+    const resetFunctions: { [key: string]: () => void } = {
+        certifications: () => setResumeData(prev => ({ ...prev, certifications: [] })),
+        languages: () => setResumeData(prev => ({ ...prev, languages: [] })),
+        activities: () => setResumeData(prev => ({ ...prev, activities: [] })),
+        awards: () => setResumeData(prev => ({ ...prev, awards: [] })),
+        websites: () => setResumeData(prev => ({ ...prev, websites: [] })),
+        custom: () => setResumeData(prev => ({ ...prev, customSections: [] })),
+        references: () => setResumeData(prev => ({ ...prev, showReferences: false })),
+    };
+
+    if (resetFunctions[sectionId]) {
+        resetFunctions[sectionId]();
+    }
+  }, []);
+
+
+  const handleDownloadPdf = useCallback(async () => {
+    setDebouncedResumeData(resumeData);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    const element = previewContentRef.current;
+    if (!element) return;
+
+    setIsDownloading(true);
+    try {
+      await document.fonts.ready;
+      
+      const originalTransform = element.style.transform;
+      element.style.transform = 'scale(1)';
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      
+      element.style.transform = originalTransform;
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jspdf({
+        orientation: 'p',
+        unit: 'pt',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
+    } catch (error) {
+      console.error("PDF Download Error:", error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while generating the PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [resumeData, toast]);
+
+  const contextValue: ResumeBuilderContextType = {
+    resumeData, setResumeData, debouncedResumeData, currentStep, setCurrentStep, selectedTemplate,
+    setSelectedTemplate, isDownloading, toast, aiSuggestions, generatingIndex, suggestionsForIndex,
+    generatingSkills, suggestionsForRole, jobTitleSuggestions, suggestionsLoadingFor, activeSuggestionBox,
+    summarySuggestions, isGeneratingSummary, isMobile, addedSections, isFinalizing, setIsFinalizing,
+    accentColor, setAccentColor, fontSize, setFontSize, previewContainerRef, previewContentRef,
+    TemplateComponent, steps, handlePersonalChange, handleSummaryChange, fetchJobTitleSuggestions,
+    handleExperienceChange, handleSuggestionClick, setActiveSuggestionBox, addExperience, removeExperience,
+    handleEducationChange, addEducation, removeEducation, handleSkillsChange, addCertification,
+    removeCertification, handleCertificationChange, addLanguage, removeLanguage, handleLanguageChange,
+    addActivity, removeActivity, handleActivityChange, addAward, removeAward, handleAwardChange, addWebsite,
+    removeWebsite, handleWebsiteChange, addCustomSection, removeCustomSection, handleCustomSectionChange,
+    handleReferencesChange, handlePhotoUpload, handleAiGenerate, handleAddResponsibility, handleAddSkill,
+    handleGenerateSummary, handleApplySummary, nextStep, prevStep, handleGoToStep, handleAddSection,
+    handleRemoveSection, handleDownloadPdf
+  };
 
   if (!isBuilding) {
     return (
@@ -1372,9 +1387,136 @@ export default function ResumeBuilder() {
     );
   }
 
-  if (currentStep === 'template') {
-      return renderContent();
-  }
+  return (
+    <ResumeBuilderContext.Provider value={contextValue}>
+        <ResumeBuilderContent />
+    </ResumeBuilderContext.Provider>
+  )
+}
 
-  return <BuilderLayout />;
+const ResumeBuilderContent = () => {
+    const { 
+        currentStep, selectedTemplate, setSelectedTemplate, nextStep, previewContainerRef, 
+        previewContentRef, TemplateComponent, accentColor, fontSize, 
+        isFinalizing, setIsFinalizing, setAccentColor, handleDownloadPdf, isDownloading
+    } = useResumeBuilder();
+
+    const FinalizeScreen = () => (
+        <div className="min-h-screen p-4 sm:p-6 md:p-8">
+            <div className="grid lg:grid-cols-12 lg:gap-8">
+                <main className="lg:col-span-7 xl:col-span-8 flex flex-col items-center">
+                    <div className="flex justify-between w-full max-w-xl mb-4">
+                        <Button variant="outline" onClick={() => setIsFinalizing(false)}>
+                            <ArrowLeft className="mr-2" />
+                            Back to Editor
+                        </Button>
+                        <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+                            {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
+                            Download PDF
+                        </Button>
+                    </div>
+                    <div 
+                        ref={previewContainerRef}
+                        className="w-full max-w-xl shadow-lg ring-1 ring-black/5 overflow-hidden"
+                    >
+                        <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+                            <TemplateComponent data={useResumeBuilder().debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
+                        </div>
+                    </div>
+                </main>
+                <aside className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0 space-y-6 lg:sticky top-8 self-start">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Final Touches</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div>
+                                <h3 className="font-semibold text-lg mb-4">Template</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {templates.map((template) => (
+                                    <div 
+                                        key={template.id}
+                                        onClick={() => setSelectedTemplate(template.id)}
+                                        className={cn(
+                                            "cursor-pointer rounded-md border-2 p-0.5 transition-all",
+                                            selectedTemplate === template.id ? "border-primary" : "border-transparent hover:border-primary/50"
+                                        )}
+                                    >
+                                        <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                                    </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><Palette size={20}/> Accent Color</h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {colorOptions.map(option => (
+                                        <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
+            </div>
+        </div>
+    );
+
+    if (isFinalizing) {
+        return <FinalizeScreen />;
+    }
+
+    if (currentStep === 'template') {
+        return (
+            <div className="w-full">
+                <div className="text-center py-12 px-4">
+                    <h3 className="text-3xl font-bold">Choose a template to get started</h3>
+                    <p className="text-muted-foreground mt-2">You can change it any time.</p>
+                </div>
+
+                <div className="lg:grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
+                    <div className="lg:col-span-7 xl:col-span-8">
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {templates.map((template) => (
+                                <div 
+                                    key={template.id}
+                                    onClick={() => setSelectedTemplate(template.id)}
+                                    className="cursor-pointer group"
+                                >
+                                    <div className={cn(
+                                        "rounded-lg border-2 p-1 transition-all group-hover:border-primary group-hover:shadow-lg",
+                                        selectedTemplate === template.id ? "border-primary" : "border-card"
+                                    )}>
+                                        <ResumeThumbnail templateId={template.id as keyof typeof templateComponents} />
+                                    </div>
+                                    <p className="text-center text-sm font-medium mt-2 group-hover:text-primary">{template.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <aside className="lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start mt-8 lg:mt-0">
+                        {selectedTemplate ? (
+                            <>
+                                <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
+                                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+                                        <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
+                                    </div>
+                                </div>
+                                <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
+                                    Continue with this template <ArrowRight className="ml-2" />
+                                </Button>
+                            </>
+                        ) : (
+                            <div className="hidden lg:flex items-center justify-center h-96 border-2 border-dashed rounded-lg bg-secondary/50">
+                                <p className="text-muted-foreground">Click a template to preview</p>
+                            </div>
+                        )}
+                    </aside>
+                </div>
+            </div>
+        );
+    }
+  
+    return <BuilderLayout />;
 }
