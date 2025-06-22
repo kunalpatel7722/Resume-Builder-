@@ -19,7 +19,10 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   const palette = { accent: '#8B4513', accentSoft: '#F2EAE3', text: '#1B1B1B', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -40,7 +43,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-[.2em] mb-2 border-b pb-1" style={{ borderColor: accentColor }}>{title}</h2>
+        <h2 className="text-[1.15rem] leading-tight font-bold uppercase tracking-[.2em] mb-2 border-b pb-1" style={{ borderColor: accentColor }}>{title}</h2>
         <div className="space-y-4">{children}</div>
       </section>
     );
@@ -57,23 +60,22 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   };
 
   return (
-    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-lato", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-lato", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}
+      style={{'--fs-name': '1.8rem / 1.1'} as React.CSSProperties}>
       <main className="w-[72%] p-8 overflow-y-auto">
         <header className="mb-6 text-left">
-            <h1 className="text-[1.8rem] leading-tight font-bold font-display-libre-baskerville" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
-            <h2 className="text-[var(--fs-h2)] text-gray-600 mt-1">{experience[0]?.role || 'Executive Title'}</h2>
+            <h1 className="font-bold font-display-libre-baskerville uppercase" style={{color: accentColor, fontSize: 'var(--fs-name)'}}>{fullName || 'Your Name'}</h1>
+            <h2 className="text-[var(--fs-h2)] text-gray-600 mt-1">{experience?.[0]?.role || 'Executive Title'}</h2>
              <div className="text-[var(--fs-small)] text-gray-600 mt-2 flex gap-4">
-                <span>{personalInfo.phone}</span>
-                <span>{personalInfo.email}</span>
+                <span>{personalInfo.phone || "Phone Number"}</span>
+                <span>{personalInfo.email || "Email Address"}</span>
                 <span>{personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</span>
             </div>
         </header>
 
         <div className="space-y-5">
             <MainSection title="Executive Summary">
-              {summary ? (
-                <p className="leading-relaxed">{summary}</p>
-              ) : <p className="leading-relaxed text-gray-400 italic">Your executive summary will appear here.</p>}
+                <p className="leading-relaxed">{summary || "Your executive summary will appear here. Focus on high-level achievements, leadership skills, and strategic impact."}</p>
             </MainSection>
 
             <MainSection title="Professional Experience" show={hasExperience}>

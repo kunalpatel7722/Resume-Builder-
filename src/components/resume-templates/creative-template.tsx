@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Mail, Phone, MapPin, Link as LinkIcon, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -16,12 +16,15 @@ export interface TemplateProps {
 export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, awards, websites, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const projects = customSections.filter(s => s.title.toLowerCase().includes('project'));
+  const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
 
   const palette = { accent: '#FF6B35', accentSoft: '#FFE9E2', text: '#1A1A1A', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -42,7 +45,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[var(--fs-h2)] font-bold text-white mb-2 uppercase" style={{backgroundColor: accentColor, padding: '0.25rem 0.5rem'}}>{title}</h2>
+        <h2 className="text-[var(--fs-h3)] font-bold text-white mb-2 uppercase" style={{backgroundColor: accentColor, padding: '0.25rem 0.5rem'}}>{title}</h2>
         {children}
       </section>
     );
@@ -62,8 +65,8 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
     <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-poppins", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <aside className="w-[40%] text-black p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <div className="text-center mt-4">
-          <div className="w-24 h-24 rounded-full mx-auto bg-white mb-4 shadow-md flex items-center justify-center">
-             <span className="text-4xl font-bold" style={{color: accentColor}}>{personalInfo.firstName?.[0]}{personalInfo.lastName?.[0]}</span>
+          <div className="w-24 h-24 rounded-full mx-auto bg-white mb-4 shadow-md flex items-center justify-center border-4" style={{borderColor: accentColor}}>
+             <span className="text-4xl font-bold" style={{color: accentColor}}>{personalInfo.firstName?.[0] || 'A'}{personalInfo.lastName?.[0] || 'A'}</span>
           </div>
         </div>
 
@@ -77,7 +80,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
 
         <LeftColumnSection title="Skills" show={hasSkills}>
             <div className="flex flex-wrap gap-2">
-              {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white px-3 py-1 rounded-full">{skill}</span>)}
+              {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white px-3 py-1 rounded-full shadow-sm">{skill}</span>)}
             </div>
         </LeftColumnSection>
 
@@ -88,22 +91,18 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
         </LeftColumnSection>
 
         <LeftColumnSection title="Awards" show={hasAwards}>
-            <ul className="text-[var(--fs-small)] list-disc list-inside">
-              {awards.map(award => <li key={award.id}>{award.name}</li>)}
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+              {awards.map(award => <li key={award.id} className="flex items-start gap-2"><Star size={14} className="mt-0.5" style={{color: accentColor}}/>{award.name}</li>)}
             </ul>
         </LeftColumnSection>
       </aside>
 
       <main className="w-[60%] p-8 overflow-y-auto" style={{color: palette.text}}>
         <h1 className="text-[var(--fs-name)] font-bold" style={{ color: accentColor }}>{fullName || 'Your Name'}</h1>
-        <h2 className="text-[var(--fs-h2)] font-light text-gray-700 mb-4">{experience[0]?.role || 'Professional Title'}</h2>
+        <h2 className="text-[var(--fs-h2)] font-light text-gray-700 mb-4">{experience?.[0]?.role || 'Professional Title'}</h2>
         
         <RightColumnSection title="Summary">
-          {summary ? (
-             <p className="leading-relaxed">{summary}</p>
-          ) : (
-            <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>
-          )}
+             <p className="leading-relaxed">{summary || "Your professional summary goes here. This is a great place to highlight your key skills, experience, and career goals."}</p>
         </RightColumnSection>
 
         <RightColumnSection title="Projects" show={hasProjects}>

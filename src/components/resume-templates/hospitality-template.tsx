@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -21,11 +20,14 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
   const palette = { accent: '#FFA000', accentSoft: '#FFF4E0', text: '#1B1B1B', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.length > 0;
   const hasLanguages = hasContent(languages, 'name');
   const hasCertifications = hasContent(certifications, 'name');
   const hasAwards = hasContent(awards, 'name');
@@ -63,17 +65,16 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
       <aside className="w-[30%] bg-gray-50 p-6 flex flex-col gap-6">
         <header className="text-center">
             <h1 className="text-[var(--fs-name)] font-bold">{fullName || 'Your Name'}</h1>
-            <h2 className="text-[var(--fs-h3)] text-gray-600 mt-1">{experience[0]?.role || 'Hospitality Professional'}</h2>
+            <h2 className="text-[var(--fs-h3)] text-gray-600 mt-1">{experience?.[0]?.role || 'Hospitality Professional'}</h2>
         </header>
 
         <div className="text-center text-[var(--fs-small)] text-gray-600 space-y-1">
-            <p>{personalInfo.phone}</p>
-            <p>{personalInfo.email}</p>
+            <p>{personalInfo.phone || 'Phone Number'}</p>
+            <p>{personalInfo.email || 'Email Address'}</p>
             <p>{personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</p>
         </div>
 
-        <SidebarSection title="Skills">
-          {hasSkills ? (
+        <SidebarSection title="Skills" show={hasSkills}>
             <ul className="text-[var(--fs-body)] space-y-1">
               {skills.map((skill, i) => (
                 <li key={i} className="flex items-center">
@@ -81,11 +82,9 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
                 </li>
               ))}
             </ul>
-          ) : <p className="text-gray-400 italic text-sm">Your skills will appear here.</p>}
         </SidebarSection>
         
-        <SidebarSection title="Languages">
-          {hasLanguages ? (
+        <SidebarSection title="Languages" show={hasLanguages}>
             <ul className="text-[var(--fs-body)] space-y-1">
               {languages.map(lang => (
                 <li key={lang.id} className="flex items-center">
@@ -93,11 +92,9 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
                 </li>
               ))}
             </ul>
-          ) : <p className="text-gray-400 italic text-sm">Your languages will appear here.</p>}
         </SidebarSection>
 
-        <SidebarSection title="Certifications">
-          {hasCertifications ? (
+        <SidebarSection title="Certifications" show={hasCertifications}>
             <div className="space-y-3 text-[var(--fs-body)]">
               {certifications.map(cert => (
                 <div key={cert.id}>
@@ -105,20 +102,16 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
                 </div>
               ))}
             </div>
-          ) : <p className="text-gray-400 italic text-sm">Your certifications will appear here.</p>}
         </SidebarSection>
       </aside>
 
       <main className="w-[70%] p-8 overflow-y-auto">
         <MainSection title="Summary">
-            {summary ? (
-              <p className="leading-relaxed">{summary}</p>
-            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
+            <p className="leading-relaxed">{summary || "Your professional summary will appear here. Focus on your passion for guest satisfaction and your key hospitality skills."}</p>
         </MainSection>
 
-        <MainSection title="Experience">
-          {hasExperience ? (
-            experience.map(job => (
+        <MainSection title="Experience" show={hasExperience}>
+          {experience.map(job => (
               <div key={job.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -129,28 +122,23 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
                   {job.description || '* Your job description will appear here.'}
                 </ReactMarkdown>
               </div>
-            ))
-          ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+            ))}
         </MainSection>
         
-        <MainSection title="Education">
-            {hasEducation ? (
-              education.map(edu => (
+        <MainSection title="Education" show={hasEducation}>
+            {education.map(edu => (
                   <div key={edu.id}>
                       <h3 className="text-[var(--fs-h3)] font-bold">{edu.school || 'University Name'}</h3>
                       <p className="font-semibold">{edu.degree || 'Degree'}</p>
                       <p className="text-[var(--fs-small)] text-gray-500">{edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ')}</p>
                   </div>
-              ))
-            ) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
+              ))}
         </MainSection>
         
-        <MainSection title="Awards">
-          {hasAwards ? (
-            awards.map(award => (
+        <MainSection title="Awards" show={hasAwards}>
+          {awards.map(award => (
               <p key={award.id} className="flex items-center"><Trophy size={14} className="mr-2" style={{color: accentColor}}/> <span className="font-bold">{award.name}</span>, {award.date}</p>
-            ))
-          ) : <p className="text-gray-400 italic">Your awards will appear here.</p>}
+            ))}
         </MainSection>
       </main>
     </div>

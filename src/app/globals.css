@@ -68,3 +68,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  * {
+    color: #000 !important;
+    background: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  a::after {
+    content: "";
+  }
+  .resume-container {
+    transform: scale(1) !important;
+    height: auto !important;
+    width: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

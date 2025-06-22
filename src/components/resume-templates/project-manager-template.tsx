@@ -16,7 +16,7 @@ export interface TemplateProps {
 export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const PMP = Array.isArray(certifications) && certifications.find(c => c.name.toLowerCase().includes('pmp'));
+  const PMP = Array.isArray(certifications) ? certifications.find(c => c.name.toLowerCase().includes('pmp')) : undefined;
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
   const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
   const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
@@ -24,7 +24,10 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const palette = { accent: '#C2185B', accentSoft: '#FFE7F0', text: '#202020', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -67,7 +70,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
         <header className="mb-6 text-left">
             <h1 className="text-[var(--fs-name)] font-bold" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
             <div className="flex items-center gap-4">
-                <p className="text-[var(--fs-h2)] text-gray-600 mt-1">{experience[0]?.role || 'Project Manager'}</p>
+                <p className="text-[var(--fs-h2)] text-gray-600 mt-1">{experience?.[0]?.role || 'Project Manager'}</p>
                 {PMP && <span className="text-[0.85rem] leading-tight font-semibold text-white px-3 py-1 rounded-full" style={{backgroundColor: accentColor}}>PMP Certified</span>}
             </div>
              <p className="text-[var(--fs-small)]" style={{color: palette.muted}}>{personalInfo.email} &bull; {personalInfo.phone}</p>
@@ -75,15 +78,13 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
 
         <div className="space-y-5">
             <MainSection title="Summary">
-              {summary ? (
-                <p className="leading-relaxed">{summary}</p>
-              ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
+              <p className="leading-relaxed">{summary || "Your professional summary will appear here. Highlight your experience in managing projects, leading teams, and delivering results on time and within budget."}</p>
             </MainSection>
             
             <MainSection title="Key Projects" show={hasProjects}>
                  {projects.map(p => (
                     <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                      {p.content}
+                      {p.content || "* Describe your key projects, focusing on scope, outcomes, and your specific role."}
                     </ReactMarkdown>
                   ))}
             </MainSection>
@@ -118,7 +119,7 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
       <aside className="w-[28%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <SidebarSection title="Tools" show={hasTools}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-              {tools[0]?.content}
+              {tools?.[0]?.content || "* Jira\n* Asana\n* Trello"}
             </ReactMarkdown>
         </SidebarSection>
         
@@ -134,11 +135,11 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
               rehypePlugins={[rehypeRaw]}
               className="prose prose-sm max-w-none"
               components={{
-                  li: ({children}) => <li className="flex items-start gap-2"><CheckCircle size={14} className="mt-1" style={{color: accentColor}}/><span>{children}</span></li>,
-                  ul: ({children}) => <ul className="list-none p-0">{children}</ul>
+                  li: ({children}) => <li className="flex items-start gap-2"><CheckCircle size={14} className="mt-1 flex-shrink-0" style={{color: accentColor}}/><span>{children}</span></li>,
+                  ul: ({children}) => <ul className="list-none p-0 m-0 space-y-1">{children}</ul>
               }}
             >
-              {milestones[0]?.content}
+              {milestones?.[0]?.content || "* Delivered project 20% under budget.\n* Increased team productivity by 15%."}
             </ReactMarkdown>
         </SidebarSection>
       </aside>

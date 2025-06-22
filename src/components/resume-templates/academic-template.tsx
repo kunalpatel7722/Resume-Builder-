@@ -13,18 +13,21 @@ export interface TemplateProps {
 }
 
 export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, publications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
-  const publications = customSections.filter(s => s.title.toLowerCase().includes('publication'));
-  const researchExperience = experience.filter(e => e.role.toLowerCase().includes('research'));
-  const teachingExperience = experience.filter(e => e.role.toLowerCase().includes('teaching'));
+  
+  const researchExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('research')) : [];
+  const teachingExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('teaching')) : [];
 
 
   const palette = { accent: '#2C3E50', text: '#111111', muted: '#555555', line: '#CCCCCC', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
   
   const hasResearch = hasContent(researchExperience, 'role', 'company', 'description');
   const hasTeaching = hasContent(teachingExperience, 'role', 'company', 'description');
@@ -32,6 +35,7 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasCertifications = hasContent(certifications, 'name', 'issuer');
   const hasPublications = hasContent(publications, 'content');
+  const hasAwards = hasContent(awards, 'name');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -45,7 +49,7 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[var(--fs-h2)] font-bold tracking-wide border-b pb-1 mb-3" style={{ color: accentColor, borderColor: palette.line }}>{title}</h2>
+        <h2 className="text-[var(--fs-h2)] font-bold tracking-wide border-b pb-1 mb-3" style={{ color: accentColor, borderColor: palette.line }}>{title.toUpperCase()}</h2>
         <div className="space-y-4">{children}</div>
       </section>
     );
@@ -54,8 +58,8 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
   return (
     <div className={cn("bg-white text-[var(--fs-body)] p-8 w-full h-full font-body-merriweather-sans", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <header className="text-center mb-6">
-        <h1 className="text-[var(--fs-name)] font-bold font-display-merriweather">{fullName || 'Your Name'}</h1>
-        <p className="text-[var(--fs-h3)] text-gray-600 mt-1">{experience[0]?.role || 'Academic Title'}</p>
+        <h1 className="text-[var(--fs-name)] font-bold font-display-merriweather" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
+        <p className="text-[var(--fs-h3)] text-gray-600 mt-1">{experience?.[0]?.role || 'Academic Title'}</p>
         <div className="text-[var(--fs-small)] text-gray-600 mt-2">
           <span>{fullAddress || 'Address'}</span>
           <span className="mx-2">&bull;</span>
@@ -67,11 +71,7 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
 
       <main className="space-y-5">
         <Section title="Summary">
-          {summary ? (
-             <p className="leading-relaxed">{summary}</p>
-          ) : (
-            <p className="text-gray-400 italic">Your professional summary will appear here.</p>
-          )}
+          <p className="leading-relaxed">{summary || "Your professional summary will appear here. This section should highlight your key qualifications, research interests, and career goals in a concise and compelling manner."}</p>
         </Section>
         
         <Section title="Education" show={hasEducation}>
@@ -123,13 +123,21 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
         <Section title="Publications" show={hasPublications}>
           {publications.map(section => (
             <ReactMarkdown key={section.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
-              {section.content}
+              {section.content || '* List your publications here, following a consistent citation style (e.g., APA, MLA).'}
             </ReactMarkdown>
           ))}
         </Section>
         
         <Section title="Skills" show={hasSkills}>
           <p>{skills.join(' • ')}</p>
+        </Section>
+
+         <Section title="Awards" show={hasAwards}>
+            <ul className="list-disc list-inside">
+              {awards.map(award => (
+                <li key={award.id}><span className="font-bold">{award.name}</span>, {award.date}</li>
+              ))}
+            </ul>
         </Section>
         
         <Section title="Certifications" show={hasCertifications}>

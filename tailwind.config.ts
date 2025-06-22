@@ -12,7 +12,8 @@ export default {
       fontFamily: {
         'body-inter': ['Inter', 'sans-serif'],
         'display-inter': ['Inter', 'sans-serif'],
-        'serif-source': ['"Source Serif 4"', 'serif'],
+        'serif-source-serif-4': ['"Source Serif 4"', 'serif'],
+        'body-source-serif-4': ['"Source Serif 4"', 'serif'],
         'body-poppins': ['Poppins', 'sans-serif'],
         'display-poppins': ['Poppins', 'sans-serif'],
         'headline-roboto-slab': ['"Roboto Slab"', 'serif'],
@@ -35,7 +36,11 @@ export default {
         'body-quicksand': ['Quicksand', 'sans-serif'],
         'body-karla': ['Karla', 'sans-serif'],
         'serif-playfair': ['"Playfair Display"', 'serif'],
-        'serif-lora': ['Lora', 'serif'],
+        'body-lora': ['Lora', 'serif'],
+        'display-raleway': ['Raleway', 'sans-serif'],
+        'body-raleway': ['Raleway', 'sans-serif'],
+        'display-ibm-plex-sans': ['"IBM Plex Sans"', 'sans-serif'],
+        'body-ibm-plex-sans': ['"IBM Plex Sans"', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

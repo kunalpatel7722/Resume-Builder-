@@ -15,12 +15,15 @@ export interface TemplateProps {
 export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const projects = customSections.filter(s => s.title.toLowerCase().includes('project'));
+  const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
 
   const palette = { accent: '#009688', accentSoft: '#E0F5F4', text: '#1D1D1D', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
   
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -47,18 +50,17 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   };
   
   return (
-    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-display-jetbrains-mono", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-display-jetbrains-mono", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}
+      style={{'--fs-name': '1.6rem / 1.2'} as React.CSSProperties}>
       <main className="flex-1 p-8 grid grid-cols-5 gap-8">
         <div className="col-span-3 space-y-6">
             <header className="mb-6">
-                <h1 className="text-[1.6rem] leading-tight font-bold" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
-                <p className="text-[var(--fs-h3)]">{experience[0]?.role || 'Technical Professional'}</p>
+                <h1 className="font-bold" style={{color: accentColor, fontSize: 'var(--fs-name)'}}>{fullName || 'Your Name'}</h1>
+                <p className="text-[var(--fs-h3)]">{experience?.[0]?.role || 'Technical Professional'}</p>
                 <p className="text-[var(--fs-small)] text-gray-500 mt-2">{personalInfo.email} &bull; {personalInfo.phone}</p>
             </header>
             
-            {summary ? (
-              <p className="leading-relaxed font-body-inter">{summary}</p>
-            ) : <p className="leading-relaxed text-gray-400 italic font-body-inter">Your professional summary will appear here.</p>}
+            <p className="leading-relaxed font-body-inter">{summary || "Your professional summary will appear here. Keep it brief and highlight your core technical competencies."}</p>
             
             <div className="space-y-4">
               <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2" style={{ color: accentColor }}>Experience</h2>
@@ -92,7 +94,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
           <Section title="Projects" show={hasProjects}>
               {projects.map(p => (
                   <ReactMarkdown key={p.id} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none font-body-inter">
-                    {p.content}
+                    {p.content || "* Describe your key projects here."}
                   </ReactMarkdown>
               ))}
           </Section>

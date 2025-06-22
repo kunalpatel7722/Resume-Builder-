@@ -13,14 +13,17 @@ export interface TemplateProps {
 }
 
 export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const palette = { accent: '#000000', text: '#000000', muted: '#555555', line: '#B5B5B5', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -39,18 +42,20 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[var(--fs-h2)] font-bold tracking-[.2em] uppercase text-center mb-3" style={{ color: palette.accent }}>
+        <h2 className="text-center font-bold tracking-[.2em] uppercase" style={{ color: palette.accent, fontSize: 'var(--fs-h3)' }}>
           {title}
         </h2>
+        <hr className="my-2" style={{ borderColor: palette.line, borderWidth: '0.5px' }} />
         {children}
       </section>
     );
   };
 
   return (
-    <div className={cn("bg-white p-8 w-full h-full text-[var(--fs-body)] font-serif-source text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
+    <div className={cn("bg-white p-8 w-full h-full text-[var(--fs-body)] font-serif-source text-black", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}
+      style={{'--fs-name': '1.55rem / 1.2'} as React.CSSProperties}>
       <header className="text-center mb-4">
-        <h1 className="text-[var(--fs-name)] font-bold" style={{ color: accentColor }}>{fullName || 'Your Name'}</h1>
+        <h1 className="font-bold" style={{ color: accentColor, fontSize: 'var(--fs-name)' }}>{fullName || 'Your Name'}</h1>
         <div className="text-[var(--fs-small)] mt-2" style={{ color: palette.muted }}>
           <span>{fullAddress || 'Address'}</span>
           {(fullAddress && (personalInfo.phone || personalInfo.email)) && <span className="mx-2">|</span>}
@@ -60,15 +65,9 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
         </div>
       </header>
 
-      <hr className="my-4" style={{ borderColor: palette.line }} />
-
       <main className="space-y-5">
         <Section title="Summary">
-          {summary ? (
-            <p className="text-center leading-relaxed">{summary}</p>
-          ) : (
-             <p className="text-center leading-relaxed text-gray-400 italic">A brief summary about your professional background and career goals.</p>
-          )}
+            <p className="text-center leading-relaxed">{summary || "A brief summary about your professional background and career goals. Keep it concise and impactful, tailored to the job you are applying for."}</p>
         </Section>
         
         <Section title="Experience" show={hasExperience}>

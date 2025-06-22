@@ -20,7 +20,10 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   const palette = { accent: '#333333', text: '#111111', muted: '#777777', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -48,15 +51,13 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
     <div className={cn("bg-white text-[var(--fs-body)] p-8 w-full h-full font-body-open-sans", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <header className="text-center mb-8">
         <h1 className="text-[var(--fs-name)] font-bold" style={{color: palette.text}}>{fullName || 'Your Name'}</h1>
-        <p className="text-[var(--fs-h3)]" style={{color: palette.muted}}>{experience[0]?.role || 'Professional Title'}</p>
+        <p className="text-[var(--fs-h3)]" style={{color: palette.muted}}>{experience?.[0]?.role || 'Professional Title'}</p>
         <p className="text-[var(--fs-small)] text-gray-500 mt-3">{personalInfo.phone} &bull; {personalInfo.email} &bull; {fullAddress}</p>
       </header>
       
       <main className="space-y-6">
         <Section title="Summary">
-          {summary ? (
-            <p className="leading-relaxed">{summary}</p>
-          ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
+          <p className="leading-relaxed">{summary || "Your professional summary will appear here. This is your chance to make a strong first impression."}</p>
         </Section>
 
         <Section title="Experience" show={hasExperience}>

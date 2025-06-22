@@ -16,7 +16,7 @@ export interface TemplateProps {
 export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const PMP = Array.isArray(certifications) && certifications.find(c => c.name.toLowerCase().includes('pmp'));
+  const PMP = Array.isArray(certifications) ? certifications.find(c => c.name.toLowerCase().includes('pmp')) : undefined;
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
   const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
   const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
@@ -24,7 +24,10 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
   const palette = { accent: '#3358FF', accentSoft: '#ECF1FF', text: '#121212', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
   
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -78,7 +81,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
 
         <SidebarSection title="Tools" icon={Code} show={hasTools}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                {tools[0]?.content}
+                {tools?.[0]?.content || "* List your tools here"}
             </ReactMarkdown>
         </SidebarSection>
         
@@ -95,7 +98,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
 
         <SidebarSection title="Milestones" icon={CheckCircle} show={hasMilestones}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
-                {milestones[0]?.content}
+                {milestones?.[0]?.content || "* List key milestones here"}
             </ReactMarkdown>
         </SidebarSection>
       </aside>
@@ -106,16 +109,14 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
         <header>
             <h1 className="text-[var(--fs-name)] font-bold" style={{color: accentColor}}>{fullName || 'Your Name'}</h1>
             <div className="flex items-center gap-4">
-                <h2 className="text-[var(--fs-h2)] text-gray-700 mt-1">{experience[0]?.role || 'Professional Title'}</h2>
+                <h2 className="text-[var(--fs-h2)] text-gray-700 mt-1">{experience?.[0]?.role || 'Professional Title'}</h2>
                 {PMP && <span className="text-[0.85rem] leading-tight font-semibold text-white px-3 py-1 rounded-full" style={{backgroundColor: accentColor}}>PMP</span>}
             </div>
         </header>
 
         <section>
             <h2 className="text-[var(--fs-h2)] font-bold mb-2">Summary</h2>
-            {summary ? (
-              <p className="leading-relaxed">{summary}</p>
-            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
+            <p className="leading-relaxed" style={{maxWidth: '45rem'}}>{summary || "Your professional summary will appear here. This section should provide a brief overview of your skills, experience, and career objectives."}</p>
         </section>
         
         <section>

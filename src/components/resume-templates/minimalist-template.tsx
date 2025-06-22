@@ -15,12 +15,15 @@ export interface TemplateProps {
 export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const projects = customSections.filter(s => s.title.toLowerCase().includes('project'));
+  const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
 
   const palette = { accent: '#666666', text: '#2A2A2A', muted: '#888888', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
   
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
 
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
@@ -39,26 +42,25 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor:
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[1.05rem] leading-tight font-bold uppercase tracking-[0.3em] mb-3" style={{ color: accentColor }}>{title}</h2>
+        <h2 className="font-bold uppercase tracking-[0.3em] mb-3" style={{ color: accentColor, fontSize: '1.05rem', lineHeight: '1.3' }}>{title}</h2>
         <div className="space-y-4">{children}</div>
       </section>
     );
   };
 
   return (
-    <div className={cn("bg-white text-[var(--fs-body)] p-10 w-full h-full font-body-helvetica", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
+    <div className={cn("bg-white text-[var(--fs-body)] p-10 w-full h-full font-body-helvetica", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}
+      style={{'--fs-name': '1.3rem / 1.2'} as React.CSSProperties}>
       <header className="mb-10 font-display-jetbrains-mono">
-        <h1 className="text-[1.3rem] leading-tight font-bold tracking-wider" style={{color: palette.text}}>{fullName || 'Your Name'}</h1>
+        <h1 className="font-bold tracking-wider" style={{color: palette.text, fontSize: 'var(--fs-name)'}}>{fullName || 'Your Name'}</h1>
         <p className="text-[var(--fs-small)] mt-2" style={{color: palette.muted}}>{personalInfo.email} / {personalInfo.phone}</p>
       </header>
 
       <main className="space-y-8">
         <section>
-          {summary ? (
-            <p className="leading-relaxed text-[var(--fs-body)]" style={{color: palette.text}}>
-              {summary}
-            </p>
-          ) : <p className="leading-relaxed text-[var(--fs-body)] text-gray-400 italic">Your professional summary will appear here.</p>}
+          <p className="leading-relaxed text-[var(--fs-body)]" style={{color: palette.text}}>
+              {summary || "Your professional summary will appear here. This section is your elevator pitch, make it count."}
+          </p>
         </section>
 
         <Section title="Experience" show={hasExperience}>
@@ -79,7 +81,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ data, accentColor:
             {projects.map(p => (
                 <div key={p.id}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none" style={{color: palette.text}}>
-                    {p.content}
+                    {p.content || '* Your project descriptions will appear here.'}
                   </ReactMarkdown>
                 </div>
             ))}

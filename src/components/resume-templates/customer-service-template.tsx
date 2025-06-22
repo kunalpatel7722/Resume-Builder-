@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -17,16 +16,19 @@ export interface TemplateProps {
 export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
   const { personalInfo, summary, experience, education, skills, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
-  const testimonials = customSections.filter(s => s.title.toLowerCase().includes('testimonial'));
+  const testimonials = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('testimonial')) : [];
 
   const palette = { accent: '#00838F', accentSoft: '#E0F7FA', text: '#1E1E1E', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[], ...fields: string[]) => Array.isArray(arr) && arr.some(item => item && fields.some(field => item[field]));
+  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.some(item => item && fields.some(field => item[field]));
+  };
   
   const hasExperience = hasContent(experience, 'role', 'company', 'description');
   const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.length > 0;
   const hasTestimonials = hasContent(testimonials, 'content');
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
@@ -52,7 +54,7 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
       <aside className="w-[33%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         <header>
           <h1 className="text-[var(--fs-name)] font-bold text-gray-900">{fullName || 'Your Name'}</h1>
-          <h2 className="text-[var(--fs-h3)] font-medium" style={{ color: accentColor }}>{experience[0]?.role || 'Customer Service Professional'}</h2>
+          <h2 className="text-[var(--fs-h3)] font-medium" style={{ color: accentColor }}>{experience?.[0]?.role || 'Customer Service Professional'}</h2>
         </header>
 
         <Section title="Contact">
@@ -63,17 +65,14 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
           </div>
         </Section>
         
-        <Section title="Skills">
-          {hasSkills ? (
+        <Section title="Skills" show={hasSkills}>
             <div className="flex flex-wrap gap-1.5">
               {skills.map((skill, i) => <span key={i} className="text-[var(--fs-small)] bg-white text-gray-800 px-2 py-0.5 rounded-full border">{skill}</span>)}
             </div>
-          ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your skills will appear here.</p>}
         </Section>
         
-        <Section title="Education">
-            {hasEducation ? (
-              education.map((edu) => {
+        <Section title="Education" show={hasEducation}>
+            {education.map((edu) => {
                 const gradDate = edu.isStillEnrolled ? 'Present' : [edu.graduationMonth, edu.graduationYear].filter(Boolean).join(' ');
                 return (
                   <div key={edu.id} className="mb-2">
@@ -82,22 +81,18 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
                     <p className="text-[var(--fs-small)] text-gray-500">{gradDate || 'Date'}</p>
                   </div>
                 );
-              })
-            ) : <p className="text-gray-400 italic text-[var(--fs-small)]">Your education details will appear here.</p>}
+              })}
         </Section>
       </aside>
 
       <main className="w-[67%] p-8 space-y-6">
         <Section title="Summary">
-            {summary ? (
-              <p className="leading-relaxed">{summary}</p>
-            ) : <p className="leading-relaxed text-gray-400 italic">Your professional summary will appear here.</p>}
+            <p className="leading-relaxed">{summary || "Your professional summary will appear here. Highlight your communication skills and dedication to customer satisfaction."}</p>
         </Section>
 
-        <Section title="Experience">
+        <Section title="Experience" show={hasExperience}>
           <div className="space-y-4">
-            {hasExperience ? (
-              experience.map(job => (
+            {experience.map(job => (
                 <div key={job.id}>
                   <div className="flex justify-between items-baseline">
                     <h3 className="text-[var(--fs-h3)] font-bold">{job.role || 'Job Title'}</h3>
@@ -108,22 +103,19 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
                       {job.description || '* Your job description will appear here.'}
                   </ReactMarkdown>
                 </div>
-              ))
-            ) : <p className="text-gray-400 italic">Your work experience will appear here.</p>}
+              ))}
           </div>
         </Section>
         
-        <Section title="Testimonials">
+        <Section title="Testimonials" show={hasTestimonials}>
           <div className="space-y-3">
-            {hasTestimonials ? (
-              testimonials.map(section => (
+            {testimonials.map(section => (
                   <div key={section.id} className="bg-gray-50 p-3 rounded-lg border-l-4" style={{borderColor: accentColor}}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none italic">
                           {section.content || '"Your testimonial content will appear here."'}
                       </ReactMarkdown>
                   </div>
-              ))
-            ) : <p className="text-gray-400 italic">Your testimonials will appear here.</p>}
+              ))}
           </div>
         </Section>
       </main>
