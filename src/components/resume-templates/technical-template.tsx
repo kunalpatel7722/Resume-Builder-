@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -20,16 +21,11 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   const palette = { accent: '#009688', accentSoft: '#E0F5F4', text: '#1D1D1D', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
   
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasCertifications = hasContent(certifications, 'name');
-  const hasProjects = hasContent(projects, 'content');
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';

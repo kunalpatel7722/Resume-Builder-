@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -13,29 +14,25 @@ export interface TemplateProps {
 }
 
 export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, awards, publications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, customSections } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
   
   const researchExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('research')) : [];
   const teachingExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('teaching')) : [];
+  const publications = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('publication')) : [];
 
 
   const palette = { accent: '#2C3E50', text: '#111111', muted: '#555555', line: '#CCCCCC', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
-
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
   
-  const hasResearch = hasContent(researchExperience, 'role', 'company', 'description');
-  const hasTeaching = hasContent(teachingExperience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree', 'fieldOfStudy');
+  const hasResearch = Array.isArray(researchExperience) && researchExperience.length > 0 && researchExperience.some(e => e.role || e.company || e.description);
+  const hasTeaching = Array.isArray(teachingExperience) && teachingExperience.length > 0 && teachingExperience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree || e.fieldOfStudy);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasCertifications = hasContent(certifications, 'name', 'issuer');
-  const hasPublications = hasContent(publications, 'content');
-  const hasAwards = hasContent(awards, 'name');
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name || c.issuer);
+  const hasPublications = Array.isArray(publications) && publications.length > 0 && publications.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
