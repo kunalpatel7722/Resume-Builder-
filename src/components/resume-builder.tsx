@@ -242,6 +242,9 @@ const languageLevels = ["Native", "Fluent", "Proficient", "Conversational", "Bas
 export default function ResumeBuilder() {
   const [isBuilding, setIsBuilding] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
+  const [debouncedResumeData, setDebouncedResumeData] = useState<ResumeData>(initialResumeData);
+  const debouncePreviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [currentStep, setCurrentStep] = useState('template');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -303,6 +306,21 @@ export default function ResumeBuilder() {
   };
   
   const TemplateComponent = selectedTemplate ? templateComponents[selectedTemplate as keyof typeof templateComponents] : ModernTemplate;
+  
+  useEffect(() => {
+    if (debouncePreviewTimeoutRef.current) {
+      clearTimeout(debouncePreviewTimeoutRef.current);
+    }
+    debouncePreviewTimeoutRef.current = setTimeout(() => {
+      setDebouncedResumeData(resumeData);
+    }, 300);
+
+    return () => {
+      if (debouncePreviewTimeoutRef.current) {
+        clearTimeout(debouncePreviewTimeoutRef.current);
+      }
+    };
+  }, [resumeData]);
 
   useEffect(() => {
     const container = previewContainerRef.current;
@@ -311,14 +329,12 @@ export default function ResumeBuilder() {
 
     const applyScale = () => {
         const containerWidth = container.offsetWidth;
-        // A4 aspect ratio on an 850px wide element
         const contentWidth = 850; 
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
             content.style.transform = `scale(${scale})`;
             content.style.transformOrigin = 'top left';
-            // Set the container height to match the scaled content height
             container.style.height = `${content.getBoundingClientRect().height}px`; 
         }
     };
@@ -326,14 +342,13 @@ export default function ResumeBuilder() {
     const resizeObserver = new ResizeObserver(applyScale);
     resizeObserver.observe(container);
     
-    // Initial scale
     const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
       clearTimeout(timeoutId);
       resizeObserver.unobserve(container);
     };
-}, [isFinalizing, selectedTemplate, isMobile, resumeData, accentColor, fontSize, currentStep]);
+}, [isFinalizing, selectedTemplate, isMobile, debouncedResumeData, accentColor, fontSize, currentStep]);
 
 
 
@@ -698,32 +713,33 @@ export default function ResumeBuilder() {
 
 
   const handleDownloadPdf = async () => {
+    // Force update the debounced data to ensure the latest version is downloaded
+    setDebouncedResumeData(resumeData);
+    
+    // Give react a tick to render the update
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     const element = previewContentRef.current;
     if (!element) return;
 
     setIsDownloading(true);
     try {
-      // Wait for fonts to be ready to avoid rendering with fallback fonts
       await document.fonts.ready;
       
-      // Temporarily remove the scaling transform to capture at full native resolution
       const originalTransform = element.style.transform;
       element.style.transform = 'scale(1)';
-      // Give the browser a moment to re-layout the element at its new scale
       await new Promise(resolve => setTimeout(resolve, 50));
 
       const canvas = await html2canvas(element, {
-        scale: 2, // Use a higher scale for better image quality in the PDF
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
       });
       
-      // Restore the original scaling transform after the capture is complete
       element.style.transform = originalTransform;
 
       const imgData = canvas.toDataURL('image/png');
       
-      // Initialize jsPDF with standard A4 settings in points
       const pdf = new jspdf({
         orientation: 'p',
         unit: 'pt',
@@ -733,8 +749,6 @@ export default function ResumeBuilder() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Add the captured image to the PDF, fitting it to the full A4 page.
-      // This works because the source element is styled with an A4 aspect ratio.
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
       pdf.save(`${resumeData.personalInfo.firstName}_${resumeData.personalInfo.lastName}_Resume.pdf`);
@@ -761,8 +775,8 @@ export default function ResumeBuilder() {
                   </div>
   
                   <div className="lg:grid lg:grid-cols-12 gap-8 items-start px-4 lg:px-8 pb-12">
-                    <div className="lg:col-span-8">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="lg:col-span-7 xl:col-span-8">
+                      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                         {templates.map((template) => (
                           <div 
                             key={template.id}
@@ -781,10 +795,10 @@ export default function ResumeBuilder() {
                       </div>
                     </div>
   
-                    <aside className="lg:col-span-4 lg:sticky top-24 self-start mt-8 lg:mt-0">
+                    <aside className="lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start mt-8 lg:mt-0">
                       {selectedTemplate ? (
                         <>
-                          <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
+                           <div ref={previewContainerRef} className="w-full max-w-full mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
                               <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
                                   <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
                               </div>
@@ -1198,8 +1212,8 @@ export default function ResumeBuilder() {
   const FinalizeScreen = () => (
      <div className="min-h-screen p-4 sm:p-6 md:p-8">
         <div className="grid lg:grid-cols-12 lg:gap-8">
-             <main className="lg:col-span-8 flex flex-col items-center">
-                 <div className="flex justify-between w-full max-w-lg mb-4">
+             <main className="lg:col-span-7 xl:col-span-8 flex flex-col items-center">
+                 <div className="flex justify-between w-full max-w-xl mb-4">
                      <Button variant="outline" onClick={() => setIsFinalizing(false)}>
                         <ArrowLeft className="mr-2" />
                         Back to Editor
@@ -1211,14 +1225,14 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-lg shadow-lg ring-1 ring-black/5 overflow-hidden"
+                    className="w-full max-w-xl shadow-lg ring-1 ring-black/5 overflow-hidden"
                   >
                     <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-                        <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+                        <TemplateComponent data={debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
             </main>
-            <aside className="lg:col-span-4 mt-8 lg:mt-0 space-y-6 lg:sticky top-8 self-start">
+            <aside className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0 space-y-6 lg:sticky top-8 self-start">
                 <Card>
                   <CardHeader>
                     <CardTitle>Final Touches</CardTitle>
@@ -1226,7 +1240,7 @@ export default function ResumeBuilder() {
                   <CardContent className="space-y-6">
                       <div>
                           <h3 className="font-semibold text-lg mb-4">Template</h3>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                {templates.map((template) => (
                                   <div 
                                       key={template.id}
@@ -1258,7 +1272,7 @@ export default function ResumeBuilder() {
 
   const BuilderLayout = () => {
     const Editor = () => (
-      <div className="lg:col-span-7 w-full">
+      <div className="lg:col-span-7 xl:col-span-8 w-full">
         {renderContent()}
         <div className="mt-8 pt-6 border-t flex justify-between">
           <Button variant="outline" onClick={prevStep} disabled={currentStep === 'template'}>
@@ -1274,10 +1288,10 @@ export default function ResumeBuilder() {
     );
   
     const Preview = () => (
-      <aside className="hidden lg:block lg:col-span-5 lg:sticky top-24 self-start">
+      <aside className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky top-24 self-start">
         <div ref={previewContainerRef} className="w-full max-w-full mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
-          <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
-            <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+           <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+            <TemplateComponent data={debouncedResumeData} accentColor={accentColor} fontSize={fontSize} />
           </div>
         </div>
       </aside>
@@ -1315,7 +1329,7 @@ export default function ResumeBuilder() {
           </div>
         </section>
 
-        <section className="bg-background py-20 px-4 sm:px-6 lg:px-8">
+        <section className="bg-secondary/50 py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground">Why Choose AI Resume Pro?</h2>
