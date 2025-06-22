@@ -14,9 +14,11 @@ export interface TemplateProps {
 }
 
 export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections, awards, websites, activities, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('project')) : [];
+
 
   const palette = { accent: '#009688', accentSoft: '#E0F5F4', text: '#1D1D1D', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -26,6 +28,10 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
   const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
   const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -73,6 +79,14 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
                 </div>
               )) : <p className="text-gray-400 italic font-body-inter">Your work experience will appear here.</p>}
             </div>
+            
+            {hasOtherCustomSections && otherCustomSections.map(section => (
+                <Section key={section.id} title={section.title}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none font-body-inter">
+                        {section.content || ''}
+                    </ReactMarkdown>
+                </Section>
+            ))}
         </div>
         
         <div className="col-span-2 space-y-6">
@@ -112,7 +126,31 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
                 {certifications.map((cert) => <li key={cert.id}>{cert.name}</li>)}
               </ul>
           </Section>
+
+          <Section title="Awards" show={hasAwards}>
+             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside font-body-inter">
+                {awards.map((award) => <li key={award.id}>{award.name}</li>)}
+              </ul>
+          </Section>
+
+          <Section title="Websites" show={hasWebsites}>
+             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside font-body-inter">
+                {websites.map((site) => <li key={site.id}><a href={site.url} className="underline">{site.label || site.url}</a></li>)}
+              </ul>
+          </Section>
+          
+          <Section title="Activities" show={hasActivities}>
+             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside font-body-inter">
+                {activities.map((item, i) => <li key={i}>{item}</li>)}
+              </ul>
+          </Section>
         </div>
+        
+        {showReferences && (
+            <div className="col-span-5 text-center italic text-sm text-gray-500 pt-4 font-body-inter">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

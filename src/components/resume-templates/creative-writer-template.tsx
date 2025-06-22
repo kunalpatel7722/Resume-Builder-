@@ -14,9 +14,11 @@ export interface TemplateProps {
 }
 
 export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, awards, websites, customSections } = data;
+  const { personalInfo, summary, experience, education, awards, websites, customSections, activities, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const publications = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('publication')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('publication')) : [];
+
 
   const palette = { accent: '#D84315', accentSoft: '#FFEDEA', text: '#1A1A1A', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -26,6 +28,8 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
   const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
   const hasPublications = Array.isArray(publications) && publications.length > 0 && publications.some(p => p.content);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -113,6 +117,24 @@ export const CreativeWriterTemplate: React.FC<TemplateProps> = ({ data, accentCo
             ))}
           </div>
         </Section>
+
+        <Section title="Activities" show={hasActivities}>
+          <p className="text-center">{activities.join(' / ')}</p>
+        </Section>
+        
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-center">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

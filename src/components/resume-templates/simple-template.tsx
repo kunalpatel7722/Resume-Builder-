@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -13,21 +14,20 @@ export interface TemplateProps {
 }
 
 export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
 
   const palette = { accent: '#333333', text: '#111111', muted: '#777777', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -90,6 +90,34 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
         <Section title="Skills" show={hasSkills}>
             <p>{skills.join(' | ')}</p>
         </Section>
+
+        <Section title="Awards" show={hasAwards}>
+            <p>{awards.map(a => a.name).join(' | ')}</p>
+        </Section>
+        
+        <Section title="Activities" show={hasActivities}>
+            <p>{activities.join(' | ')}</p>
+        </Section>
+        
+        <Section title="Websites" show={hasWebsites}>
+            <div className="flex flex-wrap gap-x-4">
+                {websites.map(site => <a key={site.id} href={site.url} className="underline">{site.label || site.url}</a>)}
+            </div>
+        </Section>
+        
+        {hasCustomSections && customSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

@@ -1,10 +1,11 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -14,22 +15,22 @@ export interface TemplateProps {
 }
 
 export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, customSections, awards, websites, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const testimonials = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('testimonial')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('testimonial')) : [];
+
 
   const palette = { accent: '#00838F', accentSoft: '#E0F7FA', text: '#1E1E1E', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-  
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
-  const hasTestimonials = hasContent(testimonials, 'content');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
+  const hasTestimonials = Array.isArray(testimonials) && testimonials.length > 0 && testimonials.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -83,6 +84,13 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
                 );
               })}
         </Section>
+
+        <Section title="Awards" show={hasAwards}>
+          <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+            {awards.map(award => <li key={award.id} className="flex items-start gap-2"><Award size={14} className="mt-0.5" style={{color: accentColor}}/>{award.name}</li>)}
+          </ul>
+        </Section>
+
       </aside>
 
       <main className="w-[67%] p-8 space-y-6">
@@ -118,6 +126,26 @@ export const CustomerServiceTemplate: React.FC<TemplateProps> = ({ data, accentC
               ))}
           </div>
         </Section>
+
+        <Section title="Websites" show={hasWebsites}>
+            <div className="flex flex-wrap gap-4">
+              {websites.map(site => <a key={site.id} href={site.url} className="text-[var(--fs-small)] hover:underline" style={{color: accentColor}}>{site.label || site.url}</a>)}
+            </div>
+        </Section>
+        
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

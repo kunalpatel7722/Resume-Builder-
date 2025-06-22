@@ -1,10 +1,11 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Star, Languages, Award, Trophy } from 'lucide-react';
+import { Star, Languages, Award, Trophy, Link as LinkIcon, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -14,23 +15,21 @@ export interface TemplateProps {
 }
 
 export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, awards } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#FFA000', accentSoft: '#FFF4E0', text: '#1B1B1B', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
-  const hasLanguages = hasContent(languages, 'name');
-  const hasCertifications = hasContent(certifications, 'name');
-  const hasAwards = hasContent(awards, 'name');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
+  const hasLanguages = Array.isArray(languages) && languages.length > 0 && languages.some(l => l.name);
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -103,6 +102,16 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
               ))}
             </div>
         </SidebarSection>
+
+        <SidebarSection title="Activities" show={hasActivities}>
+            <ul className="text-[var(--fs-body)] space-y-1">
+                {activities.map((activity, i) => (
+                    <li key={i} className="flex items-center">
+                        <Activity size={12} className="mr-2" style={{color: accentColor}}/> {activity}
+                    </li>
+                ))}
+            </ul>
+        </SidebarSection>
       </aside>
 
       <main className="w-[70%] p-8 overflow-y-auto">
@@ -140,6 +149,26 @@ export const HospitalityTemplate: React.FC<TemplateProps> = ({ data, accentColor
               <p key={award.id} className="flex items-center"><Trophy size={14} className="mr-2" style={{color: accentColor}}/> <span className="font-bold">{award.name}</span>, {award.date}</p>
             ))}
         </MainSection>
+
+        <MainSection title="Websites" show={hasWebsites}>
+          {websites.map(site => (
+              <a key={site.id} href={site.url} className="flex items-center hover:underline"><LinkIcon size={14} className="mr-2" style={{color: accentColor}}/>{site.label || site.url}</a>
+            ))}
+        </MainSection>
+
+        {hasCustomSections && customSections.map(section => (
+            <MainSection key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </MainSection>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

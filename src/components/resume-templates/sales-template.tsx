@@ -1,10 +1,11 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin, Target, Briefcase, Award, GraduationCap, Trophy } from 'lucide-react';
+import { Mail, Phone, MapPin, Target, Briefcase, Award, GraduationCap, Trophy, Link as LinkIcon, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -14,23 +15,24 @@ export interface TemplateProps {
 }
 
 export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, awards } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const KPIs = Array.isArray(awards) ? awards.filter(a => a.name.toLowerCase().includes('kpi') || a.description.match(/(\d+%?)/)) : [];
+  const otherAwards = Array.isArray(awards) ? awards.filter(a => !KPIs.includes(a)) : [];
+
 
   const palette = { accent: '#C62828', accentSoft: '#FFE9E9', text: '#222222', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
-  const hasCertifications = hasContent(certifications, 'name');
-  const hasKPIs = hasContent(KPIs, 'name');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasKPIs = Array.isArray(KPIs) && KPIs.length > 0;
+  const hasOtherAwards = Array.isArray(otherAwards) && otherAwards.length > 0;
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -76,6 +78,20 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
                 </div>
               ))}
         </Section>
+
+        {hasCustomSections && customSections.map(section => (
+            <Section key={section.id} title={section.title} icon={Briefcase}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+        
+        {showReferences && (
+            <Section title="References" icon={Briefcase}>
+                <p className="italic text-sm">References available upon request.</p>
+            </Section>
+        )}
       </main>
 
       <aside className="w-[27%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
@@ -117,6 +133,30 @@ export const SalesTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
            <div className="space-y-2 text-[var(--fs-small)]">
                 {certifications.map(cert => (
                   <p key={cert.id} className="font-bold">{cert.name}</p>
+                ))}
+              </div>
+        </Section>
+
+        <Section title="Awards" icon={Trophy} show={hasOtherAwards}>
+           <div className="space-y-2 text-[var(--fs-small)]">
+                {otherAwards.map(award => (
+                  <p key={award.id} className="font-bold">{award.name}</p>
+                ))}
+              </div>
+        </Section>
+
+         <Section title="Activities" icon={Activity} show={hasActivities}>
+           <div className="space-y-2 text-[var(--fs-small)]">
+                {activities.map((activity, i) => (
+                  <p key={i}>{activity}</p>
+                ))}
+              </div>
+        </Section>
+
+         <Section title="Websites" icon={LinkIcon} show={hasWebsites}>
+           <div className="space-y-2 text-[var(--fs-small)]">
+                {websites.map(site => (
+                  <a key={site.id} href={site.url} className="block hover:underline">{site.label || site.url}</a>
                 ))}
               </div>
         </Section>

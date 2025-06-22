@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { CheckCircle, Terminal } from 'lucide-react';
+import { CheckCircle, Terminal, Award, Trophy, Activity, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -15,9 +15,10 @@ export interface TemplateProps {
 }
 
 export const ItProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections, awards, websites, activities, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('project')) : [];
   
   const palette = { accent: '#512DA8', accentSoft: '#EFE7FF', text: '#141414', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -27,6 +28,10 @@ export const ItProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentCo
   const hasSkills = Array.isArray(skills) && skills.length > 0;
   const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
   const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -87,6 +92,13 @@ export const ItProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentCo
                       ))}
                   </div>
                 </Section>
+                {hasOtherCustomSections && otherCustomSections.map(section => (
+                    <Section key={section.id} title={section.title}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                            {section.content || ''}
+                        </ReactMarkdown>
+                    </Section>
+                ))}
             </div>
             <div className="col-span-2 space-y-4">
                 <Section title="certifications/" show={hasCertifications}>
@@ -110,8 +122,28 @@ export const ItProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentCo
                         </div>
                     ))}
                 </Section>
+                <Section title="awards/" show={hasAwards}>
+                    <ul className="text-[var(--fs-small)] space-y-1">
+                        {awards.map(award => <li key={award.id} className="flex items-center gap-2"><Trophy size={14} style={{color: accentColor}} />{award.name}</li>)}
+                    </ul>
+                </Section>
+                <Section title="activities/" show={hasActivities}>
+                    <ul className="text-[var(--fs-small)] space-y-1">
+                        {activities.map((activity, i) => <li key={i} className="flex items-center gap-2"><Activity size={14} style={{color: accentColor}} />{activity}</li>)}
+                    </ul>
+                </Section>
+                <Section title="links/" show={hasWebsites}>
+                    <ul className="text-[var(--fs-small)] space-y-1">
+                        {websites.map(site => <li key={site.id}><a href={site.url} className="flex items-center gap-2 hover:underline"><LinkIcon size={14} style={{color: accentColor}}/>{site.label || site.url}</a></li>)}
+                    </ul>
+                </Section>
             </div>
         </main>
+        {showReferences && (
+            <div className="col-span-5 text-center italic text-sm text-gray-500 pt-4">
+                <p># References available upon request</p>
+            </div>
+        )}
     </div>
   );
 };

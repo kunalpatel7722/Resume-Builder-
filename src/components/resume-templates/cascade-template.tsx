@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Award, Activity, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -15,21 +15,22 @@ export interface TemplateProps {
 }
 
 export const CascadeTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, websites } = data;
+  const { personalInfo, summary, experience, education, skills, websites, awards, certifications, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#6A1B9A', accentSoft: '#F3E5F5', text: '#212121', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr) || arr.length === 0) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
-  const hasWebsites = hasContent(websites, 'url');
+  const hasContent = (arr: any[] | undefined) => Array.isArray(arr) && arr.length > 0;
+  
+  const hasExperience = hasContent(experience) && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = hasContent(education) && education.some(e => e.school || e.degree);
+  const hasSkills = hasContent(skills) && skills.some(s => s);
+  const hasWebsites = hasContent(websites) && websites.some(w => w.url);
+  const hasAwards = hasContent(awards) && awards.some(a => a.name);
+  const hasCerts = hasContent(certifications) && certifications.some(c => c.name);
+  const hasActivities = hasContent(activities) && activities.some(a => a);
+  const hasCustomSections = hasContent(customSections) && customSections.some(s => s.title && s.content);
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -39,18 +40,21 @@ export const CascadeTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
     return start;
   };
 
-  const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean }> = ({ title, children, show = true }) => {
+  const Section: React.FC<{ title: string; children: React.ReactNode; show?: boolean, icon?: React.ElementType }> = ({ title, children, show = true, icon: Icon }) => {
     if (!show) return null;
     return (
       <section>
-        <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2" style={{ color: accentColor }}>{title}</h2>
+        <h2 className="text-[var(--fs-h2)] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: accentColor }}>
+          {Icon && <Icon size={18}/>}
+          {title}
+        </h2>
         <div className="space-y-4">{children}</div>
       </section>
     );
   };
 
   return (
-    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full font-body-lato flex", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
+    <div className={cn("bg-white text-[var(--fs-body)] w-full h-full flex font-body-lato", fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-base' : '')}>
       <aside className="w-[35%] p-6 flex flex-col gap-6" style={{ backgroundColor: palette.accentSoft }}>
         {personalInfo.photoUrl && (
           <img src={personalInfo.photoUrl} alt={fullName} className="w-32 h-32 rounded-full object-cover mx-auto -mt-2 border-4 border-white shadow-lg" data-ai-hint="person face" />
@@ -72,6 +76,25 @@ export const CascadeTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
               {websites.map(site => <a key={site.id} href={site.url} className="text-[var(--fs-small)] block hover:underline truncate" style={{color: accentColor}}>{site.label || site.url}</a>)}
             </div>
         </Section>
+
+        <Section title="Awards" show={hasAwards}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+                {awards.map(award => <li key={award.id} className="flex items-start gap-2"><Trophy size={14} className="mt-0.5" style={{color: accentColor}}/>{award.name}</li>)}
+            </ul>
+        </Section>
+        
+        <Section title="Certifications" show={hasCerts}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+                {certifications.map(cert => <li key={cert.id} className="flex items-start gap-2"><Award size={14} className="mt-0.5" style={{color: accentColor}}/>{cert.name}</li>)}
+            </ul>
+        </Section>
+
+        <Section title="Activities" show={hasActivities}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+                {activities.map((activity, i) => <li key={i} className="flex items-start gap-2"><Activity size={14} className="mt-0.5" style={{color: accentColor}}/>{activity}</li>)}
+            </ul>
+        </Section>
+
       </aside>
       <main className="w-[65%] p-8 overflow-y-auto">
         <header className="mb-6">
@@ -107,6 +130,20 @@ export const CascadeTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
                 </div>
             ))}
         </Section>
+
+        {hasCustomSections && customSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

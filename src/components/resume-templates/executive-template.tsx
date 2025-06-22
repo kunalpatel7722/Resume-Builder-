@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -13,23 +14,21 @@ export interface TemplateProps {
 }
 
 export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, languages, certifications, awards } = data;
+  const { personalInfo, summary, experience, education, skills, languages, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#8B4513', accentSoft: '#F2EAE3', text: '#1B1B1B', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasLanguages = hasContent(languages, 'name');
-  const hasCertifications = hasContent(certifications, 'name');
-  const hasAwards = hasContent(awards, 'name');
+  const hasLanguages = Array.isArray(languages) && languages.length > 0 && languages.some(l => l.name);
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -110,6 +109,20 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
                     ))}
                 </ul>
              </MainSection>
+             
+            {hasCustomSections && customSections.map(section => (
+                <MainSection key={section.id} title={section.title}>
+                     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                        {section.content || ''}
+                    </ReactMarkdown>
+                </MainSection>
+            ))}
+
+            {showReferences && (
+                <MainSection title="References">
+                    <p className="italic text-sm">References available upon request.</p>
+                </MainSection>
+            )}
         </div>
       </main>
 
@@ -136,6 +149,18 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data, accentColor: 
               {languages.map(lang => (
                 <li key={lang.id}>{lang.name} ({lang.level})</li>
               ))}
+            </ul>
+        </SidebarSection>
+
+        <SidebarSection title="Activities" show={hasActivities}>
+            <ul className="text-[var(--fs-small)] space-y-1">
+                {activities.map((activity, i) => <li key={i}>{activity}</li>)}
+            </ul>
+        </SidebarSection>
+
+        <SidebarSection title="Websites" show={hasWebsites}>
+            <ul className="text-[var(--fs-small)] space-y-1">
+                {websites.map(site => <li key={site.id}><a href={site.url} className="underline break-all">{site.label || site.url}</a></li>)}
             </ul>
         </SidebarSection>
       </aside>

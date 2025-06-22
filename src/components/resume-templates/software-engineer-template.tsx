@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin, Github } from 'lucide-react';
+import { Mail, Phone, MapPin, Github, Award, Trophy, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -15,9 +15,10 @@ export interface TemplateProps {
 }
 
 export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, websites, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, websites, customSections, awards, activities, certifications, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('project')) : [];
   
   const palette = { accent: '#4E44CE', accentSoft: '#ECECFF', text: '#1A1A1A', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
@@ -27,6 +28,12 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
   const hasSkills = Array.isArray(skills) && skills.length > 0;
   const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
   const githubLink = Array.isArray(websites) ? websites.find(w => w.label.toLowerCase().includes('github')) : null;
+  const otherWebsites = Array.isArray(websites) ? websites.filter(w => !w.label.toLowerCase().includes('github')) : [];
+  const hasOtherWebsites = otherWebsites.length > 0;
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCerts = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -60,6 +67,7 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
             {personalInfo.phone && <p className="flex items-center gap-2"><Phone size={14}/> {personalInfo.phone}</p>}
             {personalInfo.city && <p className="flex items-center gap-2"><MapPin size={14}/> {personalInfo.city}{personalInfo.state && `, ${personalInfo.state}`}</p>}
             {githubLink && <a href={githubLink.url} className="flex items-center gap-2 hover:underline"><Github size={14}/> {githubLink.url.replace('https://', '')}</a>}
+            {hasOtherWebsites && otherWebsites.map(site => <a key={site.id} href={site.url} className="flex items-center gap-2 hover:underline">{site.label || site.url}</a>)}
           </div>
         </section>
 
@@ -73,6 +81,19 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
             <p className="text-gray-400 italic text-[var(--fs-small)]">Your tech stack will appear here.</p>
           )}
         </section>
+
+        <Section title="Awards" show={hasAwards}>
+          <ul className="list-disc list-inside text-sm">
+            {awards.map(award => <li key={award.id}>{award.name}</li>)}
+          </ul>
+        </Section>
+        
+        <Section title="Certifications" show={hasCerts}>
+           <ul className="list-disc list-inside text-sm">
+            {certifications.map(cert => <li key={cert.id}>{cert.name}</li>)}
+          </ul>
+        </Section>
+
       </aside>
 
       <main className="w-[65%] p-8 overflow-y-auto">
@@ -114,6 +135,26 @@ export const SoftwareEngineerTemplate: React.FC<TemplateProps> = ({ data, accent
                   </div>
               ))}
         </Section>
+
+        <Section title="Activities" show={hasActivities}>
+          <ul className="list-disc list-inside text-sm">
+            {activities.map((activity, i) => <li key={i}>{activity}</li>)}
+          </ul>
+        </Section>
+
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

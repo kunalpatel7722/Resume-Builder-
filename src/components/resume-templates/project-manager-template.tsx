@@ -1,10 +1,11 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Trophy, Activity, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -14,27 +15,27 @@ export interface TemplateProps {
 }
 
 export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections, awards, activities, websites, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const PMP = Array.isArray(certifications) ? certifications.find(c => c.name.toLowerCase().includes('pmp')) : undefined;
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
   const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
   const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !/project|tool|milestone/i.test(s.title)) : [];
 
   const palette = { accent: '#C2185B', accentSoft: '#FFE7F0', text: '#202020', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasTools = hasContent(tools, 'content');
-  const hasMilestones = hasContent(milestones, 'content');
-  const hasProjects = hasContent(projects, 'content');
+  const hasTools = Array.isArray(tools) && tools.length > 0 && tools.some(p => p.content);
+  const hasMilestones = Array.isArray(milestones) && milestones.length > 0 && milestones.some(p => p.content);
+  const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
   
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -113,6 +114,14 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
                       </div>
                   ))}
             </MainSection>
+
+            {hasOtherCustomSections && otherCustomSections.map(section => (
+                <MainSection key={section.id} title={section.title}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                        {section.content || ''}
+                    </ReactMarkdown>
+                </MainSection>
+            ))}
         </div>
       </main>
 
@@ -142,6 +151,30 @@ export const ProjectManagerTemplate: React.FC<TemplateProps> = ({ data, accentCo
               {milestones?.[0]?.content || "* Delivered project 20% under budget.\n* Increased team productivity by 15%."}
             </ReactMarkdown>
         </SidebarSection>
+
+        <SidebarSection title="Awards" show={hasAwards}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+              {awards.map(award => <li key={award.id} className="flex items-start gap-2"><Trophy size={14} className="mt-0.5" style={{color: accentColor}}/>{award.name}</li>)}
+            </ul>
+        </SidebarSection>
+
+        <SidebarSection title="Activities" show={hasActivities}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+              {activities.map((activity, i) => <li key={i} className="flex items-start gap-2"><Activity size={14} className="mt-0.5" style={{color: accentColor}}/>{activity}</li>)}
+            </ul>
+        </SidebarSection>
+
+        <SidebarSection title="Websites" show={hasWebsites}>
+            <ul className="text-[var(--fs-small)] list-none p-0 space-y-1">
+              {websites.map(site => <li key={site.id} className="flex items-start gap-2"><LinkIcon size={14} className="mt-0.5" style={{color: accentColor}}/><a href={site.url} className="hover:underline">{site.label || site.url}</a></li>)}
+            </ul>
+        </SidebarSection>
+        
+        {showReferences && (
+            <SidebarSection title="References">
+                <p className="italic text-sm">Available upon request.</p>
+            </SidebarSection>
+        )}
       </aside>
     </div>
   );

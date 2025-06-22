@@ -14,19 +14,23 @@ export interface TemplateProps {
 }
 
 export const LegalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections, awards, websites, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
   const publications = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('publication')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('publication')) : [];
 
   const palette = { accent: '#00264D', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
   const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
   const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
   const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
   const hasPublications = Array.isArray(publications) && publications.length > 0 && publications.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -116,6 +120,36 @@ export const LegalTemplate: React.FC<TemplateProps> = ({ data, accentColor: acce
                   </div>
                 ))}
           </Section>
+
+          <Section title="Awards" show={hasAwards}>
+             {awards.map((award) => (
+                <div key={award.id} className="text-[var(--fs-body)]">
+                    <span className="font-bold">{award.name || 'Award Name'}</span>, {award.date}
+                </div>
+              ))}
+          </Section>
+          
+          <Section title="Websites & Links" show={hasWebsites}>
+             <ul className="list-disc list-inside">
+                {websites.map(site => (
+                    <li key={site.id}><a href={site.url} className="underline">{site.label || site.url}</a></li>
+                ))}
+            </ul>
+          </Section>
+
+          {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+          ))}
+          
+          {showReferences && (
+            <Section title="References">
+              <p className="italic text-sm">References available upon request.</p>
+            </Section>
+          )}
         </main>
       </div>
     </div>

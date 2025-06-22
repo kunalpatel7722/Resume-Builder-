@@ -14,13 +14,14 @@ export interface TemplateProps {
 }
 
 export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, awards, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
   
   const researchExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('research')) : [];
   const teachingExperience = Array.isArray(experience) ? experience.filter(e => e.role.toLowerCase().includes('teaching')) : [];
   const publications = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('publication')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('publication')) : [];
 
 
   const palette = { accent: '#2C3E50', text: '#111111', muted: '#555555', line: '#CCCCCC', bg: '#FFFFFF' };
@@ -33,6 +34,9 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
   const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name || c.issuer);
   const hasPublications = Array.isArray(publications) && publications.length > 0 && publications.some(p => p.content);
   const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -144,6 +148,36 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ data, accentColor: a
               ))}
             </ul>
         </Section>
+
+        <Section title="Activities" show={hasActivities}>
+          <ul className="list-disc list-inside">
+            {activities.map((activity, i) => (
+              <li key={i}>{activity}</li>
+            ))}
+          </ul>
+        </Section>
+
+        <Section title="Websites" show={hasWebsites}>
+          <ul className="list-disc list-inside">
+            {websites.map(site => (
+              <li key={site.id}><a href={site.url} className="underline" style={{color: accentColor}}>{site.label || site.url}</a></li>
+            ))}
+          </ul>
+        </Section>
+        
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-gray-700">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

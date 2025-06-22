@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -13,24 +14,25 @@ export interface TemplateProps {
 }
 
 export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, awards } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
   const KPIs = Array.isArray(awards) ? awards.filter(a => a.name.toLowerCase().includes('kpi') || a.description.match(/(\d+%?)/)) : [];
+  const otherAwards = Array.isArray(awards) ? awards.filter(a => !KPIs.includes(a)) : [];
+
 
   const palette = { accent: '#0D47A1', accentSoft: '#E3ECF9', text: '#121212', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
-  const hasCertifications = hasContent(certifications, 'name');
-  const hasKPIs = hasContent(KPIs, 'name');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
+  const hasCertifications = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasKPIs = Array.isArray(KPIs) && KPIs.length > 0;
+  const hasOtherAwards = Array.isArray(otherAwards) && otherAwards.length > 0;
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -79,6 +81,24 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
               ))}
             </div>
           </Section>
+
+          {hasOtherAwards && (
+             <Section title="Awards" show={hasOtherAwards}>
+                <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
+                    {otherAwards.map(award => (
+                        <li key={award.id}>{award.name}, {award.date}</li>
+                    ))}
+                </ul>
+            </Section>
+          )}
+
+          {hasCustomSections && customSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+          ))}
         </div>
 
         <div className="col-span-1 space-y-4">
@@ -114,7 +134,25 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ data, accentColor: ac
                   {certifications.map((cert, i) => <li key={i}>{cert.name}</li>)}
                 </ul>
           </Section>
+
+          <Section title="Activities" show={hasActivities}>
+             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
+                  {activities.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+          </Section>
+
+          <Section title="Websites" show={hasWebsites}>
+             <ul className="text-[var(--fs-body)] space-y-1 list-disc list-inside">
+                  {websites.map(site => <li key={site.id}><a href={site.url} className="underline">{site.label || site.url}</a></li>)}
+                </ul>
+          </Section>
         </div>
+        
+        {showReferences && (
+            <div className="col-span-3 text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

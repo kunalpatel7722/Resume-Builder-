@@ -1,10 +1,11 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin, Star, Code, Award, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Star, Code, Award, CheckCircle, Trophy, Activity, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -14,28 +15,29 @@ export interface TemplateProps {
 }
 
 export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, certifications, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, customSections, awards, activities, websites, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const PMP = Array.isArray(certifications) ? certifications.find(c => c.name.toLowerCase().includes('pmp')) : undefined;
   const projects = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('project')) : [];
   const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
   const milestones = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('milestone')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !/project|tool|milestone/i.test(s.title)) : [];
+
   
   const palette = { accent: '#3358FF', accentSoft: '#ECF1FF', text: '#121212', muted: '#666666', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
-
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
   
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasCerts = hasContent(certifications, 'name');
-  const hasProjects = hasContent(projects, 'content');
-  const hasTools = hasContent(tools, 'content');
-  const hasMilestones = hasContent(milestones, 'content');
+  const hasCerts = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasProjects = Array.isArray(projects) && projects.length > 0 && projects.some(p => p.content);
+  const hasTools = Array.isArray(tools) && tools.length > 0 && tools.some(p => p.content);
+  const hasMilestones = Array.isArray(milestones) && milestones.length > 0 && milestones.some(p => p.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -162,6 +164,48 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data, accentColor: acc
             )) : <p className="text-gray-400 italic">Your education details will appear here.</p>}
           </div>
         </section>
+
+        {hasAwards && (
+          <section>
+            <h2 className="text-[var(--fs-h2)] font-bold mb-2">Awards</h2>
+            <ul className="list-disc list-inside">
+              {awards.map(award => <li key={award.id}>{award.name} ({award.date})</li>)}
+            </ul>
+          </section>
+        )}
+
+        {hasActivities && (
+          <section>
+            <h2 className="text-[var(--fs-h2)] font-bold mb-2">Activities</h2>
+            <ul className="list-disc list-inside">
+              {activities.map((activity, i) => <li key={i}>{activity}</li>)}
+            </ul>
+          </section>
+        )}
+
+        {hasWebsites && (
+          <section>
+            <h2 className="text-[var(--fs-h2)] font-bold mb-2">Websites & Links</h2>
+            <ul className="list-disc list-inside">
+              {websites.map(site => <li key={site.id}><a href={site.url} className="underline" style={{color: accentColor}}>{site.label || site.url}</a></li>)}
+            </ul>
+          </section>
+        )}
+        
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <section key={section.id}>
+                 <h2 className="text-[var(--fs-h2)] font-bold mb-2">{section.title}</h2>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

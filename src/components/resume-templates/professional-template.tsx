@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { ResumeData } from '@/components/resume-builder';
 import ReactMarkdown from 'react-markdown';
@@ -13,23 +14,24 @@ export interface TemplateProps {
 }
 
 export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills, customSections } = data;
+  const { personalInfo, summary, experience, education, skills, customSections, awards, websites, activities, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
   const fullAddress = [personalInfo.streetAddress, personalInfo.city, personalInfo.state, personalInfo.zipCode].filter(Boolean).join(', ');
   const tools = Array.isArray(customSections) ? customSections.filter(s => s.title.toLowerCase().includes('tool')) : [];
+  const otherCustomSections = Array.isArray(customSections) ? customSections.filter(s => !s.title.toLowerCase().includes('tool')) : [];
+
 
   const palette = { accent: '#17494D', accentSoft: '#E6F3F4', text: '#222222', muted: '#666666', line: '#D0D0D0', bg: '#FFFFFF' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr)) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
   const hasSkills = Array.isArray(skills) && skills.some(s => s);
-  const hasTools = hasContent(tools, 'content');
+  const hasTools = Array.isArray(tools) && tools.length > 0 && tools.some(t => t.content);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasOtherCustomSections = Array.isArray(otherCustomSections) && otherCustomSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -111,6 +113,39 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, accentColo
                 )}
             </Section>
         </div>
+        
+        <div className="grid grid-cols-2 gap-8">
+            <Section title="Awards" show={hasAwards}>
+                <ul className="list-disc list-inside">
+                    {awards.map(award => <li key={award.id}>{award.name}</li>)}
+                </ul>
+            </Section>
+            <Section title="Activities" show={hasActivities}>
+                <ul className="list-disc list-inside">
+                    {activities.map((activity, i) => <li key={i}>{activity}</li>)}
+                </ul>
+            </Section>
+        </div>
+
+        <Section title="Websites" show={hasWebsites}>
+            <div className="flex justify-center gap-4">
+                {websites.map(site => <a key={site.id} href={site.url} className="underline">{site.label || site.url}</a>)}
+            </div>
+        </Section>
+
+        {hasOtherCustomSections && otherCustomSections.map(section => (
+            <Section key={section.id} title={section.title}>
+                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none text-center">
+                    {section.content || ''}
+                </ReactMarkdown>
+            </Section>
+        ))}
+
+        {showReferences && (
+            <div className="text-center italic text-sm text-gray-500 pt-4">
+                <p>References available upon request.</p>
+            </div>
+        )}
       </main>
     </div>
   );

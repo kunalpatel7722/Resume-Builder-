@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
 import rehypeRaw from 'rehype-raw';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Award, Trophy, Activity, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface TemplateProps {
@@ -15,20 +15,20 @@ export interface TemplateProps {
 }
 
 export const OnyxTemplate: React.FC<TemplateProps> = ({ data, accentColor: accentColorProp, fontSize }) => {
-  const { personalInfo, summary, experience, education, skills } = data;
+  const { personalInfo, summary, experience, education, skills, certifications, awards, websites, activities, customSections, showReferences } = data;
   const fullName = [personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(' ');
 
   const palette = { accent: '#FBC02D', text: '#333333', bg: '#FFFFFF', sidebarBg: '#212121', sidebarText: '#FAFAFA' };
   const accentColor = accentColorProp || palette.accent;
 
-  const hasContent = (arr: any[] | undefined, ...fields: string[]) => {
-    if (!Array.isArray(arr) || arr.length === 0) return false;
-    return arr.some(item => item && fields.some(field => item[field]));
-  };
-
-  const hasExperience = hasContent(experience, 'role', 'company', 'description');
-  const hasEducation = hasContent(education, 'school', 'degree');
-  const hasSkills = Array.isArray(skills) && skills.length > 0;
+  const hasExperience = Array.isArray(experience) && experience.length > 0 && experience.some(e => e.role || e.company || e.description);
+  const hasEducation = Array.isArray(education) && education.length > 0 && education.some(e => e.school || e.degree);
+  const hasSkills = Array.isArray(skills) && skills.length > 0 && skills.some(s => s);
+  const hasCerts = Array.isArray(certifications) && certifications.length > 0 && certifications.some(c => c.name);
+  const hasAwards = Array.isArray(awards) && awards.length > 0 && awards.some(a => a.name);
+  const hasWebsites = Array.isArray(websites) && websites.length > 0 && websites.some(w => w.url);
+  const hasActivities = Array.isArray(activities) && activities.length > 0 && activities.some(a => a);
+  const hasCustomSections = Array.isArray(customSections) && customSections.length > 0;
 
   const formatDateRange = (startDate: Date | null, endDate: Date | null, isCurrent: boolean) => {
     if (!startDate) return '';
@@ -70,6 +70,21 @@ export const OnyxTemplate: React.FC<TemplateProps> = ({ data, accentColor: accen
               {skills.map((skill, i) => <li key={i}>{skill}</li>)}
             </ul>
         </Section>
+        <Section title="Awards" show={hasAwards} color={palette.sidebarText}>
+             <ul className="text-sm space-y-1">
+              {awards.map(award => <li key={award.id}>{award.name}</li>)}
+            </ul>
+        </Section>
+        <Section title="Activities" show={hasActivities} color={palette.sidebarText}>
+             <ul className="text-sm space-y-1">
+              {activities.map((activity, i) => <li key={i}>{activity}</li>)}
+            </ul>
+        </Section>
+        <Section title="Links" show={hasWebsites} color={palette.sidebarText}>
+             <ul className="text-sm space-y-1">
+              {websites.map(site => <li key={site.id}><a href={site.url} className="hover:underline">{site.label || site.url}</a></li>)}
+            </ul>
+        </Section>
       </aside>
 
       <main className="w-[65%] p-8 overflow-y-auto" style={{color: palette.text}}>
@@ -102,6 +117,29 @@ export const OnyxTemplate: React.FC<TemplateProps> = ({ data, accentColor: accen
                     </div>
                 ))}
             </Section>
+
+            <Section title="Certifications" show={hasCerts}>
+                {certifications.map(cert => (
+                    <div key={cert.id}>
+                        <h3 className="text-[var(--fs-h3)] font-bold">{cert.name}</h3>
+                        <p className="text-sm text-gray-500">{cert.issuer}, {cert.date}</p>
+                    </div>
+                ))}
+            </Section>
+            
+            {hasCustomSections && customSections.map(section => (
+                <Section key={section.id} title={section.title}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose prose-sm max-w-none">
+                        {section.content || ''}
+                    </ReactMarkdown>
+                </Section>
+            ))}
+
+            {showReferences && (
+                <Section title="References">
+                    <p className="italic text-sm">References available upon request.</p>
+                </Section>
+            )}
         </div>
       </main>
     </div>

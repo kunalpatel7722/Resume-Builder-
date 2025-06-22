@@ -307,35 +307,33 @@ export default function ResumeBuilder() {
   useEffect(() => {
     const container = previewContainerRef.current;
     const content = previewContentRef.current;
-
     if (!container || !content) return;
 
     const applyScale = () => {
-        container.style.height = `${content.getBoundingClientRect().height}px`;
         const containerWidth = container.offsetWidth;
-        const contentWidth = content.offsetWidth;
+        const contentWidth = content.offsetWidth; // This is always 850px
         
         if (containerWidth > 0 && contentWidth > 0) {
             const scale = containerWidth / contentWidth;
             content.style.transform = `scale(${scale})`;
             content.style.transformOrigin = 'top left';
+            // Set the container height to match the scaled content height
+            container.style.height = `${content.getBoundingClientRect().height}px`; 
         }
     };
 
     const resizeObserver = new ResizeObserver(applyScale);
-    if(container) {
-      resizeObserver.observe(container);
-    }
+    resizeObserver.observe(container);
     
+    // Initial scale
     const timeoutId = setTimeout(applyScale, 100);
 
     return () => {
       clearTimeout(timeoutId);
-      if (container) {
-        resizeObserver.unobserve(container);
-      }
+      resizeObserver.unobserve(container);
     };
-  }, [isFinalizing, selectedTemplate, isMobile, resumeData, accentColor, fontSize]);
+}, [isFinalizing, selectedTemplate, isMobile, resumeData, accentColor, fontSize, currentStep]);
+
 
 
   const steps = [
@@ -786,13 +784,13 @@ export default function ResumeBuilder() {
                       </div>
                     </div>
   
-                    <aside className="lg:col-span-4 lg:sticky top-24 self-start">
+                    <aside className="lg:col-span-4 lg:sticky top-8 self-start mt-8 lg:mt-0">
                       {selectedTemplate ? (
                         <>
-                          <div ref={previewContainerRef} className="w-full max-w-md mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden">
-                            <div ref={previewContentRef} className="w-[850px] bg-white">
-                                <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
-                            </div>
+                          <div ref={previewContainerRef} className="w-full max-w-lg mx-auto shadow-lg ring-1 ring-black/5 overflow-hidden">
+                              <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
+                                  <TemplateComponent data={sampleResumeData} accentColor={accentColor} fontSize={fontSize} />
+                              </div>
                           </div>
                           <Button onClick={nextStep} size="lg" className="w-full mt-6 h-12 text-lg">
                             Continue with this template <ArrowRight className="ml-2" />
@@ -1093,7 +1091,7 @@ export default function ResumeBuilder() {
                           <CardContent className="space-y-4">
                               {resumeData.activities.map((activity, index) => (
                                   <div key={index} className="flex gap-2">
-                                      <Input value={activity} onChange={e => handleActivityChange(index, e.target.value)} />
+                                      <Input value={activity} onChange={e => handleActivityChange(index, e.target.value)} placeholder="e.g., Volunteer at animal shelter" />
                                       <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}><Trash2 className="text-destructive h-4 w-4"/></Button>
                                   </div>
                               ))}
@@ -1204,7 +1202,7 @@ export default function ResumeBuilder() {
      <div className="min-h-screen p-4 sm:p-6 md:p-8">
         <div className="grid lg:grid-cols-12 lg:gap-8">
              <main className="lg:col-span-8 flex flex-col items-center">
-                 <div className="flex justify-between w-full max-w-xl mb-4">
+                 <div className="flex justify-between w-full max-w-lg mb-4">
                      <Button variant="outline" onClick={() => setIsFinalizing(false)}>
                         <ArrowLeft className="mr-2" />
                         Back to Editor
@@ -1216,9 +1214,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-xl shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden"
+                    className="w-full max-w-lg shadow-lg ring-1 ring-black/5 overflow-hidden"
                   >
-                    <div ref={previewContentRef} className="w-[850px] bg-white">
+                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -1343,8 +1341,8 @@ export default function ResumeBuilder() {
           </div>
         </main>
         <aside className="hidden lg:block lg:col-span-5 sticky top-8 self-start">
-            <div ref={previewContainerRef} className="w-full max-w-xl mx-auto shadow-lg ring-1 ring-black/5 aspect-[210/297] overflow-hidden">
-                <div ref={previewContentRef} className="w-[850px] bg-white">
+            <div ref={previewContainerRef} className="w-full max-w-lg mx-auto overflow-hidden shadow-lg ring-1 ring-black/5">
+                <div ref={previewContentRef} className="w-[850px] bg-white aspect-[210/297]">
                     <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                 </div>
             </div>
