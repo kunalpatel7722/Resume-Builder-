@@ -1398,7 +1398,7 @@ const ResumeBuilderContent = () => {
     const { 
         currentStep, selectedTemplate, setSelectedTemplate, nextStep, previewContainerRef, 
         previewContentRef, TemplateComponent, accentColor, fontSize, 
-        isFinalizing, setIsFinalizing, setAccentColor, handleDownloadPdf, isDownloading
+        isFinalizing, setIsFinalizing, setAccentColor, setFontSize, handleDownloadPdf, isDownloading
     } = useResumeBuilder();
 
     const FinalizeScreen = () => (
@@ -1452,6 +1452,20 @@ const ResumeBuilderContent = () => {
                                 <div className="flex flex-wrap gap-3">
                                     {colorOptions.map(option => (
                                         <button key={option.name} onClick={() => setAccentColor(option.color)} className={cn("h-8 w-8 rounded-full border-2 transition-all", accentColor === option.color ? 'border-primary ring-2 ring-primary/50 ring-offset-2' : 'border-gray-200')} style={{backgroundColor: option.color}} />
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2"><CaseSensitive size={20}/> Font Size</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {fontSizes.map(size => (
+                                        <Button 
+                                            key={size.id} 
+                                            variant={fontSize === size.id ? 'default' : 'outline'}
+                                            onClick={() => setFontSize(size.id as 'sm' | 'md' | 'lg')}
+                                        >
+                                            {size.name}
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
