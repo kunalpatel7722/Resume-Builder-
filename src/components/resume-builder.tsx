@@ -270,15 +270,13 @@ export default function ResumeBuilder() {
 
     if (!container || !content) return;
 
-    // A function to calculate and apply the scale
     const applyScale = () => {
-      const previewBaseWidth = 850; // The fixed width of the unscaled resume
-      if (container.offsetWidth > 0 && previewBaseWidth > 0) {
-        const scale = container.offsetWidth / previewBaseWidth;
+      const contentWidth = content.offsetWidth;
+      if (container.offsetWidth > 0 && contentWidth > 0) {
+        const scale = container.offsetWidth / contentWidth;
         content.style.transform = `scale(${scale})`;
         content.style.transformOrigin = 'top left';
-        // Use offsetHeight for unscaled height, then multiply by scale for the container
-        container.style.height = `${content.offsetHeight * scale}px`;
+        // Use aspect-ratio on content div to manage height
       }
     };
 
@@ -286,11 +284,8 @@ export default function ResumeBuilder() {
       applyScale();
     });
 
-    // We only need to observe the container for width changes.
     resizeObserver.observe(container);
 
-    // Apply scale initially and whenever dependencies change.
-    // Use a small timeout to ensure the DOM has updated with new content.
     setTimeout(applyScale, 50);
 
     return () => {
@@ -884,7 +879,7 @@ export default function ResumeBuilder() {
                 </div>
             </aside>
             <main className="lg:col-span-9 flex flex-col items-center justify-start mt-8 lg:mt-0">
-                 <div className="flex justify-end w-full max-w-xl mb-4">
+                 <div className="flex justify-end w-full max-w-lg mb-4">
                      <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="animate-spin mr-2" /> : <Download className="mr-2" />}
                         Download PDF
@@ -892,9 +887,9 @@ export default function ResumeBuilder() {
                  </div>
                  <div 
                     ref={previewContainerRef}
-                    className="w-full max-w-xl shadow-xl ring-1 ring-black/5"
+                    className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
                   >
-                    <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
+                    <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                         <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                     </div>
                   </div>
@@ -912,42 +907,22 @@ export default function ResumeBuilder() {
     )}>
       
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-3 border-r bg-card p-6 sticky top-24">
-          <h2 className="text-xl font-bold text-foreground">Resume Builder</h2>
-          <div className="space-y-1">
-            {steps.map((step, index) => {
-              const stepIndex = steps.findIndex(s => s.id === currentStep);
-              const isActive = step.id === currentStep || (currentStep === 'experience-description' && step.id === 'experience');
-              const isCompleted = stepIndex > index;
-              return (
-                <button
-                  key={step.id}
-                  onClick={() => setCurrentStep(step.id)}
-                  className={cn(
-                    "w-full flex items-center text-left p-3 rounded-lg transition-colors",
-                    isActive ? "bg-primary/10 text-primary font-semibold" : isCompleted ? "text-muted-foreground" : "hover:bg-muted"
-                  )}
-                  disabled={!isCompleted && !isActive && step.id !== 'career-level' && !careerLevel}
-                >
-                  <div className={cn(
-                    "w-7 h-7 rounded-full flex items-center justify-center mr-4 border-2 flex-shrink-0",
-                    isActive ? "bg-primary text-primary-foreground border-primary" : 
-                    isCompleted ? "bg-green-500 text-white border-green-500" : "bg-card"
-                  )}>
-                    {isCompleted ? <FileCheck2 size={16}/> : coreSteps.findIndex(s => s.id === step.id) + 1 || ''}
-                  </div>
-                  <span className="text-sm">{step.name}</span>
-                </button>
-              )
-            })}
+        <aside className="hidden lg:flex flex-col gap-6 lg:col-span-5 bg-muted p-8 sticky top-0 items-center justify-center h-screen">
+          <div 
+            ref={previewContainerRef}
+            className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
+          >
+             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
+                <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
+            </div>
           </div>
         </aside>
       )}
 
       <main className={cn(
-          "w-full p-4 sm:p-6 lg:p-8",
+          "w-full p-4 sm:p-6 lg:p-8 min-h-screen",
           showPreview
-              ? "lg:col-span-4"
+              ? "lg:col-span-7"
               : "max-w-4xl mx-auto py-16"
       )}>
         <div className="lg:hidden">
@@ -1620,7 +1595,7 @@ export default function ResumeBuilder() {
                         ref={previewContainerRef} 
                         className="w-full shadow-xl ring-1 ring-black/5"
                     >
-                       <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
+                       <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                             <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
                         </div>
                     </div>
@@ -1636,12 +1611,12 @@ export default function ResumeBuilder() {
       </main>
 
       {showPreview && !isMobile && (
-        <aside className="hidden lg:flex flex-col lg:col-span-5 bg-muted p-8 items-start justify-center sticky top-24">
+        <aside className="hidden lg:flex flex-col lg:col-span-5 bg-muted p-8 sticky top-0 items-center justify-center h-screen">
           <div 
             ref={previewContainerRef}
-            className="w-full max-w-xl shadow-xl ring-1 ring-black/5"
+            className="w-full max-w-lg shadow-xl ring-1 ring-black/5"
           >
-             <div ref={previewContentRef} className="w-[850px] h-[1202px] origin-top-left bg-white">
+             <div ref={previewContentRef} className="w-[850px] bg-white aspect-[1/1.414] origin-top-left">
                 <TemplateComponent data={resumeData} accentColor={accentColor} fontSize={fontSize} />
             </div>
           </div>
